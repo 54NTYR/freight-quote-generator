@@ -14,20 +14,45 @@ if ($LASTEXITCODE -ne 0) {
 
 $RepoName = "freight-quote-generator"
 $Description = "Desktop freight quote generator for LTL, FTL, Dray, and international quotes."
+$Owner = gh api user -q .login
+$RepoSlug = "$Owner/$RepoName"
+$RemoteUrl = "https://github.com/$RepoSlug.git"
 
-Write-Host "Creating public GitHub repository: $RepoName" -ForegroundColor Cyan
-gh repo create $RepoName `
-    --public `
-    --source . `
-    --remote origin `
-    --description $Description `
-    --push
+gh repo view $RepoSlug 2>$null
+$RepoExists = ($LASTEXITCODE -eq 0)
 
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to create or push GitHub repository."
+if ($RepoExists) {
+    Write-Host "Repository already exists: $RepoSlug" -ForegroundColor Cyan
+} else {
+    Write-Host "Creating public GitHub repository: $RepoName" -ForegroundColor Cyan
+    gh repo create $RepoName `
+        --public `
+        --description $Description
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to create GitHub repository."
+    }
 }
 
-$Url = gh repo view --json url -q .url
+$ExistingRemote = git remote get-url origin 2>$null
+if ($LASTEXITCODE -ne 0) {
+    git remote add origin $RemoteUrl
+} elseif ($ExistingRemote -ne $RemoteUrl) {
+    git remote set-url origin $RemoteUrl
+}
+
+Write-Host "Pushing to origin..." -ForegroundColor Cyan
+$Branch = git branch --show-current
+if ([string]::IsNullOrWhiteSpace($Branch)) {
+    $Branch = "main"
+}
+
+git push -u origin $Branch
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to push to GitHub repository."
+}
+
+$Url = gh repo view $RepoSlug --json url -q .url
 Write-Host ""
 Write-Host "Published successfully:" -ForegroundColor Green
 Write-Host "  $Url"
