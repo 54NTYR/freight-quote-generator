@@ -1,0 +1,15 @@
+dist/
+build/*
+!build/signing.local.json.example
+installer_output/
+__pycache__/
+*.pyc
+.venv/
+*.log
+build/codesign.pfx
+build/signing.local.json
+.env
+quote_counter.json
+tmp_*.html
+test_international_output.html
+Quote International.html

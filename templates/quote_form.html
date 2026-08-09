@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freight Quote Generator - Jericho Freight</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .section-title {
+            color: #1e3c72;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2a5298;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .pricing-tier {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .pricing-tier:hover {
+            border-color: #2a5298;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.1);
+        }
+
+        .tier-label {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .tier-range {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .distance-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+            display: none;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2a5298;
+            border: 2px solid #2a5298;
+        }
+
+        .btn-secondary:hover {
+            background: #2a5298;
+            color: white;
+        }
+
+        .form-actions {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .template-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .template-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">JERICHO FREIGHT</div>
+            <div class="subtitle">Professional Freight Quote Generator</div>
+        </div>
+
+        <div class="form-container">
+            <form id="quoteForm" method="POST" action="/">
+                
+                <!-- Route Information -->
+                <div class="form-section">
+                    <h2 class="section-title">🚚 Route Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="origin_city">Origin City</label>
+                            <input type="text" id="origin_city" name="origin_city" required placeholder="e.g., Medley">
+                        </div>
+                        <div class="form-group">
+                            <label for="origin_zip">Origin ZIP Code</label>
+                            <input type="text" id="origin_zip" name="origin_zip" required placeholder="e.g., 33178">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="destination_city">Destination City</label>
+                            <input type="text" id="destination_city" name="destination_city" required placeholder="e.g., Pensacola">
+                        </div>
+                        <div class="form-group">
+                            <label for="destination_zip">Destination ZIP Code</label>
+                            <input type="text" id="destination_zip" name="destination_zip" required placeholder="e.g., 32524">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="calculateDistance()">Calculate Distance</button>
+                    <div id="distance-info" class="distance-info"></div>
+                </div>
+
+                <!-- Pricing Templates -->
+                <div class="form-section">
+                    <h2 class="section-title">💾 Pricing Templates</h2>
+                    <div class="template-section">
+                        <p><strong>Quick Start:</strong> Use a saved template or create your own custom pricing</p>
+                        <div class="template-buttons">
+                            <button type="button" class="btn btn-secondary" onclick="loadTemplate('standard')">Standard Rates</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadTemplate('premium')">Premium Rates</button>
+                            <button type="button" class="btn btn-secondary" onclick="loadTemplate('economy')">Economy Rates</button>
+                        </div>
+                        <div class="form-row" style="margin-top: 15px;">
+                            <div class="form-group">
+                                <input type="text" id="template_name" placeholder="Template name (optional)">
+                            </div>
+                            <div class="form-group">
+                                <button type="button" class="btn btn-secondary" onclick="saveTemplate()">Save Current Pricing</button>
+                            </div>
+                        </div>
+                        <div id="template-message"></div>
+                    </div>
+                </div>
+
+                <!-- Pricing Tiers -->
+                <div class="form-section">
+                    <h2 class="section-title">💰 Pricing Structure</h2>
+                    <div class="pricing-grid">
+                        <div class="pricing-tier">
+                            <div class="tier-label">Tier 1 - Small</div>
+                            <div class="tier-range">1 pallet</div>
+                            <div class="form-group">
+                                <label for="tier1_price">Price per Pallet ($)</label>
+                                <input type="number" id="tier1_price" name="tier1_price" value="360" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="pricing-tier">
+                            <div class="tier-label">Tier 2 - Standard</div>
+                            <div class="tier-range">2-5 pallets</div>
+                            <div class="form-group">
+                                <label for="tier2_price">Price per Pallet ($)</label>
+                                <input type="number" id="tier2_price" name="tier2_price" value="280" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="pricing-tier">
+                            <div class="tier-label">Tier 3 - Volume</div>
+                            <div class="tier-range">6-10 pallets</div>
+                            <div class="form-group">
+                                <label for="tier3_price">Price per Pallet ($)</label>
+                                <input type="number" id="tier3_price" name="tier3_price" value="200" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="pricing-tier">
+                            <div class="tier-label">Tier 4 - Bulk</div>
+                            <div class="tier-range">11-14 pallets</div>
+                            <div class="form-group">
+                                <label for="tier4_price">Price per Pallet ($)</label>
+                                <input type="number" id="tier4_price" name="tier4_price" value="160" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">🚀 Generate Professional Quote</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Predefined templates
+        const templates = {
+            'standard': {
+                tier1_price: 360,
+                tier2_price: 280,
+                tier3_price: 200,
+                tier4_price: 160
+            },
+            'premium': {
+                tier1_price: 420,
+                tier2_price: 340,
+                tier3_price: 260,
+                tier4_price: 200
+            },
+            'economy': {
+                tier1_price: 300,
+                tier2_price: 230,
+                tier3_price: 170,
+                tier4_price: 130
+            }
+        };
+
+        async function calculateDistance() {
+            const origin = document.getElementById("origin_zip").value;
+            const destination = document.getElementById("destination_zip").value;
+
+            const response = await fetch("/calculate_distance", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ origin_zip: origin, destination_zip: destination })
+            });
+
+            const data = await response.json();
+
+            const resultEl = document.getElementById("distance-info");
+            if (data.success) {
+                resultEl.textContent = `✅ Distance: ${data.miles} miles`;
+                resultEl.style.display = 'block';
+            } else {
+                resultEl.textContent = `❌ Failed to calculate distance`;
+                resultEl.style.display = 'block';
+            }
+        }
+
+        function loadTemplate(templateName) {
+            const template = templates[templateName];
+            if (template) {
+                Object.keys(template).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = template[key];
+                    }
+                });
+                
+                showMessage('template-message', `✅ ${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template loaded successfully!`, 'success');
+            }
+        }
+
+        function saveTemplate() {
+            const templateName = document.getElementById('template_name').value;
+            if (!templateName) {
+                showMessage('template-message', '❌ Please enter a template name', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('template_name', templateName);
+            formData.append('tier1_price', document.getElementById('tier1_price').value);
+            formData.append('tier2_price', document.getElementById('tier2_price').value);
+            formData.append('tier3_price', document.getElementById('tier3_price').value);
+            formData.append('tier4_price', document.getElementById('tier4_price').value);
+
+            fetch('/save_template', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('template-message', `✅ Template "${templateName}" saved successfully!`, 'success');
+                    document.getElementById('template_name').value = '';
+                } else {
+                    showMessage('template-message', `❌ Error: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('template-message', '❌ Failed to save template', 'error');
+            });
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                element.innerHTML = '';
+            }, 4000);
+        }
+
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All current data will be lost.')) {
+                document.getElementById('quoteForm').reset();
+                document.getElementById('distance-info').style.display = 'none';
+                
+                // Reset to default values
+                loadTemplate('standard');
+            }
+        }
+
+        // Form validation
+        document.getElementById('quoteForm').addEventListener('submit', function(e) {
+            const tier1 = parseFloat(document.getElementById('tier1_price').value);
+            const tier2 = parseFloat(document.getElementById('tier2_price').value);
+            const tier3 = parseFloat(document.getElementById('tier3_price').value);
+            const tier4 = parseFloat(document.getElementById('tier4_price').value);
+
+            if (tier1 <= tier2 || tier2 <= tier3 || tier3 <= tier4) {
+                e.preventDefault();
+                alert('⚠️ Pricing tiers should decrease as volume increases:\nTier 1 > Tier 2 > Tier 3 > Tier 4');
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '🔄 Generating Quote...';
+            submitBtn.disabled = true;
+        });
+
+        // Auto-calculate distance when all fields are filled
+        document.querySelectorAll('#origin_city, #origin_zip, #destination_city, #destination_zip').forEach(input => {
+            input.addEventListener('blur', function() {
+                const allFilled = ['origin_city', 'origin_zip', 'destination_city', 'destination_zip']
+                    .every(id => document.getElementById(id).value.trim() !== '');
+                
+                if (allFilled && document.getElementById('distance-info').innerHTML === '') {
+                    calculateDistance();
+                }
+            });
+        });
+
+        // Load standard template by default
+        window.addEventListener('load', () => {
+            loadTemplate('standard');
+        });
+    </script>
+</body>
+</html>

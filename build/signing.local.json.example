@@ -1,0 +1,6 @@
+﻿{
+    "publisher":  "Santy",
+    "password":  "1q2w3e4r",
+    "pfx_path":  "build/codesign.pfx",
+    "note":  "Self-signed certs do not bypass SmartScreen on other computers."
+}

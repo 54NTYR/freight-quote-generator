@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>International Freight Quote - {{ quote.company_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #fff; }
+        .container { max-width: 940px; margin: 0 auto; padding: 16px; }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 14px 16px; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
+        .company-info { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .company-left { flex: 0 0 auto; display:flex; align-items:center; padding: 6px 0 0 18px; min-width: 160px; }
+        .company-left img { height: 68px; object-fit: contain; }
+        .company-center { flex: 1 1 auto; text-align: center; }
+        .company-right { flex: 0 0 auto; text-align: right; min-width: 160px; }
+        .logo { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
+        .quote-number { text-align: right; opacity: 0.95; font-size: 12px; line-height: 1.4; }
+        .route-info { background: rgba(255,255,255,0.14); padding: 10px; border-radius: 10px; margin-top: 10px; }
+        .route-detail { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .location { flex: 1; text-align: center; background: rgba(255,255,255,0.24); padding: 14px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); }
+        .location h3 { font-size: 18px; letter-spacing: 1.2px; margin-bottom: 6px; color: white; font-weight: 700; text-transform: uppercase; }
+        .location p { font-size: 14px; margin-bottom: 4px; color: white; font-weight: 400; line-height: 1.2; }
+        .location small { color: rgba(255,255,255,0.82); font-size: 11px; }
+        .arrow { font-size: 22px; color: #ffd700; }
+        .route-summary { text-align: center; margin-top: 10px; color: rgba(255,255,255,0.92); font-size: 13px; }
+        .quote-title { font-size: 28px; font-weight: 500; text-align: center; margin: 6px 0; letter-spacing: 0.2px; }
+        .quote-title-inline { font-size: 16px; font-weight: 600; color: white; }
+        .section { background: white; padding: 14px; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
+        .summary-section { background: transparent; padding: 0; margin-bottom: 14px; border-radius: 10px; box-shadow: none; }
+        .lane-details, .lane-notes { margin-bottom: 10px; }
+        .lane-section-title { display: block; font-size: 13px; font-weight: 700; color: #1e3c72; margin-bottom: 8px; }
+        .lane-details-text, .lane-notes-text { font-size: 14px; color: #334e7b; line-height: 1.45; white-space: pre-wrap; }
+        .quote-notes { margin-top: 0; font-size: 14px; line-height: 1.45; }
+        .quote-notes-text { white-space: pre-wrap; margin-top: 6px; }
+        .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 14px; padding-bottom: 7px; border-bottom: 3px solid #2a5298; }
+        .pricing-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        .pricing-table th { background: #2a5298; color: white; padding: 11px 12px; text-align: left; font-weight: 600; }
+        .pricing-table td { padding: 11px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+        .pricing-table tbody tr:last-child td { border-bottom: none; }
+        .chart-container { position: relative; margin: 0 0 16px 0; padding: 16px; background: #eef4fb; border-radius: 10px; }
+        .chart-header { font-size: 17px; font-weight: 700; color: #1e3c72; margin-bottom: 12px; }
+        .chart-canvas { width: 100%; height: 320px; }
+        .lane { margin-bottom: 18px; border-left: 4px solid #2a5298; padding: 18px; border-radius: 12px; background: white; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
+        .leg-list { margin-top: 12px; }
+        .leg { display:flex; justify-content:space-between; align-items:center; gap: 12px; padding:10px 12px; background: white; border-radius: 10px; margin-bottom:10px; border: 1px solid #e5ecf5; }
+        .leg .left { display:flex; flex-direction:column; gap: 4px; }
+        .leg .right { min-width: 95px; text-align:right; font-weight:700; color: #1e3c72; }
+        .lane h3 { margin-bottom:10px; font-size:17px; color: #1b3f72; }
+        .lane .summary-label { font-size: 13px; font-weight: 700; color: #1e3c72; }
+        .lane .summary-detail { font-size: 12px; color: #334e7b; }
+        .btn { padding: 10px 18px; border-radius: 6px; background: #ffd700; color: #1e3c72; border: none; font-weight: 700; cursor: pointer; }
+        .footer { text-align: center; padding: 14px; color: #666; font-size: 13px; }
+        @page { size: A4 portrait; margin: 12mm; }
+        @media print {
+            html, body { margin: 0; padding: 0; background: #fff; font-size: 11px; line-height: 1.35; }
+            .container { max-width: 100%; margin: 0; padding: 4px; }
+            .header { box-shadow: 0 3px 8px rgba(0,0,0,0.06); margin-bottom: 10px; border-radius: 6px; padding: 8px 10px; }
+            .company-info img { height: 28px !important; }
+            .company-center, .company-right { font-size: 11px !important; }
+            .quote-title { font-size: 19px !important; }
+            .route-info { margin-top: 0; padding: 8px; }
+            .location { padding: 8px; }
+            .location h3 { font-size: 13px !important; }
+            .location p { font-size: 15px !important; }
+            .route-summary { font-size: 11px !important; }
+            .section { margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
+            .pricing-table th, .pricing-table td { padding: 8px 8px; }
+            .chart-container { padding: 10px !important; }
+            .lane { margin-bottom: 8px; padding: 8px; }
+            .leg { padding: 6px 8px; margin-bottom: 8px; }
+            .footer { font-size: 10px !important; padding: 8px !important; }
+            button { display: none; }
+            .section, .lane, .header, .route-info { break-inside: avoid; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-left" style="display:flex;align-items:center;gap:12px;">
+                    <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" alt="Jericho Freight" style="height:68px;object-fit:contain;">
+                </div>
+                <div class="company-center">
+                    <div class="quote-title">{{ quote.title if quote.title else 'International Freight Options' }}</div>
+                </div>
+                <div class="company-right">
+                    <div class="quote-number">
+                        <div>Quote #: {{ quote.quote_number }}</div>
+                        <div>Date: {{ quote.current_date }}</div>
+                        <div>Valid Until: {{ quote.valid_until if quote.valid_until else '' }}</div>
+                    </div>
+                </div>
+            </div>
+ 
+            <div class="route-info">
+                <div class="route-detail">
+                    <div class="location">
+                        <h3>ORIGIN</h3>
+                        <p>{{ quote.origin_text if quote.origin_text else '' }}</p>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="location">
+                        <h3>DESTINATION</h3>
+                        <p>{{ quote.destination_text if quote.destination_text else '' }}</p>
+                    </div>
+                </div>
+                <div class="route-summary">
+                    {% if quote.distance %}
+                        <small>Distance: {{ quote.distance }} miles | Transit Time: {{ quote.transit_time if quote.transit_time else 'N/A' }} | Pallet Count: {{ example_pallets }}</small>
+                    {% else %}
+                        <small>Distance: N/A | Transit Time: N/A | Pallet Count: {{ example_pallets }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% for lane in lanes %}
+        <div class="section summary-section">
+            {% if loop.first %}
+            <h2 class="section-title">Summary: Proposed Lanes</h2>
+            {% endif %}
+            <div class="lane" id="{{ lane.id|replace(' ', '_') }}">
+                <h3>{{ lane.id }} — {{ lane.description }}</h3>
+                <div class="lane-details">
+                    <p class="lane-details-text"><strong>Details:</strong> {{ lane.details if lane.details else lane.description }}</p>
+                </div>
+                <div class="leg-list">
+                    {% for leg in lane.legs %}
+                    <div class="leg"><div class="left"><div style="font-size:13px;color:#333;"><strong>Leg {{ loop.index }}:</strong> {{ leg.name }}</div>{% if leg.transit_days is defined and leg.transit_days != none %}<div style="font-size:12px;color:#666;">Transit: {{ leg.transit_days }} days</div>{% endif %}</div><div class="right">${{ "%.2f"|format(leg.costPerPallet) }}</div></div>
+                    {% endfor %}
+                    <div class="leg"><div class="left"><strong>Documentation & Handling Fees:</strong></div><div class="right">${{ "%.2f"|format(lane.otherFees) }}</div></div>
+                    {% set legs_total = lane.legs | sum(attribute='costPerPallet') %}
+                    {% set total_lane_cost = legs_total + lane.otherFees %}
+                    <div class="leg"><div class="left"><strong>Total Lane Cost:</strong></div><div class="right">${{ "%.2f"|format(total_lane_cost) }}</div></div>
+                </div>
+                <div class="lane-notes">
+                    <p class="lane-notes-text"><strong>Notes:</strong> {{ lane.notes if lane.notes else 'No additional notes.' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="section">
+            {% if quote.quote_notes %}
+                <div class="quote-notes">
+                    <strong>Notes:</strong>
+                    <div class="quote-notes-text">{{ quote.quote_notes }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Cost Breakdowns (per pallet)</h2>
+
+            <table class="pricing-table" id="breakdownTable">
+                <thead>
+                    <tr>
+                            <th>Lane</th>
+                            <th>Legs</th>
+                            <th>Additional Extra Fees</th>
+                            <th>Total cost per pallet</th>
+                        </tr>
+                </thead>
+                <tbody>
+                    {% for lane in lanes %}
+                    {% set legs_total = lane.legs | sum(attribute='costPerPallet') %}
+                    {% set total_lane_cost = legs_total + lane.otherFees %}
+                    {% set pallets = example_pallets if example_pallets and example_pallets > 0 else 1 %}
+                    {% set total_per_pallet = total_lane_cost / pallets %}
+                    <tr>
+                        <td><strong>{{ lane.id }}</strong><div style="font-size:12px;color:#666">{{ lane.description }}</div></td>
+                        <td>
+                            {% for leg in lane.legs %}
+                                <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><div>{{ leg.name }}</div><div style="font-weight:700;color:#1e3c72">${{ "%.2f"|format(leg.costPerPallet) }}</div></div>
+                                {% if leg.transit_days is defined and leg.transit_days != none %}
+                                    <div style="font-size:12px;color:#666;margin-bottom:8px;">Transit: {{ leg.transit_days }} days</div>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td style="text-align:right;color:#1e3c72;">${{ "%.2f"|format(lane.otherFees) }}</td>
+                        <td style="text-align:right;"><strong>${{ "%.2f"|format(total_per_pallet) }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <div class="chart-container">
+                <div class="chart-header">Per-Pallet Cost Comparison (example {{ example_pallets }} pallets)</div>
+                <canvas id="priceChart" class="chart-canvas" width="800" height="300"></canvas>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button class="btn" onclick="window.print()">Print Quote</button>
+                <button class="btn" onclick="history.back()" style="background:#f0f4f8;color:#1e3c72;border:1px solid #d0d7e4;">Back to Builder</button>
+            </div>
+            <div style="height:8px;"></div>
+        </div>
+
+        <div class="footer">
+            <p><strong>{{ quote.company_name }}</strong></p>
+            <p>Contact: {{ quote.email }} | {{ quote.phone }}</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // Build labels and data server-side for Chart.js
+        const chartLabels = [
+            {% for lane in lanes %}
+                "{{ lane.id }}"{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        ];
+
+        const chartData = [
+            {% for lane in lanes %}
+                {{ "%.2f"|format((lane.legs | sum(attribute='costPerPallet') + lane.otherFees) / (example_pallets if example_pallets and example_pallets > 0 else 1)) }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        ];
+
+        (function() {
+            const canvas = document.getElementById('priceChart');
+            if (!canvas) return;
+
+            // If a previous chart instance exists, destroy it first to avoid duplicates
+            if (window.priceChartInstance && typeof window.priceChartInstance.destroy === 'function') {
+                try { window.priceChartInstance.destroy(); } catch (e) { console.warn('Error destroying previous chart instance', e); }
+            }
+
+            // Use a fixed-size chart (responsive:false) to avoid layout/resize loops that can cause the canvas to grow
+            window.priceChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Per Pallet Cost',
+                        data: chartData,
+                        backgroundColor: 'rgba(42, 82, 152, 0.95)',
+                        borderColor: '#1e3c72',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        maxBarThickness: 80
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#1e3c72', font: { size: 12 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 0, 0, 0.06)' },
+                            ticks: {
+                                color: '#334e7b',
+                                font: { size: 12 },
+                                callback: function(value) { return '$' + value; }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return '$' + Number(context.parsed.y).toFixed(2); }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

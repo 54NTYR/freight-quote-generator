@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>International Freight Quote - Jericho Freight</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 28px 40px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px; }
+        .logo-img { height:56px; }
+        .header-info { width:100%; }
+        .company-name { display:none; }
+        .subtitle { font-size:20px; font-weight:700; opacity:0.95; }
+        .form-container { padding: 24px 40px 40px; }
+        .form-section { margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #2a5298; }
+        .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 12px; font-weight: bold; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 6px; font-weight: 600; color: #2a5298; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .lane { margin-bottom: 12px; border: 1px solid #e6e9ee; padding:12px; border-radius:8px; background:#fff; }
+        .lane-title { display:flex; justify-content:space-between; align-items:center; }
+        .legs { margin-top:8px; }
+        .leg { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+        .leg input[type=text] { flex: 2; }
+        .leg input[type=number] { flex: 1; }
+        .small-note { margin-top: 8px; color: #555; font-size: 13px; }
+        .controls { margin-top: 10px; display:flex; gap:8px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight:700; cursor:pointer; }
+        .btn-add { background:#ffd700; color:#1e3c72; border: none; }
+        .btn-primary { background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%); color: white; padding:12px 22px; border-radius: 50px; border:none; }
+        .btn-secondary { background:#f0f4f8; border:2px solid #2a5298; color:#2a5298; padding:10px 16px; border-radius:8px; }
+        .route-info { background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; margin-top:12px; text-align:center; }
+        .route-detail { display:flex; justify-content:center; align-items:center; gap:20px; }
+        .location { flex:1; text-align:center; }
+        .arrow { font-size: 30px; color: #ffd700; }
+        .metric { font-size:13px; color:#666; margin-top:8px; }
+        @media (max-width:768px){ .header{flex-direction:column;align-items:flex-start} .company-name{font-size:20px} }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" class="logo-img" alt="logo">
+            <div class="header-info">
+                <div class="subtitle">International Quote Builder</div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div class="form-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="quote_name">Quote Title</label>
+                        <input id="quote_name" value="Cartagena International Quote">
+                    </div>
+                    <div class="form-group">
+                        <label for="origin_text">Origin</label>
+                        <input id="origin_text" value="Jerome, ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="destination_text">Destination</label>
+                        <input id="destination_text" value="Cartagena, Colombia">
+                    </div>
+                    <div class="form-group">
+                        <label for="example_pallets">Example Pallet Count</label>
+                        <input id="example_pallets" type="number" value="10" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="valid_until">Valid Until</label>
+                        <input id="valid_until" type="date">
+                    </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="quote_notes">Notes (will appear on quote)</label>
+                            <textarea id="quote_notes" rows="3" placeholder="Optional notes to include at the end of the quote"></textarea>
+                        </div>
+                    </div>
+            </div>
+
+            <div id="lanes_container">
+                <!-- lanes will be added here -->
+            </div>
+
+            <div class="controls">
+                <button type="button" class="btn btn-add" id="add_lane_btn">+ Add Lane</button>
+            </div>
+
+            <div style="text-align:right; margin-top:16px;">
+                <button type="button" class="btn btn-primary" id="generate_btn">Generate International Quote</button>
+                <a href="/" class="btn btn-secondary" style="margin-left:8px;">Cancel</a>
+            </div>
+        </div>
+    </div>
+
+    <template id="lane_template">
+        <div class="lane">
+            <div class="lane-title">
+                <strong class="lane-label">Lane</strong>
+                <div>
+                    <button type="button" class="btn btn-add add-leg-btn">+ Leg</button>
+                    <button type="button" class="btn btn-add remove-lane-btn" style="background:#ff6b6b;color:#fff;margin-left:8px;">Remove Lane</button>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Lane Description</label>
+                    <input class="lane-description" type="text" placeholder="e.g., Jerome → Oakland → CTG">
+                </div>
+                <div class="form-group">
+                    <label>Additional Extra Fees (per pallet)</label>
+                    <input class="lane-extra-fees" type="number" step="0.01" value="0">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="grid-column:1 / -1;">
+                    <label>Details (appears above legs)</label>
+                    <textarea class="lane-details" rows="2" placeholder="Details for this lane"></textarea>
+                </div>
+            </div>
+            <div class="legs">
+                <!-- leg items inserted here -->
+            </div>
+            <div class="form-row" style="margin-top:10px;">
+                <div class="form-group" style="grid-column:1 / -1;">
+                    <label>Notes (appears below legs)</label>
+                    <textarea class="lane-notes" rows="2" placeholder="Notes for this lane"></textarea>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="leg_template">
+        <div class="leg">
+            <input class="leg-name" type="text" placeholder="Leg name (e.g., Truck to Port)">
+            <input class="leg-cost" type="number" step="0.01" placeholder="Leg X cost">
+            <input class="leg-transit" type="number" min="0" step="1" placeholder="Transit days">
+            <button type="button" class="btn btn-secondary remove-leg-btn">Remove</button>
+        </div>
+    </template>
+
+    <script>
+        const lanesContainer = document.getElementById('lanes_container');
+        const laneTemplate = document.getElementById('lane_template');
+        const legTemplate = document.getElementById('leg_template');
+
+        function addLane(description='', extra=0, legs=[], details='', notes='') {
+            const node = laneTemplate.content.cloneNode(true);
+            const laneEl = node.querySelector('.lane');
+            const descInput = laneEl.querySelector('.lane-description');
+            const extraInput = laneEl.querySelector('.lane-extra-fees');
+            const detailsInput = laneEl.querySelector('.lane-details');
+            const notesInput = laneEl.querySelector('.lane-notes');
+            const legsEl = laneEl.querySelector('.legs');
+            descInput.value = description;
+            extraInput.value = extra;
+            detailsInput.value = details;
+            notesInput.value = notes;
+
+            const addLegBtn = laneEl.querySelector('.add-leg-btn');
+            addLegBtn.addEventListener('click', () => addLeg(legsEl));
+
+            const removeLaneBtn = laneEl.querySelector('.remove-lane-btn');
+            removeLaneBtn.addEventListener('click', () => { laneEl.remove(); refreshLegPlaceholders(); });
+
+            legs.forEach(lg => addLeg(legsEl, lg.name, lg.cost, lg.transit));
+            // ensure at least one leg
+            if (legs.length === 0) addLeg(legsEl);
+
+            lanesContainer.appendChild(laneEl);
+            refreshLegPlaceholders();
+        }
+
+        function addLeg(legsEl, name='', cost=0, transit='') {
+            const node = legTemplate.content.cloneNode(true);
+            const legEl = node.querySelector('.leg');
+            const nameInput = legEl.querySelector('.leg-name');
+            const costInput = legEl.querySelector('.leg-cost');
+            const transitInput = legEl.querySelector('.leg-transit');
+            const removeBtn = legEl.querySelector('.remove-leg-btn');
+            nameInput.value = name;
+            costInput.value = cost;
+            transitInput.value = transit;
+            removeBtn.addEventListener('click', () => { legEl.remove(); refreshLegPlaceholders(); saveDraft(); });
+            legsEl.appendChild(legEl);
+            refreshLegPlaceholders();
+            saveDraft();
+        }
+
+        function refreshLegPlaceholders(){
+            // update leg cost placeholders with index
+            document.querySelectorAll('.lane').forEach(laneEl => {
+                const legs = laneEl.querySelectorAll('.leg');
+                legs.forEach((legEl, idx) => {
+                    const costInput = legEl.querySelector('.leg-cost');
+                    costInput.placeholder = `Leg ${idx+1} cost`;
+                });
+                // update lane label
+                const laneLabel = laneEl.querySelector('.lane-label');
+                laneLabel.textContent = `Lane ${Array.from(document.querySelectorAll('.lane')).indexOf(laneEl)+1}`;
+            });
+            saveDraft();
+        }
+
+        document.getElementById('add_lane_btn').addEventListener('click', (e)=>{ e.preventDefault(); addLane(); saveDraft(); });
+
+        // Draft persistence: save to localStorage
+        function saveDraft(){
+            const draft = {
+                quote_name: document.getElementById('quote_name').value,
+                origin_text: document.getElementById('origin_text').value,
+                destination_text: document.getElementById('destination_text').value,
+                example_pallets: parseInt(document.getElementById('example_pallets').value) || 1,
+                valid_until: document.getElementById('valid_until') ? document.getElementById('valid_until').value : '',
+                quote_notes: document.getElementById('quote_notes') ? document.getElementById('quote_notes').value : '',
+                lanes: Array.from(document.querySelectorAll('.lane')).map(laneEl => ({
+                    description: laneEl.querySelector('.lane-description').value,
+                    otherFees: parseFloat(laneEl.querySelector('.lane-extra-fees').value) || 0,
+                        details: laneEl.querySelector('.lane-details').value || '',
+                        notes: laneEl.querySelector('.lane-notes').value || '',
+                        legs: Array.from(laneEl.querySelectorAll('.leg')).map(legEl => ({
+                            name: legEl.querySelector('.leg-name').value || '',
+                            costPerPallet: parseFloat(legEl.querySelector('.leg-cost').value) || 0,
+                            transit_days: legEl.querySelector('.leg-transit').value ? parseInt(legEl.querySelector('.leg-transit').value) : null
+                        }))
+                    }))
+            };
+            localStorage.setItem('intl_draft', JSON.stringify(draft));
+        }
+
+        function loadDraft(){
+            const raw = localStorage.getItem('intl_draft');
+            if (!raw) return false;
+            try{
+                const draft = JSON.parse(raw);
+                document.getElementById('quote_name').value = draft.quote_name || '';
+                document.getElementById('origin_text').value = draft.origin_text || '';
+                document.getElementById('destination_text').value = draft.destination_text || '';
+                document.getElementById('example_pallets').value = draft.example_pallets || 1;
+                if (document.getElementById('valid_until')) document.getElementById('valid_until').value = draft.valid_until || '';
+            if (document.getElementById('quote_notes')) document.getElementById('quote_notes').value = draft.quote_notes || '';
+            // clear existing lanes
+            lanesContainer.innerHTML = '';
+            (draft.lanes || []).forEach(l => addLane(l.description, l.otherFees, l.legs.map(x=>({name:x.name,cost:x.costPerPallet,transit:x.transit_days})), l.details || '', l.notes || ''));
+            return true;
+        }catch(e){ console.error(e); return false; }
+        }
+
+        // start with draft or one lane
+        if (!loadDraft()) addLane();
+
+        // set default valid_until to 30 days from now if empty
+        const validInput = document.getElementById('valid_until');
+        if (validInput && !validInput.value){
+        const d = new Date(); d.setDate(d.getDate() + 30);
+        validInput.value = d.toISOString().slice(0,10);
+        }
+
+        // wire note input to save
+        const notesEl = document.getElementById('quote_notes');
+        if (notesEl) notesEl.addEventListener('input', saveDraft);
+        if (validInput) validInput.addEventListener('change', saveDraft);
+
+        // clear draft when user clicks the cancel/main menu link
+        const cancelLink = document.querySelector('a[href="/"]');
+        if (cancelLink) cancelLink.addEventListener('click', ()=>{ localStorage.removeItem('intl_draft'); });
+
+        document.getElementById('generate_btn').addEventListener('click', (e)=>{
+            e.preventDefault();
+            const quote = document.getElementById('quote_name').value;
+            const origin = document.getElementById('origin_text').value;
+            const destination = document.getElementById('destination_text').value;
+            const example_pallets = parseInt(document.getElementById('example_pallets').value) || 1;
+            const valid_until = document.getElementById('valid_until') ? document.getElementById('valid_until').value : '';
+
+            const lanes = Array.from(document.querySelectorAll('.lane')).map(laneEl => {
+                const desc = laneEl.querySelector('.lane-description').value;
+                const extra = parseFloat(laneEl.querySelector('.lane-extra-fees').value) || 0;
+                const details = laneEl.querySelector('.lane-details').value || '';
+                const notes = laneEl.querySelector('.lane-notes').value || '';
+                const legs = Array.from(laneEl.querySelectorAll('.leg')).map(legEl => ({
+                    name: legEl.querySelector('.leg-name').value || 'Leg',
+                    costPerPallet: parseFloat(legEl.querySelector('.leg-cost').value) || 0,
+                    transit_days: legEl.querySelector('.leg-transit').value ? parseInt(legEl.querySelector('.leg-transit').value) : null
+                }));
+                return { description: desc, otherFees: extra, details: details, notes: notes, legs };
+            });
+
+            const payload = { quote_name: quote, origin_text: origin, destination_text: destination, example_pallets, valid_until, quote_notes: document.getElementById('quote_notes').value, lanes };
+            // Post via regular form submission so browser history/back preserves draft page; include payload as hidden input
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/international';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'payload';
+            input.value = JSON.stringify(payload);
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    </script>
+</body>
+</html>
