@@ -1,0 +1,8 @@
+<div class="header">
+    <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" class="logo-img" alt="Jericho Freight">
+    {% if header_subtitle %}
+    <div class="header-info">
+        <div class="subtitle">{{ header_subtitle }}</div>
+    </div>
+    {% endif %}
+</div>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ mode }} Quote - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <style>
+        .message {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            background: #2a5298;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: #1e3c72;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = mode ~ ' Quote' %}
+        {% include 'partials/page_header.html' %}
+
+        <div class="page-body">
+            <h2 class="section-title">{{ mode }} Coming Soon</h2>
+            <p class="message">This quote type is not available yet. Use LTL or International, or return to mode selection.</p>
+            <a class="btn" href="/">Back to Mode Selection</a>
+        </div>
+    </div>
+</body>
+</html>

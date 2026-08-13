@@ -1,13 +1,11 @@
 # Creates a local self-signed Authenticode certificate for development/testing.
-# IMPORTANT: This does NOT remove SmartScreen warnings on other people's PCs.
-# For trusted signing that other Windows users accept, see SIGNPATH.md.
+# Self-signed certs do not remove SmartScreen warnings on other people's PCs.
 
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $BuildDir = Join-Path $ProjectRoot "build"
 $PfxPath = Join-Path $BuildDir "codesign.pfx"
-$ExampleConfig = Join-Path $BuildDir "signing.local.json.example"
 $ConfigPath = Join-Path $BuildDir "signing.local.json"
 
 New-Item -ItemType Directory -Force -Path $BuildDir | Out-Null
@@ -42,13 +40,10 @@ Export-PfxCertificate -Cert $cert -FilePath $PfxPath -Password $PasswordSecure |
     note = "Self-signed certs do not bypass SmartScreen on other computers."
 } | ConvertTo-Json | Set-Content -Path $ConfigPath -Encoding UTF8
 
-Copy-Item $ConfigPath $ExampleConfig -Force
-
 Write-Host ""
 Write-Host "Certificate created:" -ForegroundColor Green
 Write-Host "  $PfxPath"
 Write-Host "  Config: $ConfigPath"
 Write-Host ""
 Write-Host "This certificate is useful for local testing only." -ForegroundColor Yellow
-Write-Host "Other Windows users will still see SmartScreen unless you use a trusted signer." -ForegroundColor Yellow
-Write-Host "See SIGNPATH.md for the free trusted option (open source required)." -ForegroundColor Yellow
+Write-Host "Other Windows users will still see SmartScreen with a self-signed cert." -ForegroundColor Yellow

@@ -79,11 +79,9 @@ Copy-Item "setup.ps1" "dist\FreightQuoteGenerator\setup.ps1" -Force
 
 Write-Host ""
 if ($SigningConfig) {
-    Write-Host "Build used a self-signed certificate." -ForegroundColor Yellow
-    Write-Host "Other Windows users may still see SmartScreen. See SIGNPATH.md for the free trusted option." -ForegroundColor Yellow
+    Write-Host "Build used a self-signed certificate (local testing only)." -ForegroundColor Yellow
 } else {
-    Write-Host "Installer is unsigned. Recipients will see SmartScreen until you add trusted signing." -ForegroundColor Yellow
-    Write-Host "See SIGNPATH.md for options." -ForegroundColor Yellow
+    Write-Host "Installer is unsigned. Recipients may see a SmartScreen warning." -ForegroundColor Yellow
 }
 
 Write-Host ""

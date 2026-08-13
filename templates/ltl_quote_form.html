@@ -4,53 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freight Quote Generator - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 36px;
-            font-weight: bold;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            font-size: 18px;
-            opacity: 0.9;
-        }
-
-        .form-container {
-            padding: 40px;
-        }
 
         .form-section {
             margin-bottom: 40px;
@@ -62,8 +17,8 @@
 
         .section-title {
             color: #1e3c72;
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 20px;
+            margin-bottom: 12px;
             font-weight: bold;
         }
 
@@ -220,25 +175,15 @@
             .pricing-grid {
                 grid-template-columns: 1fr 1fr;
             }
-            
-            .container {
-                margin: 10px;
-            }
-            
-            .form-container {
-                padding: 20px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">JERICHO FREIGHT</div>
-            <div class="subtitle">Professional Freight Quote Generator</div>
-        </div>
+        {% set header_subtitle = 'LTL Quote Builder' %}
+        {% include 'partials/page_header.html' %}
 
-        <div class="form-container">
+        <div class="page-body">
             <form id="quoteForm" method="POST" action="/">
                 
                 <!-- Route Information -->
@@ -270,23 +215,14 @@
 
                 <!-- Pricing Templates -->
                 <div class="form-section">
-                    <h2 class="section-title">💾 Pricing Templates</h2>
+                    <h2 class="section-title">Pricing Templates</h2>
                     <div class="template-section">
-                        <p><strong>Quick Start:</strong> Use a saved template or create your own custom pricing</p>
+                        <p><strong>Quick start:</strong> Load a preset pricing structure.</p>
                         <div class="template-buttons">
                             <button type="button" class="btn btn-secondary" onclick="loadTemplate('standard')">Standard Rates</button>
                             <button type="button" class="btn btn-secondary" onclick="loadTemplate('premium')">Premium Rates</button>
                             <button type="button" class="btn btn-secondary" onclick="loadTemplate('economy')">Economy Rates</button>
                         </div>
-                        <div class="form-row" style="margin-top: 15px;">
-                            <div class="form-group">
-                                <input type="text" id="template_name" placeholder="Template name (optional)">
-                            </div>
-                            <div class="form-group">
-                                <button type="button" class="btn btn-secondary" onclick="saveTemplate()">Save Current Pricing</button>
-                            </div>
-                        </div>
-                        <div id="template-message"></div>
                     </div>
                 </div>
 
@@ -377,66 +313,24 @@
 
             const resultEl = document.getElementById("distance-info");
             if (data.success) {
-                resultEl.textContent = `✅ Distance: ${data.miles} miles`;
+                resultEl.textContent = `Distance: ${data.miles} miles`;
+                resultEl.style.display = 'block';
+            } else if (data.error === 'missing_api_key') {
+                resultEl.textContent = 'Add your Google Maps API key to config.json to calculate distance.';
                 resultEl.style.display = 'block';
             } else {
-                resultEl.textContent = `❌ Failed to calculate distance`;
+                resultEl.textContent = 'Could not calculate distance for those ZIP codes.';
                 resultEl.style.display = 'block';
             }
         }
 
         function loadTemplate(templateName) {
             const template = templates[templateName];
-            if (template) {
-                Object.keys(template).forEach(key => {
-                    const element = document.getElementById(key);
-                    if (element) {
-                        element.value = template[key];
-                    }
-                });
-                
-                showMessage('template-message', `✅ ${templateName.charAt(0).toUpperCase() + templateName.slice(1)} template loaded successfully!`, 'success');
-            }
-        }
-
-        function saveTemplate() {
-            const templateName = document.getElementById('template_name').value;
-            if (!templateName) {
-                showMessage('template-message', '❌ Please enter a template name', 'error');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('template_name', templateName);
-            formData.append('tier1_price', document.getElementById('tier1_price').value);
-            formData.append('tier2_price', document.getElementById('tier2_price').value);
-            formData.append('tier3_price', document.getElementById('tier3_price').value);
-            formData.append('tier4_price', document.getElementById('tier4_price').value);
-
-            fetch('/save_template', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage('template-message', `✅ Template "${templateName}" saved successfully!`, 'success');
-                    document.getElementById('template_name').value = '';
-                } else {
-                    showMessage('template-message', `❌ Error: ${data.error}`, 'error');
-                }
-            })
-            .catch(error => {
-                showMessage('template-message', '❌ Failed to save template', 'error');
+            if (!template) return;
+            Object.keys(template).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) element.value = template[key];
             });
-        }
-
-        function showMessage(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            element.innerHTML = `<div class="${type}">${message}</div>`;
-            setTimeout(() => {
-                element.innerHTML = '';
-            }, 4000);
         }
 
         function resetForm() {

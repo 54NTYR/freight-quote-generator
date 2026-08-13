@@ -2,81 +2,79 @@
 
 Desktop app for generating freight quotes (LTL, FTL, Dray, International).
 
-## For end users (installing the app)
+## Google Maps API key
 
-1. Run `FreightQuoteGenerator-Setup.exe` (from whoever shared the app with you).
-2. Follow the installer wizard.
-3. Launch **Freight Quote Generator** from the Start Menu.
-4. The app opens in your browser automatically.
-5. To enable distance calculations, edit the config file:
-   - `%APPDATA%\FreightQuoteGenerator\config.json`
-   - Set your Google Maps API key:
-     ```json
-     {
-       "google_maps_api_key": "YOUR_KEY_HERE"
-     }
-     ```
-6. Restart the app after changing the config.
+Distance calculations need a Google Maps API key with the **Distance Matrix API** enabled.
 
-Your saved pricing templates and quote counter are stored in the same `%APPDATA%\FreightQuoteGenerator` folder.
+### Installed app (recommended)
 
-## For developers (building the installer)
+1. Launch the app once.
+2. Edit the config file:
+   - Installed app: `%APPDATA%\FreightQuoteGenerator\config.json`
+   - Development: `config.json` in the project folder (copy from `config.example.json`)
+3. Set your key:
+   ```json
+   {
+     "google_maps_api_key": "YOUR_KEY_HERE"
+   }
+   ```
+4. Restart the app.
 
-### Prerequisites
+The key is read from `config.json` only — never commit that file. `config.example.json` is the safe template shipped with the project.
 
-- Python 3.10+ on Windows
-- [Inno Setup 6](https://jrsoftware.org/isinfo.php) (optional, for a proper `.exe` installer)
+### Optional environment override
 
-### Build steps
+For temporary testing you can also set:
 
 ```powershell
-.\build_installer.ps1
+$env:GOOGLE_MAPS_API_KEY = "your-key"
 ```
 
-This will:
+Environment variables take precedence over `config.json`.
 
-1. Install Python dependencies
-2. Bundle the app with PyInstaller into `dist\FreightQuoteGenerator\`
-3. Create `installer_output\FreightQuoteGenerator-Setup.exe` (if Inno Setup is installed)
-4. Or create `dist\FreightQuoteGenerator-portable.zip` as a fallback
+## For end users
 
-### Share with others
+1. Run `FreightQuoteGenerator-Setup.exe`.
+2. Launch **Freight Quote Generator** from the Start Menu.
+3. Add your API key to `%APPDATA%\FreightQuoteGenerator\config.json` if you need distance calculations.
 
-Send them `FreightQuoteGenerator-Setup.exe`. They do **not** need Python installed.
+See `INSTALL_FOR_USERS.md` for SmartScreen installer notes.
 
-### SmartScreen warning ("Unknown publisher")
-
-Windows may block the installer until users click **More info → Run anyway**. This is normal for new unsigned software.
-
-- **Free trusted signing:** open-source the project and apply to [SignPath Foundation](https://signpath.io/open-source) — see `SIGNPATH.md`
-- **Local testing only:** run `.\scripts\create_codesign_cert.ps1` then rebuild (does not fix SmartScreen on other PCs)
-- **Paid option:** standard code-signing certificate (~$200+/year); reputation still builds over time
-
-### Build the installer
-
-```powershell
-.\build_installer.ps1
-```
-
-If Inno Setup is installed, the script auto-detects `ISCC.exe` from the registry and common install paths.
-
-### Run locally during development
+## Development
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 pip install waitress
+copy config.example.json config.json
 python launcher.py
 ```
 
-Or with Flask debug mode:
+## Build Windows installer
 
 ```powershell
-$env:GOOGLE_MAPS_API_KEY = "your-key"
-python app.py
+.\build_installer.ps1
 ```
 
-## Static assets
+Requires Python 3.10+ and optionally [Inno Setup 6](https://jrsoftware.org/isinfo.php).
 
-Place the company logo at `static/img/jericho-freight-logo-blue.png` before building if you want it to appear on international quotes.
+Output: `installer_output\FreightQuoteGenerator-Setup.exe`
+
+## Publish changes to GitHub
+
+```powershell
+.\publish_to_github.ps1
+```
+
+Optional custom commit message:
+
+```powershell
+.\publish_to_github.ps1 -Message "Add shared page headers"
+```
+
+This stages all changes, commits, and pushes to `origin/main`.
+
+## Repository
+
+https://github.com/AiSanty/freight-quote-generator

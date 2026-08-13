@@ -4,16 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>International Freight Quote - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 28px 40px; display:flex; flex-direction:column; align-items:center; text-align:center; gap:12px; }
-        .logo-img { height:56px; }
-        .header-info { width:100%; }
-        .company-name { display:none; }
-        .subtitle { font-size:20px; font-weight:700; opacity:0.95; }
-        .form-container { padding: 24px 40px 40px; }
         .form-section { margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #2a5298; }
         .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 12px; font-weight: bold; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
@@ -37,19 +29,14 @@
         .location { flex:1; text-align:center; }
         .arrow { font-size: 30px; color: #ffd700; }
         .metric { font-size:13px; color:#666; margin-top:8px; }
-        @media (max-width:768px){ .header{flex-direction:column;align-items:flex-start} .company-name{font-size:20px} }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" class="logo-img" alt="logo">
-            <div class="header-info">
-                <div class="subtitle">International Quote Builder</div>
-            </div>
-        </div>
+        {% set header_subtitle = 'International Quote Builder' %}
+        {% include 'partials/page_header.html' %}
 
-        <div class="form-container">
+        <div class="page-body">
             <div class="form-section">
                 <div class="form-row">
                     <div class="form-group">

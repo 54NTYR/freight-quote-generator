@@ -6,7 +6,6 @@ project_dir = os.path.abspath(".")
 datas = [
     ("templates", "templates"),
     ("config.example.json", "."),
-    ("pricing_templates.json", "."),
 ]
 
 if os.path.isdir("static"):
@@ -20,8 +19,6 @@ a = Analysis(
     hiddenimports=[
         "waitress",
         "googlemaps",
-        "geopy",
-        "geopy.distance",
         "flask",
         "jinja2",
         "werkzeug",
