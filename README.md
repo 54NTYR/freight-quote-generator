@@ -4,7 +4,7 @@ Desktop app for generating freight quotes (LTL, FTL, Dray, International). Runs 
 
 ## Google Maps API key
 
-Distance calculations need a Google Maps API key with the **Distance Matrix API** enabled.
+Distance calculations need a Google Maps API key with the **Routes API** and **Geocoding API** enabled.
 
 ### Installed app (recommended)
 
@@ -59,18 +59,6 @@ Requires **WebView2** (pre-installed on most Windows 10/11 systems).
 ```
 
 Creates `build\app-icon.ico` from `static\img\app-icon.png`, bundles the app, and builds `installer_output\FreightQuoteGenerator-Setup.exe`.
-
-## Publish changes to GitHub
-
-```powershell
-.\publish_to_github.ps1
-```
-
-Optional custom commit message:
-
-```powershell
-.\publish_to_github.ps1 -Message "Add desktop window and app icon"
-```
 
 ## Repository
 

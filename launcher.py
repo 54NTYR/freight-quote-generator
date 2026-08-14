@@ -6,6 +6,7 @@ import time
 import urllib.error
 import urllib.request
 
+from desktop_api import DesktopApi
 from config import ensure_config_file, load_google_maps_api_key
 from paths import data_dir, resource_dir
 
@@ -59,7 +60,7 @@ def open_desktop_window(url: str) -> None:
     if app_icon:
         window_kwargs["icon"] = app_icon
 
-    webview.create_window(**window_kwargs)
+    webview.create_window(**window_kwargs, js_api=DesktopApi())
     webview.start()
 
 

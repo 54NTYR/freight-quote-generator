@@ -2,13 +2,23 @@ import json
 import logging
 import math
 import os
-from datetime import datetime
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+import base64
+import binascii
+from datetime import datetime, timedelta
 
-import googlemaps
 from flask import Flask, jsonify, render_template, request
 
 from config import COMPANY_INFO, ensure_config_file, load_google_maps_api_key
 from paths import data_path, resource_dir
+
+ROUTES_MATRIX_URL = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
+GEOCODE_URL = "https://geocode.googleapis.com/v4/geocode/address"
+US_ZIP_PATTERN = re.compile(r"^\d{5}(?:-\d{4})?$")
 
 ensure_config_file()
 load_google_maps_api_key()
@@ -21,9 +31,191 @@ app = Flask(
 )
 
 
-def get_maps_client():
-    api_key = load_google_maps_api_key()
-    return googlemaps.Client(key=api_key) if api_key else None
+def _normalize_zip(zip_code: str) -> str:
+    return (zip_code or "").strip()
+
+
+def _zip_base(zip_code: str) -> str:
+    return _normalize_zip(zip_code).split("-", 1)[0]
+
+
+def _is_valid_us_zip_format(zip_code: str) -> bool:
+    return bool(US_ZIP_PATTERN.match(_normalize_zip(zip_code)))
+
+
+def _normalize_postal_code(postal_code: str) -> str:
+    return re.sub(r"[\s-]", "", (postal_code or ""))[:5]
+
+
+def _geocode_zip(zip_code: str, api_key: str) -> bool | None:
+    zip_base = _zip_base(zip_code)
+    query = urllib.parse.urlencode(
+        {
+            "address.postalCode": zip_base,
+            "address.regionCode": "US",
+        }
+    )
+    request_obj = urllib.request.Request(
+        f"{GEOCODE_URL}?{query}",
+        headers={"X-Goog-Api-Key": api_key},
+    )
+
+    try:
+        with urllib.request.urlopen(request_obj, timeout=15) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        logging.getLogger(__name__).warning("Geocoding HTTP error for %s: %s %s", zip_base, exc.code, body)
+        return None
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Geocoding lookup failed for %s: %s", zip_base, exc)
+        return None
+
+    results = payload.get("results") or []
+    if not results:
+        return False
+
+    expected = _normalize_postal_code(zip_base)
+    for result in results:
+        postal_address = result.get("postalAddress") or {}
+        result_postal = _normalize_postal_code(postal_address.get("postalCode") or "")
+        if result_postal == expected:
+            return True
+
+        for component in result.get("addressComponents") or []:
+            if "postal_code" not in component.get("types", []):
+                continue
+            component_postal = _normalize_postal_code(
+                component.get("longText") or component.get("shortText") or ""
+            )
+            if component_postal == expected:
+                return True
+
+    return False
+
+
+def _zip_exists(zip_code: str, api_key: str) -> bool | None:
+    if not _is_valid_us_zip_format(zip_code):
+        return False
+
+    geocoded = _geocode_zip(zip_code, api_key)
+    if geocoded is not None:
+        return geocoded
+
+    return True
+
+
+def _distance_lookup_error(origin_zip: str, destination_zip: str, api_key: str, fallback: str | None) -> str:
+    origin_exists = _zip_exists(origin_zip, api_key)
+    destination_exists = _zip_exists(destination_zip, api_key)
+
+    if origin_exists is False and destination_exists is False:
+        return "Origin and destination ZIP codes not found."
+    if origin_exists is False:
+        return "Origin ZIP Code not found."
+    if destination_exists is False:
+        return "Destination ZIP Code not found."
+    return fallback or "Could not calculate distance for those ZIP codes."
+
+
+def _routes_api_error_message(body: str) -> str:
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError:
+        return "Distance lookup failed. Check app.log for details."
+
+    error = payload.get("error") if isinstance(payload, dict) else None
+    if not isinstance(error, dict):
+        return "Distance lookup failed. Check app.log for details."
+
+    message = (error.get("message") or "").strip()
+    if "Routes API has not been used" in message or "routes.googleapis.com" in message:
+        return "Enable the Routes API in Google Cloud Console for this API key, then restart the app."
+    if message:
+        return message
+    return "Distance lookup failed. Check app.log for details."
+
+
+def _query_route_matrix(origin: str, destination: str, api_key: str) -> tuple[dict | None, str | None]:
+    payload = {
+        "origins": [{"waypoint": {"address": origin}}],
+        "destinations": [{"waypoint": {"address": destination}}],
+        "travelMode": "DRIVE",
+        "routingPreference": "TRAFFIC_UNAWARE",
+        "units": "IMPERIAL",
+    }
+    request_obj = urllib.request.Request(
+        ROUTES_MATRIX_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": api_key,
+            "X-Goog-FieldMask": "originIndex,destinationIndex,distanceMeters,status,condition",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(request_obj, timeout=15) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        logging.getLogger(__name__).warning("Routes API HTTP error %s: %s", exc.code, body)
+        return None, _routes_api_error_message(body)
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Routes API request failed: %s", exc)
+        return None, "Distance lookup failed. Check app.log for details."
+
+    if not isinstance(result, list) or not result:
+        logging.getLogger(__name__).warning("Routes API returned unexpected response: %s", result)
+        return None, "Distance lookup failed. Check app.log for details."
+
+    return result[0], None
+
+
+def compute_driving_distance_miles(origin_zip: str, destination_zip: str, api_key: str) -> tuple[int | None, str | None]:
+    origin = _normalize_zip(origin_zip)
+    destination = _normalize_zip(destination_zip)
+
+    if not origin or not destination:
+        return None, "Enter both ZIP codes."
+
+    origin_exists = _zip_exists(origin, api_key)
+    destination_exists = _zip_exists(destination, api_key)
+    if origin_exists is False and destination_exists is False:
+        return None, "Origin and destination ZIP codes not found."
+    if origin_exists is False:
+        return None, "Origin ZIP Code not found."
+    if destination_exists is False:
+        return None, "Destination ZIP Code not found."
+
+    if _zip_base(origin) == _zip_base(destination):
+        return 0, None
+
+    element, api_error = _query_route_matrix(f"{origin}, USA", f"{destination}, USA", api_key)
+    if api_error:
+        return None, api_error
+    if element is None:
+        return None, "Distance lookup failed. Check app.log for details."
+
+    status = element.get("status") or {}
+    if status.get("code", 0) != 0:
+        logging.getLogger(__name__).warning("Routes API element error: %s", status)
+        message = (status.get("message") or "").strip()
+        return None, _distance_lookup_error(origin, destination, api_key, message or None)
+
+    if element.get("condition") != "ROUTE_EXISTS":
+        logging.getLogger(__name__).warning("Routes API no route: %s", element)
+        return None, _distance_lookup_error(origin, destination, api_key, None)
+
+    meters = element.get("distanceMeters")
+    if meters is None:
+        return None, _distance_lookup_error(origin, destination, api_key, None)
+
+    if meters == 0:
+        return 0, None
+
+    return math.ceil(meters * 0.000621371), None
 
 
 class QuoteGenerator:
@@ -39,7 +231,6 @@ class QuoteGenerator:
         self.dot_number = COMPANY_INFO["dot_number"]
         self.mc_number = COMPANY_INFO["mc_number"]
         self.quote_number = "PREVIEW" if preview else self._next_quote_number()
-        self.gmaps = get_maps_client()
 
     def _next_quote_number(self):
         counter_file = data_path("quote_counter.json")
@@ -57,24 +248,12 @@ class QuoteGenerator:
             return data["counter"]
 
     def calculate_distance(self, origin_zip, destination_zip):
-        if not self.gmaps:
+        api_key = load_google_maps_api_key()
+        if not api_key:
             return -1
 
-        try:
-            result = self.gmaps.distance_matrix(
-                origins=f"{origin_zip}, USA",
-                destinations=f"{destination_zip}, USA",
-                mode="driving",
-                units="imperial",
-            )
-            element = result["rows"][0]["elements"][0]
-            if element["status"] == "OK":
-                meters = element["distance"]["value"]
-                return math.ceil(meters * 0.000621371)
-        except Exception as exc:
-            logging.getLogger(__name__).warning("Distance lookup failed: %s", exc)
-
-        return -1
+        miles, _error = compute_driving_distance_miles(origin_zip, destination_zip, api_key)
+        return miles if miles is not None else -1
 
     def estimate_transit_time(self, miles):
         if miles <= 0:
@@ -185,6 +364,7 @@ def ltl_quote():
     )
     miles = quote_generator.calculate_distance(quote_generator.origin_zip, quote_generator.destination_zip)
 
+    valid_until_date = datetime.now() + timedelta(days=30)
     quote = {
         "quote_number": quote_generator.quote_number,
         "origin_city": quote_generator.origin_city,
@@ -194,11 +374,13 @@ def ltl_quote():
         "distance": miles,
         "transit_time": quote_generator.estimate_transit_time(miles),
         "pricing_tiers": quote_generator.create_pricing_tiers(tier_prices),
+        "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
+        "valid_until": valid_until_date.strftime("%B %d, %Y").replace(" 0", " "),
         **COMPANY_INFO,
     }
 
     return render_template(
-        "ltl_quote_form.html",
+        "ltl_quote_output.html",
         quote=quote,
         tier_prices=json.dumps(tier_prices),
         scenarios=quote_generator.calculate_scenarios(tier_prices, tier_prices["tier1"]),
@@ -253,6 +435,7 @@ def international_quote():
         lanes=parsed["lanes"],
         example_pallets=parsed["example_pallets"],
         max_total_per_pallet=max_total_per_pallet,
+        current_year=datetime.now().year,
     )
 
 
@@ -265,10 +448,33 @@ def calculate_distance_endpoint():
     if not load_google_maps_api_key():
         return jsonify(success=False, error="missing_api_key")
 
-    miles = QuoteGenerator("", origin, "", destination, preview=True).calculate_distance(origin, destination)
-    if miles >= 0:
-        return jsonify(success=True, miles=miles)
-    return jsonify(success=False, error="distance_error")
+    api_key = load_google_maps_api_key()
+    miles, error_message = compute_driving_distance_miles(origin, destination, api_key)
+    if miles is not None and miles >= 0:
+        display_distance = "<1 mile" if miles == 0 else None
+        return jsonify(success=True, miles=miles, display_distance=display_distance)
+    return jsonify(success=False, error="distance_error", message=error_message or "Could not calculate distance for those ZIP codes.")
+
+
+@app.route("/quote/prepare-pdf", methods=["POST"])
+@app.route("/ltl/quote/prepare-pdf", methods=["POST"])
+def prepare_ltl_quote_pdf():
+    data = request.get_json() or {}
+    pdf_base64 = (data.get("pdf_base64") or "").strip()
+    if not pdf_base64:
+        return jsonify(success=False, error="missing_pdf"), 400
+
+    try:
+        pdf_bytes = base64.b64decode(pdf_base64, validate=True)
+    except (ValueError, binascii.Error):
+        return jsonify(success=False, error="invalid_pdf"), 400
+
+    token = uuid.uuid4().hex
+    temp_path = data_path(f"quote-pdf-{token}.pdf")
+    with open(temp_path, "wb") as pdf_file:
+        pdf_file.write(pdf_bytes)
+
+    return jsonify(success=True, token=token)
 
 
 if __name__ == "__main__":

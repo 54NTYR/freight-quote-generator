@@ -184,7 +184,7 @@
         {% include 'partials/page_header.html' %}
 
         <div class="page-body">
-            <form id="quoteForm" method="POST" action="/">
+            <form id="quoteForm" method="POST" action="{{ url_for('ltl_quote') }}">
                 
                 <!-- Route Information -->
                 <div class="form-section">
@@ -300,27 +300,41 @@
         };
 
         async function calculateDistance() {
-            const origin = document.getElementById("origin_zip").value;
-            const destination = document.getElementById("destination_zip").value;
-
-            const response = await fetch("/calculate_distance", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ origin_zip: origin, destination_zip: destination })
-            });
-
-            const data = await response.json();
-
+            const origin = document.getElementById("origin_zip").value.trim();
+            const destination = document.getElementById("destination_zip").value.trim();
             const resultEl = document.getElementById("distance-info");
-            if (data.success) {
-                resultEl.textContent = `Distance: ${data.miles} miles`;
+
+            if (!origin || !destination) {
+                resultEl.textContent = 'Enter both ZIP codes to calculate distance.';
                 resultEl.style.display = 'block';
-            } else if (data.error === 'missing_api_key') {
-                resultEl.textContent = 'Add your Google Maps API key to config.json to calculate distance.';
-                resultEl.style.display = 'block';
-            } else {
-                resultEl.textContent = 'Could not calculate distance for those ZIP codes.';
-                resultEl.style.display = 'block';
+                return;
+            }
+
+            resultEl.textContent = 'Calculating distance...';
+            resultEl.style.display = 'block';
+
+            try {
+                const response = await fetch("/calculate_distance", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ origin_zip: origin, destination_zip: destination })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.display_distance) {
+                        resultEl.textContent = `Distance: ${data.display_distance}`;
+                    } else {
+                        resultEl.textContent = `Distance: ${data.miles} miles`;
+                    }
+                } else if (data.error === 'missing_api_key') {
+                    resultEl.textContent = 'Add your Google Maps API key to config.json to calculate distance.';
+                } else {
+                    resultEl.textContent = data.message || 'Could not calculate distance for those ZIP codes.';
+                }
+            } catch (error) {
+                resultEl.textContent = 'Could not calculate distance right now. Please try again.';
             }
         }
 
@@ -360,18 +374,6 @@
             const submitBtn = this.querySelector('button[type="submit"]');
             submitBtn.innerHTML = '🔄 Generating Quote...';
             submitBtn.disabled = true;
-        });
-
-        // Auto-calculate distance when all fields are filled
-        document.querySelectorAll('#origin_city, #origin_zip, #destination_city, #destination_zip').forEach(input => {
-            input.addEventListener('blur', function() {
-                const allFilled = ['origin_city', 'origin_zip', 'destination_city', 'destination_zip']
-                    .every(id => document.getElementById(id).value.trim() !== '');
-                
-                if (allFilled && document.getElementById('distance-info').innerHTML === '') {
-                    calculateDistance();
-                }
-            });
         });
 
         // Load standard template by default

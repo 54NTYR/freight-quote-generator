@@ -3,80 +3,195 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Freight Quote - {{ quote.company_name }}</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <title>LTL Freight Quote - {{ quote.company_name }}</title>
   <style>
-    /* ---- Original Quote.html styles ---- */
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height:1.6; color:#333; background:#fff; }
-    .container { max-width:1200px; margin:0 auto; padding:20px; }
-    .header { background:linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color:white; padding:40px; border-radius:10px; margin-bottom:30px; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
-    .company-info { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
-    .logo { font-size:32px; font-weight:bold; letter-spacing:2px; }
-    .quote-number { text-align:right; opacity:0.9; }
-    .route-info { background:rgba(255,255,255,0.1); padding:20px; border-radius:8px; margin-top:20px; }
-    .route-detail { display:flex; justify-content:space-between; align-items:center; gap:20px; }
-    .location { flex:1; text-align:center; }
-    .arrow { font-size:24px; color:#ffd700; }
-    .section { background:white; padding:30px; margin-bottom:25px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.08); }
-    .section-title { color:#1e3c72; font-size:24px; margin-bottom:20px; padding-bottom:10px; border-bottom:3px solid #2a5298; }
-    .pricing-table { width:100%; border-collapse:collapse; margin-top:20px; }
-    .pricing-table th { background:#2a5298; color:white; padding:15px; text-align:left; font-weight:600; }
-    .pricing-table td { padding:15px; border-bottom:1px solid #e0e0e0; }
-    .pricing-table tr:hover { background:#f5f7fa; transition:background 0.3s; }
-    .highlight { background:#ffd700; color:#1e3c72; padding:2px 8px; border-radius:4px; font-weight:bold; }
-    .chart-container { position:relative; height:400px; margin:30px 0; padding:20px; background:#f8f9fa; border-radius:8px; }
-    .analysis-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; margin-top:20px; }
-    .analysis-card { background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
-    .analysis-card h3 { margin-bottom:10px; font-size:18px; }
-    .analysis-card p { font-size:14px; line-height:1.6; }
-    .scenario-box { background:#f0f4f8; padding:20px; border-left:4px solid #2a5298; margin:15px 0; border-radius:5px; }
-    .scenario-title { color:#2a5298; font-weight:bold; margin-bottom:10px; }
-    .metrics { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-top:15px; }
-    .metric { background:white; padding:15px; border-radius:8px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); }
-    .metric-value { font-size:28px; font-weight:bold; color:#2a5298; }
-    .metric-label { font-size:12px; color:#666; margin-top:5px; text-transform:uppercase; }
-    .cta { background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; padding:40px; border-radius:10px; text-align:center; margin-top:30px; }
-    .cta h2 { margin-bottom:20px; font-size:28px; }
-    .footer { text-align:center; padding:30px; color:#666; font-size:14px; }
-    @media print { .container { max-width:100%; } .section { break-inside:avoid; } }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #fff; }
+    .container { max-width: 940px; margin: 0 auto; padding: 16px; }
+    .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 14px 16px; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
+    .company-info { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .company-left { flex: 0 0 auto; display: flex; align-items: center; padding: 6px 0 0 18px; min-width: 160px; }
+    .company-left img { height: 68px; object-fit: contain; }
+    .company-center { flex: 1 1 auto; text-align: center; }
+    .company-right { flex: 0 0 auto; text-align: right; min-width: 160px; }
+    .quote-number { text-align: right; opacity: 0.95; font-size: 12px; line-height: 1.4; }
+    .route-info { background: rgba(255,255,255,0.14); padding: 10px; border-radius: 10px; margin-top: 10px; }
+    .route-detail { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .location { flex: 1; text-align: center; background: rgba(255,255,255,0.24); padding: 14px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); }
+    .location h3 { font-size: 18px; letter-spacing: 1.2px; margin-bottom: 6px; color: white; font-weight: 700; text-transform: uppercase; }
+    .location p { font-size: 14px; margin-bottom: 4px; color: white; font-weight: 400; line-height: 1.2; }
+    .arrow { font-size: 22px; color: #ffd700; }
+    .route-summary { text-align: center; margin-top: 10px; color: rgba(255,255,255,0.92); font-size: 13px; }
+    .quote-title { font-size: 28px; font-weight: 500; text-align: center; margin: 6px 0; letter-spacing: 0.2px; }
+    .section { background: white; padding: 14px; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
+    .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 14px; padding-bottom: 7px; border-bottom: 3px solid #2a5298; }
+    .pricing-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    .pricing-table th { background: #2a5298; color: white; padding: 11px 12px; text-align: left; font-weight: 600; }
+    .pricing-table td { padding: 11px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+    .pricing-table tbody tr:last-child td { border-bottom: none; }
+    .highlight { background: #ffd700; color: #1e3c72; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+    .chart-container { position: relative; margin: 0 0 16px 0; padding: 16px; background: #eef4fb; border-radius: 10px; }
+    .chart-canvas { width: 100%; height: 320px; }
+    .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
+    .analysis-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .analysis-card h3 { margin-bottom: 8px; font-size: 16px; }
+    .analysis-card p { font-size: 13px; line-height: 1.5; }
+    .scenario-box { background: #f0f4f8; padding: 16px; border-left: 4px solid #2a5298; margin: 0; border-radius: 5px; }
+    .scenario-title { color: #2a5298; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
+    .metric { background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .metric-value { font-size: 22px; font-weight: bold; color: #2a5298; }
+    .metric-label { font-size: 11px; color: #666; margin-top: 4px; text-transform: uppercase; }
+    .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-top: 14px; }
+    .cta h2 { margin-bottom: 20px; font-size: 28px; }
+    .footer { text-align: center; padding: 30px; color: #666; font-size: 14px; }
+    .quote-actions { max-width: 940px; margin: 16px auto 0; padding: 0 16px 24px; text-align: center; }
+    .btn-pdf {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #ffd700;
+      color: #1e3c72;
+      transition: all 0.2s;
+    }
+    .btn-pdf:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
+    .btn-pdf:disabled { opacity: 0.7; cursor: wait; }
+    .chart-pdf-image { width: 100%; height: auto; object-fit: contain; display: block; }
+    @page { size: A4 portrait; margin: 12mm; }
+    @media print {
+      html, body { margin: 0; padding: 0; background: #fff; font-size: 11px; line-height: 1.35; }
+      .container { max-width: 100%; margin: 0; padding: 4px; }
+      .header { box-shadow: 0 3px 8px rgba(0,0,0,0.06); margin-bottom: 10px; border-radius: 6px; padding: 8px 10px; }
+      .company-info img { height: 28px !important; }
+      .company-center, .company-right { font-size: 11px !important; }
+      .quote-title { font-size: 19px !important; }
+      .route-info { margin-top: 0; padding: 8px; }
+      .location { padding: 8px; }
+      .location h3 { font-size: 13px !important; }
+      .location p { font-size: 15px !important; }
+      .route-summary { font-size: 11px !important; }
+      .section { margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
+      .pricing-table th, .pricing-table td { padding: 8px; }
+      .chart-container { padding: 10px !important; }
+      .footer { font-size: 10px !important; padding: 8px !important; }
+      .quote-actions { display: none; }
+      .section, .header, .route-info, .scenario-box { break-inside: avoid; page-break-inside: avoid; }
+    }
+    body.pdf-export { background: #fff; }
+
+    /* Compact layout used when capturing sections for PDF (html2canvas ignores @media print) */
+    .pdf-section-staging {
+      width: 700px;
+      background: #fff;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #333;
+    }
+    .pdf-section-staging .header {
+      padding: 14px 16px;
+      margin-bottom: 0;
+      border-radius: 6px;
+      box-shadow: none;
+    }
+    .pdf-section-staging .company-info { margin-bottom: 12px; gap: 14px; }
+    .pdf-section-staging .company-left img,
+    .pdf-section-staging .company-left img[style] { height: 44px !important; }
+    .pdf-section-staging .quote-title { font-size: 19px !important; margin: 6px 0; }
+    .pdf-section-staging .quote-number { font-size: 12px; line-height: 1.5; }
+    .pdf-section-staging .route-info { padding: 12px; margin-top: 10px; border-radius: 6px; }
+    .pdf-section-staging .location { padding: 12px 14px; border-radius: 8px; }
+    .pdf-section-staging .location h3 { font-size: 13px !important; margin-bottom: 6px; letter-spacing: 0.8px; }
+    .pdf-section-staging .location p { font-size: 13px !important; margin-bottom: 5px; }
+    .pdf-section-staging .route-summary { font-size: 12px; margin-top: 10px; }
+    .pdf-section-staging .arrow { font-size: 18px; }
+    .pdf-section-staging .section {
+      padding: 14px;
+      margin-bottom: 0;
+      border-radius: 6px;
+      box-shadow: none;
+      border: 1px solid #e5ecf5;
+    }
+    .pdf-section-staging .section-title {
+      font-size: 17px;
+      margin-bottom: 12px;
+      padding-bottom: 7px;
+    }
+    .pdf-section-staging .pricing-table { margin-top: 12px; }
+    .pdf-section-staging .pricing-table th,
+    .pdf-section-staging .pricing-table td { padding: 9px 10px; font-size: 12px; }
+    .pdf-section-staging .highlight { font-size: 11px; padding: 2px 6px; }
+    .pdf-section-staging .chart-container { padding: 14px; margin: 0; border-radius: 6px; }
+    .pdf-section-staging .chart-pdf-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: none;
+      object-fit: contain;
+    }
+    .pdf-section-staging .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .pdf-section-staging .analysis-card { padding: 12px; border-radius: 6px; box-shadow: none; }
+    .pdf-section-staging .analysis-card h3 { font-size: 12px; margin-bottom: 8px; }
+    .pdf-section-staging .analysis-card p { font-size: 11px; line-height: 1.5; }
+    .pdf-section-staging .scenario-box { padding: 12px; margin: 0; }
+    .pdf-section-staging .scenario-box p { font-size: 12px; }
+    .pdf-section-staging .scenario-title { font-size: 12px; margin-bottom: 8px; }
+    .pdf-section-staging .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+    .pdf-section-staging .metric { padding: 10px; box-shadow: none; border: 1px solid #e5ecf5; }
+    .pdf-section-staging .metric-value { font-size: 15px; }
+    .pdf-section-staging .metric-label { font-size: 10px; margin-top: 5px; }
+    .pdf-section-staging .cta {
+      padding: 24px;
+      margin-top: 0;
+      border-radius: 6px;
+    }
+    .pdf-section-staging .cta h2 { font-size: 19px; margin-bottom: 12px; }
+    .pdf-section-staging .cta p { font-size: 12px; margin: 0; }
+    .pdf-section-staging .cta p[style] { margin-top: 12px !important; font-size: 12px !important; }
+    .pdf-section-staging .footer { padding: 14px; font-size: 11px; line-height: 1.55; }
+    .pdf-section-staging .footer p { margin-bottom: 6px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
     <div class="header">
       <div class="company-info">
-        <div class="logo">{{ quote.company_name }}</div>
-        <div class="quote-number">
-          <div>Quote #: {{ quote.quote_number }}</div>
-          <div>Date: <span id="currentDate"></span></div>
-          <div>Valid Until: <span id="validUntil"></span></div>
+        <div class="company-left" style="display:flex;align-items:center;gap:12px;">
+          <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" alt="Jericho Freight" style="height:68px;object-fit:contain;">
+        </div>
+        <div class="company-center">
+          <div class="quote-title">LTL Freight Quote</div>
+        </div>
+        <div class="company-right">
+          <div class="quote-number">
+            <div>Quote #: {{ quote.quote_number }}</div>
+            <div>Date: {{ quote.current_date }}</div>
+            <div>Valid Until: {{ quote.valid_until }}</div>
+          </div>
         </div>
       </div>
+
       <div class="route-info">
-        <h2 style="margin-bottom: 15px;">Shipping Lane Details</h2>
         <div class="route-detail">
           <div class="location">
             <h3>ORIGIN</h3>
             <p>{{ quote.origin_city }}, {{ quote.origin_zip }}</p>
-            <small>{{ quote.origin_city }}</small>
           </div>
           <div class="arrow">→</div>
           <div class="location">
             <h3>DESTINATION</h3>
             <p>{{ quote.destination_city }}, {{ quote.destination_zip }}</p>
-            <small>{{ quote.destination_city }}</small>
           </div>
         </div>
-        <div style="text-align:center;margin-top:15px;">
+        <div class="route-summary">
           <small>Distance: {{ quote.distance }} miles | Transit Time: {{ quote.transit_time }}</small>
         </div>
       </div>
     </div>
 
-    <!-- Pricing Table -->
-    <div class="section">
+    <div class="section" id="section-pricing">
       <h2 class="section-title">Volume-Based Pricing Structure</h2>
       <table class="pricing-table">
         <thead>
@@ -104,31 +219,31 @@
       </table>
     </div>
 
-    <!-- Pricing Analysis Chart -->
-    <div class="section">
+    <div class="section" id="section-price-chart">
       <h2 class="section-title">Pricing Analysis & Visualization</h2>
-      <div class="chart-container"><canvas id="priceChart"></canvas></div>
-    </div>
-
-    <!-- Cost Efficiency Analysis -->
-    <div class="section">
-      <h2 class="section-title">Cost Efficiency Analysis</h2>
-      <div class="chart-container"><canvas id="efficiencyChart"></canvas></div>
-    </div>
-
-    <!-- Detailed Volume Analysis -->
-    <div class="section">
-      <h2 class="section-title">🔍 Detailed Volume Analysis</h2>
-      <div class="analysis-grid">
-        <div class="analysis-card"><h3>🚚 Small Shipments (1 pallet)</h3><p>Ideal for urgent, small-volume needs or sample shipments. While the per-pallet cost is highest, this option provides maximum flexibility for businesses testing new markets or handling emergency shipments.</p></div>
-        <div class="analysis-card" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);"><h3>📦 Standard Volume (2-5 pallets)</h3><p>Perfect for regular shipments and small businesses. Achieve {{ ((base_price - quote.pricing_tiers[1].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% cost savings while maintaining shipment flexibility.</p></div>
-        <div class="analysis-card" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);"><h3>🏭 Volume Shipments (6-10 pallets)</h3><p>Optimized for established businesses with consistent demand. At {{ ((base_price - quote.pricing_tiers[2].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% savings, this tier significantly reduces logistics costs while utilizing truck space efficiently.</p></div>
-        <div class="analysis-card" style="background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%);"><h3>🏗️ Bulk Operations (11-14 pallets)</h3><p>Maximum efficiency tier with {{ ((base_price - quote.pricing_tiers[3].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% savings. Ideal for distribution centers and businesses with high-volume needs.</p></div>
+      <div class="chart-container">
+        <canvas id="priceChart" class="chart-canvas" width="800" height="300"></canvas>
       </div>
     </div>
 
-    <!-- Optimum Shipping Recommendations -->
-    <div class="section">
+    <div class="section" id="section-efficiency-chart">
+      <h2 class="section-title">Cost Efficiency Analysis</h2>
+      <div class="chart-container">
+        <canvas id="efficiencyChart" class="chart-canvas" width="800" height="300"></canvas>
+      </div>
+    </div>
+
+    <div class="section" id="section-volume-analysis">
+      <h2 class="section-title">Detailed Volume Analysis</h2>
+      <div class="analysis-grid">
+        <div class="analysis-card"><h3>Small Shipments (1 pallet)</h3><p>Ideal for urgent, small-volume needs or sample shipments. While the per-pallet cost is highest, this option provides maximum flexibility for businesses testing new markets or handling emergency shipments.</p></div>
+        <div class="analysis-card" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);"><h3>Standard Volume (2-5 pallets)</h3><p>Perfect for regular shipments and small businesses. Achieve {{ ((base_price - quote.pricing_tiers[1].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% cost savings while maintaining shipment flexibility.</p></div>
+        <div class="analysis-card" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);"><h3>Volume Shipments (6-10 pallets)</h3><p>Optimized for established businesses with consistent demand. At {{ ((base_price - quote.pricing_tiers[2].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% savings, this tier significantly reduces logistics costs while utilizing truck space efficiently.</p></div>
+        <div class="analysis-card" style="background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%);"><h3>Bulk Operations (11-14 pallets)</h3><p>Maximum efficiency tier with {{ ((base_price - quote.pricing_tiers[3].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% savings. Ideal for distribution centers and businesses with high-volume needs.</p></div>
+      </div>
+    </div>
+
+    <div class="section" id="section-shipping-recommendations">
       <h2 class="section-title">Optimum Shipping Recommendations</h2>
       <div class="scenario-box">
         <div class="scenario-title">Scenario 1: E-Commerce Retailer (Steady Demand)</div>
@@ -139,34 +254,31 @@
           <div class="metric"><div class="metric-value">8 pallets</div><div class="metric-label">Optimal Volume</div></div>
         </div>
       </div>
-      <!-- Other scenarios can stay same but with dynamic prices if needed -->
     </div>
 
-    <!-- Storage vs Shipping Frequency -->
-    <div class="section">
+    <div class="section" id="section-storage-chart">
       <h2 class="section-title">Storage vs. Shipping Frequency Analysis</h2>
-      <div class="chart-container"><canvas id="breakEvenChart"></canvas></div>
+      <div class="chart-container">
+        <canvas id="breakEvenChart" class="chart-canvas" width="800" height="280"></canvas>
+      </div>
     </div>
 
-    <!-- Advanced Supply Chain Metrics -->
-    <div class="section">
+    <div class="section" id="section-supply-metrics">
       <h2 class="section-title">Advanced Supply Chain Metrics</h2>
       <div class="metrics">
-        <div class="metric"><div class="metric-value">${{ (quote.pricing_tiers[3].price_per_pallet / quote.distance) | round(2) }}</div><div class="metric-label">Cost per Pallet-Mile (Tier 4)</div></div>
+        <div class="metric"><div class="metric-value">${{ (quote.pricing_tiers[3].price_per_pallet / (quote.distance if quote.distance > 0 else 1)) | round(2) }}</div><div class="metric-label">Cost per Pallet-Mile (Tier 4)</div></div>
         <div class="metric"><div class="metric-value">87%</div><div class="metric-label">Truck Utilization (14 pallets)</div></div>
         <div class="metric"><div class="metric-value">2.25x</div><div class="metric-label">ROI on Volume Consolidation</div></div>
         <div class="metric"><div class="metric-value">32%</div><div class="metric-label">Carbon Reduction</div></div>
       </div>
     </div>
 
-    <!-- CTA -->
     <div class="cta">
       <h2>Ready to Optimize Your Freight Costs?</h2>
       <p>Let Jericho Freight transform your supply chain efficiency. Our team is ready to customize a solution that fits your needs.</p>
       <p style="margin-top:20px;font-size:14px;">📞 Call us: {{ quote.phone }} | 📧 Email: {{ quote.email }} | 🌐 Visit: {{ quote.website }}</p>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
       <p><strong>{{ quote.company_name }}</strong> - Your Trusted Partner in Logistics Excellence</p>
       <p>This quote is valid for 30 days from the issue date. Prices subject to fuel surcharge adjustments.</p>
@@ -174,15 +286,14 @@
     </div>
   </div>
 
-  <script>
-    // Dates
-    const today = new Date();
-    const validDate = new Date(today);
-    validDate.setDate(validDate.getDate() + 30);
-    document.getElementById('currentDate').textContent = today.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-    document.getElementById('validUntil').textContent = validDate.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  <div class="quote-actions">
+    <button type="button" class="btn-pdf" id="downloadQuoteBtn" onclick="downloadQuote()">Download Quote</button>
+  </div>
 
-    // Data from backend
+  <script src="{{ url_for('static', filename='js/html2canvas.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jspdf.umd.min.js') }}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script>
     const tierPrices = {{ tier_prices | safe }};
     const palletCounts = Array.from({length: 14}, (_, i) => i + 1);
     const prices = palletCounts.map(count => {
@@ -193,73 +304,442 @@
     });
     const totalCosts = palletCounts.map((count, index) => count * prices[index]);
 
-    // Chart 1: Pricing Analysis & Visualization (fix right axis + labels)
+    const chartDefaults = {
+      responsive: false,
+      maintainAspectRatio: true,
+      plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+    };
+
     new Chart(document.getElementById('priceChart'), {
-      type:'bar',
-      data:{ labels: palletCounts.map(n=>`${n} Pallet${n>1?'s':''}`), datasets:[
-        {label:'Price per Pallet ($)',data:prices,backgroundColor:'rgba(42,82,152,0.7)',borderColor:'rgba(42,82,152,1)',borderWidth:2,yAxisID:'y'},
-        {label:'Total Cost ($)',data:totalCosts,type:'line',borderColor:'rgba(255,215,0,1)',backgroundColor:'rgba(255,215,0,0.1)',borderWidth:3,pointBackgroundColor:'rgba(255,215,0,1)',pointRadius:5,yAxisID:'y1'}
-      ]},
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ display:true, position:'top' } },
-        layout:{ padding:{ bottom:20 } },
-        scales:{
-          x:{ title:{ display:true, text:'Number of Pallets' } },
-          y:{ beginAtZero:true, title:{ display:true, text:'Price per Pallet ($)' } },
-          y1:{ beginAtZero:true, position:'right', grid:{ drawOnChartArea:false }, title:{ display:true, text:'Total Cost ($)' } }
+      type: 'bar',
+      data: {
+        labels: palletCounts.map(n => `${n} Pallet${n > 1 ? 's' : ''}`),
+        datasets: [
+          { label: 'Price per Pallet ($)', data: prices, backgroundColor: 'rgba(42,82,152,0.7)', borderColor: 'rgba(42,82,152,1)', borderWidth: 2, yAxisID: 'y' },
+          { label: 'Total Cost ($)', data: totalCosts, type: 'line', borderColor: 'rgba(255,215,0,1)', backgroundColor: 'rgba(255,215,0,0.1)', borderWidth: 3, pointBackgroundColor: 'rgba(255,215,0,1)', pointRadius: 4, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        ...chartDefaults,
+        layout: { padding: { bottom: 12 } },
+        scales: {
+          x: { title: { display: true, text: 'Number of Pallets', font: { size: 11 } }, ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, title: { display: true, text: 'Price per Pallet ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } },
+          y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Total Cost ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
         }
       }
     });
 
-    // Chart 2: Cost Efficiency Analysis (add axis titles + prevent overlap)
     const avgCostPerPallet = palletCounts.map((count, idx) => totalCosts[idx] / count);
-    const cumulativeSavings = palletCounts.map(count => tierPrices.tier1 * count - (prices[count-1] * count));
+    const cumulativeSavings = palletCounts.map(count => tierPrices.tier1 * count - (prices[count - 1] * count));
     new Chart(document.getElementById('efficiencyChart'), {
-      type:'line',
-      data:{ labels:palletCounts, datasets:[
-        {label:'Average Cost per Pallet',data:avgCostPerPallet,borderWidth:3,borderColor:'rgba(75,192,192,1)',backgroundColor:'rgba(75,192,192,0.2)',fill:true},
-        {label:'Cumulative Savings vs. Single Shipments',data:cumulativeSavings,borderWidth:3,borderColor:'rgba(255,99,132,1)',backgroundColor:'rgba(255,99,132,0.2)',fill:true}
-      ]},
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ display:true, position:'top' } },
-        layout:{ padding:{ bottom:24 } },
-        scales:{
-          x:{ title:{ display:true, text:'Number of Pallets' } },
-          y:{ beginAtZero:true, title:{ display:true, text:'Cost ($)' } }
+      type: 'line',
+      data: {
+        labels: palletCounts,
+        datasets: [
+          { label: 'Average Cost per Pallet', data: avgCostPerPallet, borderWidth: 2, borderColor: 'rgba(75,192,192,1)', backgroundColor: 'rgba(75,192,192,0.2)', fill: true },
+          { label: 'Cumulative Savings vs. Single Shipments', data: cumulativeSavings, borderWidth: 2, borderColor: 'rgba(255,99,132,1)', backgroundColor: 'rgba(255,99,132,0.2)', fill: true }
+        ]
+      },
+      options: {
+        ...chartDefaults,
+        layout: { padding: { bottom: 12 } },
+        scales: {
+          x: { title: { display: true, text: 'Number of Pallets', font: { size: 11 } }, ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, title: { display: true, text: 'Cost ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
         }
       }
     });
 
-    // Chart 3: Storage vs. Shipping Frequency (add axis titles + control ticks + prevent overlap)
     const strategies = [
       { name: 'Daily (2–3 pallets)', frequency: 5, pallets: 3, cost: tierPrices.tier2 },
       { name: 'Twice Weekly (7 pallets)', frequency: 2, pallets: 7, cost: tierPrices.tier3 },
       { name: 'Weekly (14 pallets)', frequency: 1, pallets: 14, cost: tierPrices.tier4 }
     ];
-    const storageCosts = Array.from({length:20},(_,i)=>i*5);
-    const datasets = strategies.map((s,i) => {
-      const colors=['rgba(255,99,132,1)','rgba(54,162,235,1)','rgba(75,192,192,1)'];
+    const storageCosts = Array.from({length: 20}, (_, i) => i * 5);
+    const datasets = strategies.map((s, i) => {
+      const colors = ['rgba(255,99,132,1)', 'rgba(54,162,235,1)', 'rgba(75,192,192,1)'];
       const weeklyShipCost = s.frequency * s.pallets * s.cost;
-      return {label:s.name,data:storageCosts.map(sc=>weeklyShipCost+(s.pallets/2)*sc),borderColor:colors[i],backgroundColor:colors[i].replace('1)','0.2)'),borderWidth:2,fill:true};
+      return { label: s.name, data: storageCosts.map(sc => weeklyShipCost + (s.pallets / 2) * sc), borderColor: colors[i], backgroundColor: colors[i].replace('1)', '0.2)'), borderWidth: 2, fill: true };
     });
     new Chart(document.getElementById('breakEvenChart'), {
-      type:'line',
-      data:{ labels:storageCosts.map(c=>`$${c}/pallet/week`), datasets },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{ legend:{ display:true, position:'top' } },
-        layout:{ padding:{ bottom:28 } },
-        scales:{
-          x:{ title:{ display:true, text:'Storage Cost per Pallet' }, ticks:{ autoSkip:true, maxTicksLimit:10, maxRotation:0 } },
-          y:{ beginAtZero:true, title:{ display:true, text:'Total Weekly Cost ($)' } }
+      type: 'line',
+      data: { labels: storageCosts.map(c => `$${c}/pallet/week`), datasets },
+      options: {
+        ...chartDefaults,
+        layout: { padding: { bottom: 12 } },
+        scales: {
+          x: { title: { display: true, text: 'Storage Cost per Pallet', font: { size: 11 } }, ticks: { autoSkip: true, maxTicksLimit: 8, maxRotation: 0, font: { size: 10 } } },
+          y: { beginAtZero: true, title: { display: true, text: 'Total Weekly Cost ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
         }
       }
     });
+
+    const PDF_CAPTURE_SCALE = 3;
+    const CHART_PDF_SCALE = 4;
+
+    function scaleFontSetting(font, scale) {
+      if (!font) return font;
+      if (typeof font === 'number') return Math.round(font * scale);
+      if (typeof font.size === 'number') {
+        return { ...font, size: Math.round(font.size * scale) };
+      }
+      return font;
+    }
+
+    function prepareChartForPdfExport(chart, scale) {
+      const options = chart.options;
+      const backup = {
+        layout: options.layout ? JSON.parse(JSON.stringify(options.layout)) : null,
+        plugins: {},
+        scales: {},
+        datasets: chart.data.datasets.map((ds) => ({
+          borderWidth: ds.borderWidth,
+          pointRadius: ds.pointRadius,
+          maxBarThickness: ds.maxBarThickness,
+          borderRadius: ds.borderRadius,
+        })),
+      };
+
+      if (options.layout && options.layout.padding && typeof options.layout.padding === 'object') {
+        ['top', 'right', 'bottom', 'left'].forEach((side) => {
+          if (typeof options.layout.padding[side] === 'number') {
+            options.layout.padding[side] = Math.round(options.layout.padding[side] * scale);
+          }
+        });
+      }
+
+      const legend = options.plugins && options.plugins.legend;
+      if (legend && legend.labels) {
+        backup.plugins.legend = {
+          boxWidth: legend.labels.boxWidth,
+          font: legend.labels.font ? { ...legend.labels.font } : undefined,
+        };
+        if (typeof legend.labels.boxWidth === 'number') {
+          legend.labels.boxWidth = Math.round(legend.labels.boxWidth * scale);
+        }
+        legend.labels.font = scaleFontSetting(legend.labels.font, scale);
+      }
+
+      Object.entries(options.scales || {}).forEach(([axisId, axis]) => {
+        backup.scales[axisId] = {
+          ticksFont: axis.ticks && axis.ticks.font ? { ...axis.ticks.font } : undefined,
+          titleFont: axis.title && axis.title.font ? { ...axis.title.font } : undefined,
+        };
+        if (axis.ticks && axis.ticks.font) {
+          axis.ticks.font = scaleFontSetting(axis.ticks.font, scale);
+        }
+        if (axis.title && axis.title.font) {
+          axis.title.font = scaleFontSetting(axis.title.font, scale);
+        }
+      });
+
+      chart.data.datasets.forEach((dataset) => {
+        if (typeof dataset.borderWidth === 'number') dataset.borderWidth = Math.round(dataset.borderWidth * scale);
+        if (typeof dataset.pointRadius === 'number') dataset.pointRadius = Math.round(dataset.pointRadius * scale);
+        if (typeof dataset.maxBarThickness === 'number') dataset.maxBarThickness = Math.round(dataset.maxBarThickness * scale);
+        if (typeof dataset.borderRadius === 'number') dataset.borderRadius = Math.round(dataset.borderRadius * scale);
+      });
+
+      return backup;
+    }
+
+    function restoreChartAfterPdfExport(chart, backup) {
+      const options = chart.options;
+
+      if (backup.layout) {
+        options.layout = backup.layout;
+      }
+
+      const legend = options.plugins && options.plugins.legend;
+      if (legend && legend.labels && backup.plugins.legend) {
+        legend.labels.boxWidth = backup.plugins.legend.boxWidth;
+        legend.labels.font = backup.plugins.legend.font;
+      }
+
+      Object.entries(backup.scales).forEach(([axisId, axisBackup]) => {
+        const axis = options.scales[axisId];
+        if (!axis) return;
+        if (axis.ticks && axisBackup.ticksFont) axis.ticks.font = axisBackup.ticksFont;
+        if (axis.title && axisBackup.titleFont) axis.title.font = axisBackup.titleFont;
+      });
+
+      chart.data.datasets.forEach((dataset, index) => {
+        const dsBackup = backup.datasets[index];
+        if (!dsBackup) return;
+        dataset.borderWidth = dsBackup.borderWidth;
+        dataset.pointRadius = dsBackup.pointRadius;
+        dataset.maxBarThickness = dsBackup.maxBarThickness;
+        dataset.borderRadius = dsBackup.borderRadius;
+      });
+    }
+
+    async function exportChartForPdf(chart) {
+      if (!chart || !chart.canvas) return null;
+      const canvas = chart.canvas;
+      const originalWidth = canvas.width;
+      const originalHeight = canvas.height;
+      const backup = prepareChartForPdfExport(chart, CHART_PDF_SCALE);
+
+      chart.resize(originalWidth * CHART_PDF_SCALE, originalHeight * CHART_PDF_SCALE);
+      chart.update('none');
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      const dataUrl = chart.toBase64Image('image/png', 1.0);
+
+      restoreChartAfterPdfExport(chart, backup);
+      chart.resize(originalWidth, originalHeight);
+      chart.update('none');
+
+      return dataUrl;
+    }
+
+    async function swapChartsForPdf() {
+      const replacements = [];
+      for (const canvas of document.querySelectorAll('canvas')) {
+        const chart = typeof Chart !== 'undefined' && Chart.getChart ? Chart.getChart(canvas) : null;
+        const dataUrl = chart ? await exportChartForPdf(chart) : canvas.toDataURL('image/png', 1.0);
+
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.alt = 'Chart';
+        img.className = 'chart-pdf-image';
+        img.style.width = '100%';
+        img.style.height = 'auto';
+        img.style.display = 'block';
+        canvas.parentNode.insertBefore(img, canvas);
+        canvas.style.display = 'none';
+        replacements.push({ canvas, img });
+        if (!img.complete) {
+          await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        }
+      }
+      return replacements;
+    }
+
+    function getJsPDFConstructor() {
+      if (window.jspdf && window.jspdf.jsPDF) {
+        return window.jspdf.jsPDF;
+      }
+      if (window.jsPDF) {
+        return window.jsPDF;
+      }
+      return null;
+    }
+
+    function fitCanvasToPage(canvas, contentWidth) {
+      const renderWidth = contentWidth;
+      const renderHeight = (canvas.height * renderWidth) / canvas.width;
+      return { renderWidth, renderHeight };
+    }
+
+    function collectPdfSections() {
+      const sections = [];
+      const header = document.querySelector('.header');
+      if (header) {
+        sections.push(header);
+      }
+
+      document.querySelectorAll('.container > .section').forEach((section) => {
+        sections.push(section);
+      });
+
+      ['.cta', '.footer'].forEach((selector) => {
+        const section = document.querySelector(selector);
+        if (section) {
+          sections.push(section);
+        }
+      });
+
+      return sections;
+    }
+
+    async function captureSection(sectionElement, options = {}) {
+      const { excludeChart = false } = options;
+      const staging = document.createElement('div');
+      staging.className = 'pdf-section-staging';
+      staging.style.cssText = 'position:fixed;left:-10000px;top:0;width:700px;background:#fff;';
+      const clone = sectionElement.cloneNode(true);
+      if (excludeChart) {
+        clone.querySelectorAll('.chart-pdf-image, .chart-container canvas').forEach((el) => el.remove());
+      }
+      staging.appendChild(clone);
+      document.body.appendChild(staging);
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      const canvas = await html2canvas(staging, {
+        scale: PDF_CAPTURE_SCALE,
+        useCORS: true,
+        logging: false,
+        scrollY: 0,
+        backgroundColor: '#ffffff',
+        width: staging.scrollWidth,
+        height: staging.scrollHeight,
+        windowWidth: staging.scrollWidth,
+        windowHeight: staging.scrollHeight,
+        imageTimeout: 0,
+      });
+
+      staging.remove();
+      return canvas;
+    }
+
+    function loadImageAsCanvas(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const chartCanvas = document.createElement('canvas');
+          chartCanvas.width = img.naturalWidth;
+          chartCanvas.height = img.naturalHeight;
+          chartCanvas.getContext('2d').drawImage(img, 0, 0);
+          resolve(chartCanvas);
+        };
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    function placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap) {
+      const fitted = fitCanvasToPage(canvas, contentWidth);
+      if (currentY + fitted.renderHeight > maxY && currentY > margin) {
+        pdf.addPage();
+        currentY = margin;
+      }
+      pdf.addImage(canvas, 'PNG', margin, currentY, fitted.renderWidth, fitted.renderHeight, undefined, 'NONE');
+      return currentY + fitted.renderHeight + sectionGap;
+    }
+
+    async function addSectionToPdf(pdf, section, margin, contentWidth, maxY, currentY, sectionGap) {
+      const chartImg = section.querySelector('img.chart-pdf-image');
+      if (chartImg && chartImg.src) {
+        const bodyCanvas = await captureSection(section, { excludeChart: true });
+        currentY = placeCanvasOnPdf(pdf, bodyCanvas, margin, contentWidth, maxY, currentY, sectionGap);
+        const chartCanvas = await loadImageAsCanvas(chartImg.src);
+        return placeCanvasOnPdf(pdf, chartCanvas, margin, contentWidth, maxY, currentY, sectionGap);
+      }
+
+      const canvas = await captureSection(section);
+      return placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap);
+    }
+
+    async function buildQuotePdfBlob() {
+      const JsPDF = getJsPDFConstructor();
+      if (!JsPDF || typeof html2canvas !== 'function') {
+        throw new Error('PDF libraries are not available.');
+      }
+
+      const pdf = new JsPDF({ unit: 'in', format: 'letter', orientation: 'portrait' });
+      const margin = 0.45;
+      const sectionGap = 0.12;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const contentWidth = pageWidth - (margin * 2);
+      const maxY = pageHeight - margin;
+
+      let currentY = margin;
+      const sections = collectPdfSections();
+
+      for (let index = 0; index < sections.length; index += 1) {
+        currentY = await addSectionToPdf(pdf, sections[index], margin, contentWidth, maxY, currentY, sectionGap);
+      }
+
+      return pdf.output('blob');
+    }
+
+    function restoreCharts(replacements) {
+      replacements.forEach(({ canvas, img }) => {
+        img.remove();
+        canvas.style.display = '';
+      });
+    }
+
+    function getPywebviewApi() {
+      if (window.pywebview && window.pywebview.api) {
+        return window.pywebview.api;
+      }
+      if (typeof pywebview !== 'undefined' && pywebview.api) {
+        return pywebview.api;
+      }
+      return null;
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(String(reader.result).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    function triggerBrowserDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function downloadQuote() {
+      const button = document.getElementById('downloadQuoteBtn');
+      const filename = `Freight-Quote-{{ quote.quote_number }}.pdf`;
+
+      if (!getJsPDFConstructor() || typeof html2canvas !== 'function') {
+        alert('PDF library failed to load. Please restart the app and try again.');
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = 'Preparing quote...';
+
+      window.scrollTo(0, 0);
+      document.body.classList.add('pdf-export');
+      const chartReplacements = await swapChartsForPdf();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+      try {
+        const pdfBlob = await buildQuotePdfBlob();
+
+        const api = getPywebviewApi();
+        if (api && api.save_pdf_file) {
+          const pdfBase64 = await blobToBase64(pdfBlob);
+          const prepareResponse = await fetch('/quote/prepare-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pdf_base64: pdfBase64 }),
+          });
+          const prepared = await prepareResponse.json();
+          if (!prepared.success) {
+            alert('Could not prepare the quote PDF. Please try again.');
+            return;
+          }
+
+          const result = await api.save_pdf_file(prepared.token, filename);
+          if (result && result.cancelled) {
+            return;
+          }
+          if (result && !result.success) {
+            alert(result.error || 'Could not save the quote.');
+          }
+        } else {
+          triggerBrowserDownload(pdfBlob, filename);
+        }
+      } catch (error) {
+        console.error(error);
+        alert('Could not generate the quote PDF. Please try again.');
+      } finally {
+        restoreCharts(chartReplacements);
+        document.body.classList.remove('pdf-export');
+        button.disabled = false;
+        button.textContent = 'Download Quote';
+      }
+    }
   </script>
 </body>
 </html>

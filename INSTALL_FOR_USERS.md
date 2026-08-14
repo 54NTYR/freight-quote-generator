@@ -10,4 +10,4 @@ Windows may show a blue screen saying **"Windows protected your PC"** with **Unk
 
 The app runs locally in its own window at `http://127.0.0.1:17523` (not in Chrome/Edge as a separate tab).
 
-After install, edit `%APPDATA%\FreightQuoteGenerator\config.json` and add your Google Maps API key if you need distance calculations.
+After install, edit `%APPDATA%\FreightQuoteGenerator\config.json` and add your Google Maps API key if you need distance calculations. In Google Cloud Console, enable **Routes API** and **Geocoding API** for that key (the older Distance Matrix and legacy Geocoding APIs no longer work for new projects).
