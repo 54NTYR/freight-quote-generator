@@ -1,3 +1,5 @@
 # Build dependencies (in addition to requirements.txt)
 pyinstaller>=6.0
 waitress>=2.1
+pywebview>=5.0
+Pillow>=10.0

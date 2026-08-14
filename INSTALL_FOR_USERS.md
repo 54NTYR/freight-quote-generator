@@ -8,6 +8,6 @@ Windows may show a blue screen saying **"Windows protected your PC"** with **Unk
 2. Click **Run anyway**.
 3. Complete the installer normally.
 
-The app runs locally in your browser at `http://127.0.0.1:17523`.
+The app runs locally in its own window at `http://127.0.0.1:17523` (not in Chrome/Edge as a separate tab).
 
 After install, edit `%APPDATA%\FreightQuoteGenerator\config.json` and add your Google Maps API key if you need distance calculations.

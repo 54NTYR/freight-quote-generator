@@ -3,12 +3,14 @@ import os
 import sys
 import threading
 import time
-import webbrowser
+import urllib.error
+import urllib.request
 
 from config import ensure_config_file, load_google_maps_api_key
-from paths import data_dir
+from paths import data_dir, resource_dir
 
 APP_PORT = 17523
+APP_TITLE = "Freight Quote Generator"
 
 
 def setup_logging() -> None:
@@ -20,9 +22,45 @@ def setup_logging() -> None:
     )
 
 
-def open_browser(url: str) -> None:
-    time.sleep(1.5)
-    webbrowser.open(url)
+def start_server() -> None:
+    from app import app
+    from waitress import serve
+
+    serve(app, host="127.0.0.1", port=APP_PORT, threads=4)
+
+
+def wait_for_server(url: str, timeout: float = 20.0) -> bool:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=1):
+                return True
+        except (urllib.error.URLError, TimeoutError):
+            time.sleep(0.2)
+    return False
+
+
+def icon_path() -> str | None:
+    path = os.path.join(resource_dir(), "img", "app-icon.png")
+    return path if os.path.exists(path) else None
+
+
+def open_desktop_window(url: str) -> None:
+    import webview
+
+    window_kwargs = {
+        "title": APP_TITLE,
+        "url": url,
+        "width": 1280,
+        "height": 860,
+        "min_size": (960, 640),
+    }
+    app_icon = icon_path()
+    if app_icon:
+        window_kwargs["icon"] = app_icon
+
+    webview.create_window(**window_kwargs)
+    webview.start()
 
 
 def main() -> None:
@@ -33,18 +71,14 @@ def main() -> None:
     load_google_maps_api_key()
     os.chdir(data_dir())
 
-    url = f"http://127.0.0.1:{APP_PORT}"
-    print("Freight Quote Generator")
-    print(f"Running at {url}")
-    print(f"Config file: {os.path.join(data_dir(), 'config.json')}")
-    print("Close this window to stop the app.")
+    url = f"http://127.0.0.1:{APP_PORT}/"
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
 
-    threading.Thread(target=open_browser, args=(url,), daemon=True).start()
+    if not wait_for_server(url):
+        raise RuntimeError("The quote generator server did not start.")
 
-    from app import app
-    from waitress import serve
-
-    serve(app, host="127.0.0.1", port=APP_PORT, threads=4)
+    open_desktop_window(url)
 
 
 if __name__ == "__main__":

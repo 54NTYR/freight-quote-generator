@@ -16,15 +16,28 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 pip install -r requirements-build.txt
 
+Write-Host "==> Creating Windows app icon..." -ForegroundColor Cyan
+python scripts/create_app_icon.py
+if ($LASTEXITCODE -ne 0) {
+    throw "App icon generation failed."
+}
+
 Write-Host "==> Building application with PyInstaller..." -ForegroundColor Cyan
 if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
-if (Test-Path "build\pyinstaller") { Remove-Item -Recurse -Force "build\pyinstaller" }
+if (Test-Path "build\freight_quote_generator") { Remove-Item -Recurse -Force "build\freight_quote_generator" }
+
+$iconPath = Join-Path $ProjectRoot "build\app-icon.ico"
+if (-not (Test-Path $iconPath)) {
+    throw "Missing build\app-icon.ico"
+}
 
 pyinstaller --noconfirm freight_quote_generator.spec
 
 if ($LASTEXITCODE -ne 0) {
     throw "PyInstaller build failed."
 }
+
+Copy-Item $iconPath (Join-Path $ProjectRoot "dist\FreightQuoteGenerator\app-icon.ico") -Force
 
 $AppExe = Join-Path $ProjectRoot "dist\FreightQuoteGenerator\FreightQuoteGenerator.exe"
 $SigningConfig = Get-SigningConfig -ProjectRoot $ProjectRoot
