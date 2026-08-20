@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Shipment LTL Quote - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <style>
+        .form-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .section-title {
+            color: #1e3c72;
+            font-size: 20px;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2a5298;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        .distance-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+            display: none;
+        }
+
+        .shipment-summary {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: #1e3c72;
+            font-size: 18px;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2a5298;
+            border: 2px solid #2a5298;
+        }
+
+        .btn-secondary:hover {
+            background: #2a5298;
+            color: white;
+        }
+
+        .form-actions {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .quote-type-nav {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .quote-type-nav a {
+            color: #2a5298;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .quote-type-nav a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = 'LTL Single Shipment Quote' %}
+        {% include 'partials/page_header.html' %}
+
+        <div class="page-body">
+            <p class="quote-type-nav">
+                Need volume tiers instead?
+                <a href="{{ url_for('ltl_tiered_quote') }}">Open Tiered Quote</a>
+                · <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+
+            <form id="quoteForm" method="POST" action="{{ url_for('ltl_single_quote') }}">
+                <div class="form-section">
+                    <h2 class="section-title">Route / Lane</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="origin_city">Origin City</label>
+                            <input type="text" id="origin_city" name="origin_city" required placeholder="e.g., Medley">
+                        </div>
+                        <div class="form-group">
+                            <label for="origin_zip">Origin ZIP Code</label>
+                            <input type="text" id="origin_zip" name="origin_zip" required placeholder="e.g., 33178">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="destination_city">Destination City</label>
+                            <input type="text" id="destination_city" name="destination_city" required placeholder="e.g., Pensacola">
+                        </div>
+                        <div class="form-group">
+                            <label for="destination_zip">Destination ZIP Code</label>
+                            <input type="text" id="destination_zip" name="destination_zip" required placeholder="e.g., 32524">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="calculateDistance()">Calculate Distance</button>
+                    <div id="distance-info" class="distance-info"></div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Shipment Details</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pallet_count">Number of Pallets</label>
+                            <input type="number" id="pallet_count" name="pallet_count" value="6" min="1" max="999" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="price_per_pallet">Price per Pallet ($)</label>
+                            <input type="number" id="price_per_pallet" name="price_per_pallet" value="200" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="shipment-summary">
+                        <div class="summary-row">
+                            <span>Pallets</span>
+                            <span id="summary-pallets">6</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Rate per pallet</span>
+                            <span id="summary-rate">$200.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Estimated total</span>
+                            <span id="summary-total">$1,200.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Generate Single Shipment Quote</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const palletInput = document.getElementById('pallet_count');
+        const rateInput = document.getElementById('price_per_pallet');
+
+        function updateSummary() {
+            const pallets = Math.max(1, parseInt(palletInput.value, 10) || 1);
+            const rate = Math.max(0, parseFloat(rateInput.value) || 0);
+            document.getElementById('summary-pallets').textContent = pallets;
+            document.getElementById('summary-rate').textContent = `$${rate.toFixed(2)}`;
+            document.getElementById('summary-total').textContent = `$${(pallets * rate).toFixed(2)}`;
+        }
+
+        async function calculateDistance() {
+            const origin = document.getElementById('origin_zip').value.trim();
+            const destination = document.getElementById('destination_zip').value.trim();
+            const resultEl = document.getElementById('distance-info');
+
+            if (!origin || !destination) {
+                resultEl.textContent = 'Enter both ZIP codes to calculate distance.';
+                resultEl.style.display = 'block';
+                return;
+            }
+
+            resultEl.textContent = 'Calculating distance...';
+            resultEl.style.display = 'block';
+
+            try {
+                const response = await fetch('/calculate_distance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origin_zip: origin, destination_zip: destination })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    resultEl.textContent = data.display_distance
+                        ? `Distance: ${data.display_distance}`
+                        : `Distance: ${data.miles} miles`;
+                } else if (data.error === 'missing_api_key') {
+                    resultEl.textContent = 'Add your Google Maps API key to config.json to calculate distance.';
+                } else {
+                    resultEl.textContent = data.message || 'Could not calculate distance for those ZIP codes.';
+                }
+            } catch (error) {
+                resultEl.textContent = 'Could not calculate distance right now. Please try again.';
+            }
+        }
+
+        function resetForm() {
+            if (confirm('Reset the form? All current data will be lost.')) {
+                document.getElementById('quoteForm').reset();
+                document.getElementById('distance-info').style.display = 'none';
+                updateSummary();
+            }
+        }
+
+        document.getElementById('quoteForm').addEventListener('submit', function(e) {
+            const pallets = parseInt(palletInput.value, 10);
+            const rate = parseFloat(rateInput.value);
+
+            if (!Number.isFinite(pallets) || pallets < 1) {
+                e.preventDefault();
+                alert('Enter at least 1 pallet.');
+                return;
+            }
+
+            if (!Number.isFinite(rate) || rate < 0) {
+                e.preventDefault();
+                alert('Enter a valid price per pallet.');
+                return;
+            }
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Generating Quote...';
+            submitBtn.disabled = true;
+        });
+
+        palletInput.addEventListener('input', updateSummary);
+        rateInput.addEventListener('input', updateSummary);
+        updateSummary();
+    </script>
+</body>
+</html>

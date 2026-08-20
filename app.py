@@ -11,7 +11,7 @@ import base64
 import binascii
 from datetime import datetime, timedelta
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 from config import COMPANY_INFO, ensure_config_file, load_google_maps_api_key
 from paths import data_path, resource_dir
@@ -344,8 +344,13 @@ def home():
     return render_template("mode_select.html")
 
 
-@app.route("/ltl", methods=["GET", "POST"])
-def ltl_quote():
+@app.route("/ltl")
+def ltl_quote_redirect():
+    return redirect(url_for("ltl_tiered_quote"))
+
+
+@app.route("/ltl/tiered", methods=["GET", "POST"])
+def ltl_tiered_quote():
     if request.method == "GET":
         return render_template("ltl_quote_form.html")
 
@@ -384,6 +389,63 @@ def ltl_quote():
         quote=quote,
         tier_prices=json.dumps(tier_prices),
         scenarios=quote_generator.calculate_scenarios(tier_prices, tier_prices["tier1"]),
+        current_year=datetime.now().year,
+    )
+
+
+@app.route("/ltl/single", methods=["GET", "POST"])
+def ltl_single_quote():
+    if request.method == "GET":
+        return render_template("ltl_single_quote_form.html")
+
+    try:
+        pallet_count = int(request.form["pallet_count"])
+        if pallet_count < 1:
+            raise ValueError("invalid pallet count")
+    except (ValueError, KeyError, TypeError):
+        return render_template("ltl_single_quote_form.html"), 400
+
+    try:
+        price_per_pallet = float(request.form["price_per_pallet"])
+        if price_per_pallet < 0:
+            raise ValueError("invalid price")
+    except (ValueError, KeyError, TypeError):
+        return render_template("ltl_single_quote_form.html"), 400
+
+    quote_generator = QuoteGenerator(
+        request.form["origin_city"],
+        request.form["origin_zip"],
+        request.form["destination_city"],
+        request.form["destination_zip"],
+    )
+    miles = quote_generator.calculate_distance(quote_generator.origin_zip, quote_generator.destination_zip)
+    total_cost = pallet_count * price_per_pallet
+    cost_per_pallet_mile = None
+    if miles > 0:
+        cost_per_pallet_mile = round(price_per_pallet / miles, 2)
+
+    valid_until_date = datetime.now() + timedelta(days=30)
+    quote = {
+        "quote_number": quote_generator.quote_number,
+        "origin_city": quote_generator.origin_city,
+        "origin_zip": quote_generator.origin_zip,
+        "destination_city": quote_generator.destination_city,
+        "destination_zip": quote_generator.destination_zip,
+        "distance": miles if miles >= 0 else None,
+        "distance_display": f"{miles} miles" if miles >= 0 else "N/A",
+        "transit_time": quote_generator.estimate_transit_time(miles),
+        "pallet_count": pallet_count,
+        "price_per_pallet": price_per_pallet,
+        "total_cost": total_cost,
+        "cost_per_pallet_mile": cost_per_pallet_mile,
+        "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
+        "valid_until": valid_until_date.strftime("%B %d, %Y").replace(" 0", " "),
+        **COMPANY_INFO,
+    }
+
+    return render_template(
+        "ltl_single_quote_output.html",
+        quote=quote,
         current_year=datetime.now().year,
     )
 

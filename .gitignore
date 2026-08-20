@@ -14,3 +14,5 @@ quote_counter.json
 tmp_*.html
 test_international_output.html
 Quote*.html
+stages/*/output/*
+!stages/*/output/.gitkeep

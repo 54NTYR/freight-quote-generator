@@ -39,6 +39,8 @@ Environment variables take precedence over `config.json`.
 
 See `INSTALL_FOR_USERS.md` for SmartScreen installer notes.
 
+Agents working in this repo: start at `AGENTS.md`.
+
 ## Development
 
 ```powershell

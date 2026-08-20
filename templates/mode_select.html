@@ -6,10 +6,19 @@
     <title>Select Quote Mode - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
     <style>
+        .mode-select-container {
+            overflow: visible;
+        }
+
+        .mode-select-body {
+            overflow: visible;
+        }
+
         .button-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
+            overflow: visible;
         }
 
         .mode-button {
@@ -26,32 +35,167 @@
             text-align: center;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
             transition: transform 0.2s, background 0.2s;
+            border: none;
+            width: 100%;
+            cursor: pointer;
         }
 
-        .mode-button:hover {
+        .mode-button:hover,
+        .mode-button:focus-visible {
             transform: translateY(-3px);
             background: #1e3c72;
         }
 
-        .note {
-            margin-top: 24px;
-            color: #555;
+        .mode-dropdown {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-dropdown.is-open {
+            z-index: 200;
+        }
+
+        .mode-dropdown-trigger {
+            gap: 8px;
+        }
+
+        .mode-dropdown-caret {
+            font-size: 14px;
+            line-height: 1;
+            opacity: 0.9;
+        }
+
+        .mode-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0;
+            padding-top: 8px;
+            background: transparent;
+            z-index: 201;
+        }
+
+        .mode-dropdown-menu-inner {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+            overflow: hidden;
+            border: 1px solid #d8e2f0;
+        }
+
+        .mode-dropdown.is-open .mode-dropdown-menu,
+        .mode-dropdown:hover .mode-dropdown-menu {
+            display: block;
+        }
+
+        .mode-dropdown-link {
+            display: block;
+            padding: 14px 16px;
+            color: #1e3c72;
+            text-decoration: none;
             font-size: 15px;
+            font-weight: 600;
+            border-bottom: 1px solid #e8eef5;
+            transition: background 0.15s;
+        }
+
+        .mode-dropdown-link:last-child {
+            border-bottom: none;
+        }
+
+        .mode-dropdown-link:hover,
+        .mode-dropdown-link:focus-visible {
+            background: #eef4fb;
+            outline: none;
+        }
+
+        .mode-dropdown-link small {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 400;
+            color: #667;
+        }
+
+        .mode-dropdown-hint {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container mode-select-container">
         {% include 'partials/page_header.html' %}
 
-        <div class="page-body">
+        <div class="page-body mode-select-body">
             <h2 class="section-title">Select Transportation Mode</h2>
             <div class="button-grid">
-                <a class="mode-button" href="/ltl">LTL</a>
+                <div class="mode-dropdown" id="ltlDropdown">
+                    <button
+                        type="button"
+                        class="mode-button mode-dropdown-trigger"
+                        id="ltlDropdownTrigger"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="ltlDropdownMenu"
+                    >
+                        <span>LTL</span>
+                        <span class="mode-dropdown-caret" aria-hidden="true">▾</span>
+                    </button>
+                    <div class="mode-dropdown-menu" id="ltlDropdownMenu" role="menu">
+                        <div class="mode-dropdown-menu-inner">
+                            <a class="mode-dropdown-link" href="{{ url_for('ltl_single_quote') }}" role="menuitem">
+                                Single Shipment Quote
+                                <small>Fixed pallet count on one lane</small>
+                            </a>
+                            <a class="mode-dropdown-link" href="{{ url_for('ltl_tiered_quote') }}" role="menuitem">
+                                Tiered Quote
+                                <small>Volume-based pricing tiers</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <a class="mode-button" href="/ftl">FTL</a>
                 <a class="mode-button" href="/dray">DRAY</a>
                 <a class="mode-button" href="/international">INTERNATIONAL</a>
             </div>
+            <p class="mode-dropdown-hint">Click LTL to choose Single Shipment or Tiered.</p>
+        </div>
     </div>
+
+    <script>
+        (function () {
+            const dropdown = document.getElementById('ltlDropdown');
+            const trigger = document.getElementById('ltlDropdownTrigger');
+            if (!dropdown || !trigger) return;
+
+            function setOpen(isOpen) {
+                dropdown.classList.toggle('is-open', isOpen);
+                trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            }
+
+            trigger.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                setOpen(!dropdown.classList.contains('is-open'));
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!dropdown.contains(event.target)) {
+                    setOpen(false);
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    setOpen(false);
+                    trigger.focus();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

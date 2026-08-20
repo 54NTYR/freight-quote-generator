@@ -180,11 +180,15 @@
 </head>
 <body>
     <div class="container">
-        {% set header_subtitle = 'LTL Quote Builder' %}
+        {% set header_subtitle = 'LTL Tiered Quote Builder' %}
         {% include 'partials/page_header.html' %}
 
         <div class="page-body">
-            <form id="quoteForm" method="POST" action="{{ url_for('ltl_quote') }}">
+            <p class="quote-type-nav" style="margin-bottom:20px;font-size:14px;color:#666;">
+                Need one fixed shipment instead?
+                <a href="{{ url_for('ltl_single_quote') }}" style="color:#2a5298;font-weight:600;text-decoration:none;">Open Single Shipment Quote</a>
+            </p>
+            <form id="quoteForm" method="POST" action="{{ url_for('ltl_tiered_quote') }}">
                 
                 <!-- Route Information -->
                 <div class="form-section">
