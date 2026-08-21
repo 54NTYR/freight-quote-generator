@@ -311,6 +311,9 @@ TIER_DISPLAY_NAMES = {
 
 EOQ_WEEKLY_STORAGE_COLUMNS = (0.0, 24.0, 48.0, 72.0)
 
+# Used when lane history has fewer than 2 shipments or zero variance (σ = 0).
+DEFAULT_LANE_STD_DEV = 0.5
+
 T_CRITICAL_90 = {
     1: 6.314,
     2: 2.920,
@@ -401,10 +404,27 @@ def lane_sample_std_dev(historical_lane_data):
     values = [float(x) for x in historical_lane_data]
     count = len(values)
     if count < 2:
-        return 0.0
+        return None
     mean = sum(values) / count
     variance = sum((value - mean) ** 2 for value in values) / (count - 1)
     return math.sqrt(variance)
+
+
+def resolve_lane_std_dev(std_dev=None, historical_lane_data=None):
+    """
+    Lane volatility (σ) for buffer-day math.
+    Falls back to DEFAULT_LANE_STD_DEV when history is too thin or perfectly stable.
+    """
+    if historical_lane_data:
+        computed = lane_sample_std_dev(historical_lane_data)
+        if computed is None or computed <= 0:
+            return DEFAULT_LANE_STD_DEV
+        return computed
+
+    lane_std = float(std_dev or 0.0)
+    if lane_std <= 0:
+        return DEFAULT_LANE_STD_DEV
+    return lane_std
 
 
 def calculate_buffer_days(desired_csl, std_dev=None, historical_lane_data=None):
@@ -414,12 +434,7 @@ def calculate_buffer_days(desired_csl, std_dev=None, historical_lane_data=None):
     """
     probability = float(desired_csl) / 100.0
     z_score = norm_ppf(probability)
-
-    if historical_lane_data:
-        lane_std = lane_sample_std_dev(historical_lane_data)
-    else:
-        lane_std = max(0.0, float(std_dev or 0.0))
-
+    lane_std = resolve_lane_std_dev(std_dev=std_dev, historical_lane_data=historical_lane_data)
     buffer_days = z_score * lane_std
     return {
         "buffer_days": round(buffer_days, 1),
