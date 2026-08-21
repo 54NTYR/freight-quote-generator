@@ -23,7 +23,6 @@
     .arrow { font-size: 22px; color: #ffd700; }
     .route-summary { text-align: center; margin-top: 10px; color: rgba(255,255,255,0.92); font-size: 13px; }
     .quote-title { font-size: 28px; font-weight: 500; text-align: center; margin: 6px 0; letter-spacing: 0.2px; }
-    .quote-subtitle { text-align: center; font-size: 14px; opacity: 0.92; margin-top: 4px; }
     .section { background: white; padding: 14px; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
     .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 14px; padding-bottom: 7px; border-bottom: 3px solid #2a5298; }
     .pricing-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
@@ -66,37 +65,103 @@
     .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-top: 14px; }
     .cta h2 { margin-bottom: 20px; font-size: 28px; }
     .footer { text-align: center; padding: 30px; color: #666; font-size: 14px; }
-    .quote-actions { max-width: 940px; margin: 16px auto 0; padding: 0 16px 24px; text-align: center; }
-    .btn-pdf {
+    .btn {
       padding: 10px 18px;
-      border: none;
       border-radius: 6px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
       background: #ffd700;
       color: #1e3c72;
-      transition: all 0.2s;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
     }
-    .btn-pdf:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
-    .btn-pdf:disabled { opacity: 0.7; cursor: wait; }
+    .btn-secondary {
+      background: #f0f4f8;
+      color: #1e3c72;
+      border: 1px solid #d0d7e4;
+    }
+    .quote-toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      max-width: 940px;
+      margin: 16px auto 24px;
+      padding: 0 16px;
+    }
+    @page { size: A4 portrait; margin: 12mm; }
     @media print {
-      .quote-actions { display: none; }
-    }
-    body.pdf-export { background: #fff; }
-    .pdf-section-staging {
-      width: 700px;
-      background: #fff;
-      font-size: 13px;
-      line-height: 1.55;
-      color: #333;
-    }
-    .pdf-section-staging .header,
-    .pdf-section-staging .section,
-    .pdf-section-staging .cta,
-    .pdf-section-staging .footer {
-      box-shadow: none;
-      border-radius: 6px;
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-size: 11px;
+        line-height: 1.35;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .container { max-width: 100%; margin: 0; padding: 0 4px 4px; }
+      .header {
+        box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+        margin-bottom: 10px;
+        margin-top: 0;
+        border-radius: 6px;
+        padding: 8px 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .company-info {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        margin-bottom: 8px;
+        gap: 10px;
+      }
+      .company-left { padding: 0 0 0 12px !important; min-width: 0 !important; flex: 0 0 auto !important; }
+      .company-info img,
+      .company-left img,
+      .company-left img[style] { height: 28px !important; }
+      .company-center { flex: 1 1 auto !important; min-width: 0 !important; font-size: 11px !important; }
+      .company-right { flex: 0 0 auto !important; min-width: 0 !important; }
+      .quote-title { font-size: 19px !important; margin: 4px 0 !important; line-height: 1.2 !important; }
+      .quote-number,
+      .location p,
+      .route-summary { font-size: 11px !important; }
+      .route-info { margin-top: 0; padding: 8px; break-inside: avoid; page-break-inside: avoid; }
+      .route-detail { gap: 8px; align-items: center; }
+      .location { padding: 8px; }
+      .location h3 { font-size: 13px !important; margin-bottom: 4px !important; letter-spacing: 0.8px !important; }
+      .location p { margin-bottom: 0 !important; line-height: 1.2 !important; }
+      .route-summary { margin-top: 8px !important; }
+      .arrow { font-size: 18px !important; }
+      .section { margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
+      .section-title { margin-bottom: 8px; padding-bottom: 5px; font-size: 16px !important; }
+      .kpi-row {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .kpi-block { padding: 8px 4px; break-inside: avoid; page-break-inside: avoid; }
+      .kpi-block .kpi-value { font-size: 14px !important; }
+      .kpi-block .kpi-title { font-size: 9px !important; margin-bottom: 4px !important; }
+      .kpi-block .kpi-note { font-size: 8px !important; margin-top: 4px !important; }
+      .cta {
+        padding: 14px !important;
+        margin-top: 6px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .cta h2 { font-size: 16px !important; margin-bottom: 8px !important; }
+      .cta p { font-size: 11px !important; }
+      .cta p[style] { margin-top: 8px !important; font-size: 11px !important; }
+      .footer { font-size: 10px !important; padding: 8px !important; break-inside: avoid; page-break-inside: avoid; }
+      .quote-toolbar { display: none !important; }
+      .header, .route-info { break-inside: avoid; page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -109,7 +174,6 @@
         </div>
         <div class="company-center">
           <div class="quote-title">LTL Single Shipment Quote</div>
-          <div class="quote-subtitle">Fixed lane · {{ quote.pallet_count }} pallet{{ 's' if quote.pallet_count != 1 else '' }}</div>
         </div>
         <div class="company-right">
           <div class="quote-number">
@@ -195,7 +259,7 @@
           <div class="transit-meta">
             <span><strong>Mean Transit Time (μ):</strong> {{ analytics.avg_transit_days }} Business Days</span>
             <span><strong>Lane Coefficient of Variation (CV):</strong> {{ analytics.lane_cv if analytics.lane_cv is not none else 'N/A' }}</span>
-            <span><strong>Required Buffer Days:</strong> {{ analytics.safety_days }} Days at {{ analytics.desired_csl }}% CSL</span>
+            <span><strong>Required Buffer Days:</strong> {{ analytics.safety_days }} Days at {{ analytics.desired_csl }}% CSL (Z = {{ analytics.z_value }} × σ = {{ analytics.lane_std_dev }} days)</span>
           </div>
           {% set span = transit_prediction.upper_interval_days - transit_prediction.lower_interval_days %}
           {% set bar_left = ((transit_prediction.lower_interval_days - 1) / 10 * 100) if transit_prediction.lower_interval_days <= 10 else 0 %}
@@ -252,170 +316,9 @@
     </div>
   </div>
 
-  <div class="quote-actions">
-    <button type="button" class="btn-pdf" id="downloadQuoteBtn" onclick="downloadQuote()">Download Quote</button>
+  <div class="quote-toolbar">
+    <button type="button" class="btn" onclick="window.print()">Print Quote</button>
+    <button type="button" class="btn btn-secondary" onclick="history.back()">Back to Builder</button>
   </div>
-
-  <script src="{{ url_for('static', filename='js/html2canvas.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/jspdf.umd.min.js') }}"></script>
-  <script>
-    const PDF_CAPTURE_SCALE = 3;
-
-    function getJsPDFConstructor() {
-      if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
-      if (window.jsPDF) return window.jsPDF;
-      return null;
-    }
-
-    function fitCanvasToPage(canvas, contentWidth) {
-      const renderWidth = contentWidth;
-      const renderHeight = (canvas.height * renderWidth) / canvas.width;
-      return { renderWidth, renderHeight };
-    }
-
-    function collectPdfSections() {
-      const sections = [];
-      const header = document.querySelector('.header');
-      if (header) sections.push(header);
-      document.querySelectorAll('.container > .section, .container > .optimization-alert').forEach((section) => sections.push(section));
-      ['.cta', '.footer'].forEach((selector) => {
-        const section = document.querySelector(selector);
-        if (section) sections.push(section);
-      });
-      return sections;
-    }
-
-    async function captureSection(sectionElement) {
-      const staging = document.createElement('div');
-      staging.className = 'pdf-section-staging';
-      staging.style.cssText = 'position:fixed;left:-10000px;top:0;width:700px;background:#fff;';
-      staging.appendChild(sectionElement.cloneNode(true));
-      document.body.appendChild(staging);
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-      const canvas = await html2canvas(staging, {
-        scale: PDF_CAPTURE_SCALE,
-        useCORS: true,
-        logging: false,
-        scrollY: 0,
-        backgroundColor: '#ffffff',
-        width: staging.scrollWidth,
-        height: staging.scrollHeight,
-        windowWidth: staging.scrollWidth,
-        windowHeight: staging.scrollHeight,
-        imageTimeout: 0,
-      });
-
-      staging.remove();
-      return canvas;
-    }
-
-    function placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap) {
-      const fitted = fitCanvasToPage(canvas, contentWidth);
-      if (currentY + fitted.renderHeight > maxY && currentY > margin) {
-        pdf.addPage();
-        currentY = margin;
-      }
-      pdf.addImage(canvas, 'PNG', margin, currentY, fitted.renderWidth, fitted.renderHeight, undefined, 'NONE');
-      return currentY + fitted.renderHeight + sectionGap;
-    }
-
-    async function buildQuotePdfBlob() {
-      const JsPDF = getJsPDFConstructor();
-      if (!JsPDF || typeof html2canvas !== 'function') {
-        throw new Error('PDF libraries are not available.');
-      }
-
-      const pdf = new JsPDF({ unit: 'in', format: 'letter', orientation: 'portrait' });
-      const margin = 0.45;
-      const sectionGap = 0.12;
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const contentWidth = pageWidth - (margin * 2);
-      const maxY = pageHeight - margin;
-      let currentY = margin;
-
-      for (const section of collectPdfSections()) {
-        const canvas = await captureSection(section);
-        currentY = placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap);
-      }
-
-      return pdf.output('blob');
-    }
-
-    function getPywebviewApi() {
-      if (window.pywebview && window.pywebview.api) return window.pywebview.api;
-      if (typeof pywebview !== 'undefined' && pywebview.api) return pywebview.api;
-      return null;
-    }
-
-    function blobToBase64(blob) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(String(reader.result).split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    function triggerBrowserDownload(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    async function downloadQuote() {
-      const button = document.getElementById('downloadQuoteBtn');
-      const filename = `Freight-Quote-{{ quote.quote_number }}.pdf`;
-
-      if (!getJsPDFConstructor() || typeof html2canvas !== 'function') {
-        alert('PDF library failed to load. Please restart the app and try again.');
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = 'Preparing quote...';
-      document.body.classList.add('pdf-export');
-
-      try {
-        const pdfBlob = await buildQuotePdfBlob();
-        const api = getPywebviewApi();
-
-        if (api && api.save_pdf_file) {
-          const pdfBase64 = await blobToBase64(pdfBlob);
-          const prepareResponse = await fetch('/quote/prepare-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pdf_base64: pdfBase64 }),
-          });
-          const prepared = await prepareResponse.json();
-          if (!prepared.success) {
-            alert('Could not prepare the quote PDF. Please try again.');
-            return;
-          }
-
-          const result = await api.save_pdf_file(prepared.token, filename);
-          if (result && result.cancelled) return;
-          if (result && !result.success) {
-            alert(result.error || 'Could not save the quote.');
-          }
-        } else {
-          triggerBrowserDownload(pdfBlob, filename);
-        }
-      } catch (error) {
-        console.error(error);
-        alert('Could not generate the quote PDF. Please try again.');
-      } finally {
-        document.body.classList.remove('pdf-export');
-        button.disabled = false;
-        button.textContent = 'Download Quote';
-      }
-    }
-  </script>
 </body>
 </html>

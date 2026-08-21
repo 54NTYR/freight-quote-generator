@@ -221,12 +221,13 @@
             <p class="quote-type-nav" style="margin-bottom:20px;font-size:14px;color:#666;">
                 Need one fixed shipment instead?
                 <a href="{{ url_for('ltl_single_quote') }}" style="color:#2a5298;font-weight:600;text-decoration:none;">Open Single Shipment Quote</a>
+                · <a href="{{ url_for('home') }}" style="color:#2a5298;font-weight:600;text-decoration:none;">Back to modes</a>
             </p>
             <form id="quoteForm" method="POST" action="{{ url_for('ltl_tiered_quote') }}">
                 
                 <!-- Route Information -->
                 <div class="form-section">
-                    <h2 class="section-title">🚚 Route Information</h2>
+                    <h2 class="section-title">Route Information</h2>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="origin_city">Origin City</label>
@@ -266,7 +267,7 @@
 
                 <!-- Pricing Tiers -->
                 <div class="form-section">
-                    <h2 class="section-title">💰 Pricing Structure</h2>
+                    <h2 class="section-title">Pricing Structure</h2>
                     <div class="pricing-grid">
                         <div class="pricing-tier">
                             <div class="tier-label">Tier 1 - Small</div>

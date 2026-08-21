@@ -100,116 +100,118 @@
     .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-top: 14px; }
     .cta h2 { margin-bottom: 20px; font-size: 28px; }
     .footer { text-align: center; padding: 30px; color: #666; font-size: 14px; }
-    .quote-actions { max-width: 940px; margin: 16px auto 0; padding: 0 16px 24px; text-align: center; }
-    .btn-pdf {
+    .btn {
       padding: 10px 18px;
-      border: none;
       border-radius: 6px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
       background: #ffd700;
       color: #1e3c72;
-      transition: all 0.2s;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
     }
-    .btn-pdf:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
-    .btn-pdf:disabled { opacity: 0.7; cursor: wait; }
-    .chart-pdf-image { width: 100%; height: auto; object-fit: contain; display: block; }
+    .btn-secondary {
+      background: #f0f4f8;
+      color: #1e3c72;
+      border: 1px solid #d0d7e4;
+    }
+    .quote-toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      max-width: 940px;
+      margin: 16px auto 24px;
+      padding: 0 16px;
+    }
     @page { size: A4 portrait; margin: 12mm; }
     @media print {
-      html, body { margin: 0; padding: 0; background: #fff; font-size: 11px; line-height: 1.35; }
-      .container { max-width: 100%; margin: 0; padding: 4px; }
-      .header { box-shadow: 0 3px 8px rgba(0,0,0,0.06); margin-bottom: 10px; border-radius: 6px; padding: 8px 10px; }
-      .company-info img { height: 28px !important; }
-      .company-center, .company-right { font-size: 11px !important; }
-      .quote-title { font-size: 19px !important; }
-      .route-info { margin-top: 0; padding: 8px; }
-      .location { padding: 8px; }
-      .location h3 { font-size: 13px !important; }
-      .location p { font-size: 15px !important; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-size: 11px;
+        line-height: 1.35;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .container { max-width: 100%; margin: 0; padding: 0 4px 4px; }
+      .header {
+        box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+        margin-bottom: 10px;
+        margin-top: 0;
+        border-radius: 6px;
+        padding: 8px 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .company-info {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        margin-bottom: 8px;
+        gap: 10px;
+      }
+      .company-left { padding: 0 0 0 12px !important; min-width: 0 !important; flex: 0 0 auto !important; }
+      .company-info img,
+      .company-left img,
+      .company-left img[style] { height: 28px !important; }
+      .company-center { flex: 1 1 auto !important; min-width: 0 !important; font-size: 11px !important; }
+      .company-right { flex: 0 0 auto !important; min-width: 0 !important; }
+      .quote-title { font-size: 19px !important; margin: 4px 0 !important; line-height: 1.2 !important; }
+      .quote-number,
+      .location p,
       .route-summary { font-size: 11px !important; }
+      .route-info { margin-top: 0; padding: 8px; break-inside: avoid; page-break-inside: avoid; }
+      .route-detail { gap: 8px; align-items: center; }
+      .location { padding: 8px; }
+      .location h3 { font-size: 13px !important; margin-bottom: 4px !important; letter-spacing: 0.8px !important; }
+      .location p { margin-bottom: 0 !important; line-height: 1.2 !important; }
+      .route-summary { margin-top: 8px !important; }
+      .arrow { font-size: 18px !important; }
       .section { margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
+      .section-title { margin-bottom: 8px; padding-bottom: 5px; font-size: 16px !important; }
       .chart-container { padding: 8px !important; }
       .chart-canvas { height: 220px !important; }
-      .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-      .scenario-grid { grid-template-columns: 1fr; }
+      .kpi-row {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 6px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .kpi-block { padding: 8px 4px; break-inside: avoid; page-break-inside: avoid; }
+      .kpi-block .kpi-value { font-size: 14px !important; }
+      .kpi-block .kpi-title { font-size: 9px !important; margin-bottom: 4px !important; }
+      .kpi-block .kpi-note { font-size: 8px !important; margin-top: 4px !important; }
+      .scenario-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px;
+      }
+      .scenario-box { padding: 8px; }
+      .scenario-title { font-size: 11px !important; }
+      .scenario-box p { font-size: 10px !important; margin-bottom: 4px !important; }
+      .scenario-metric { padding: 6px; }
+      .scenario-metric-value { font-size: 13px !important; }
+      .scenario-metric-label { font-size: 9px !important; }
       .optimization-alert { padding: 10px; font-size: 11px; }
-      .footer { font-size: 10px !important; padding: 8px !important; }
-      .quote-actions { display: none; }
-      .section, .header, .route-info, .scenario-box { break-inside: avoid; page-break-inside: avoid; }
+      .cta {
+        padding: 14px !important;
+        margin-top: 6px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .cta h2 { font-size: 16px !important; margin-bottom: 8px !important; }
+      .cta p { font-size: 11px !important; }
+      .cta p[style] { margin-top: 8px !important; font-size: 11px !important; }
+      .footer { font-size: 10px !important; padding: 8px !important; break-inside: avoid; page-break-inside: avoid; }
+      .quote-toolbar { display: none !important; }
+      #section-shipping-recommendations { break-inside: avoid; page-break-inside: avoid; }
+      .header, .route-info { break-inside: avoid; page-break-inside: avoid; }
     }
-    body.pdf-export { background: #fff; }
-
-    /* Compact layout used when capturing sections for PDF (html2canvas ignores @media print) */
-    .pdf-section-staging {
-      width: 700px;
-      background: #fff;
-      font-size: 13px;
-      line-height: 1.55;
-      color: #333;
-    }
-    .pdf-section-staging .header {
-      padding: 14px 16px;
-      margin-bottom: 0;
-      border-radius: 6px;
-      box-shadow: none;
-    }
-    .pdf-section-staging .company-info { margin-bottom: 12px; gap: 14px; }
-    .pdf-section-staging .company-left img,
-    .pdf-section-staging .company-left img[style] { height: 44px !important; }
-    .pdf-section-staging .quote-title { font-size: 19px !important; margin: 6px 0; }
-    .pdf-section-staging .quote-number { font-size: 12px; line-height: 1.5; }
-    .pdf-section-staging .route-info { padding: 12px; margin-top: 10px; border-radius: 6px; }
-    .pdf-section-staging .location { padding: 12px 14px; border-radius: 8px; }
-    .pdf-section-staging .location h3 { font-size: 13px !important; margin-bottom: 6px; letter-spacing: 0.8px; }
-    .pdf-section-staging .location p { font-size: 13px !important; margin-bottom: 5px; }
-    .pdf-section-staging .route-summary { font-size: 12px; margin-top: 10px; }
-    .pdf-section-staging .arrow { font-size: 18px; }
-    .pdf-section-staging .section {
-      padding: 14px;
-      margin-bottom: 0;
-      border-radius: 6px;
-      box-shadow: none;
-      border: 1px solid #e5ecf5;
-    }
-    .pdf-section-staging .section-title {
-      font-size: 17px;
-      margin-bottom: 12px;
-      padding-bottom: 7px;
-    }
-    .pdf-section-staging .pricing-table { margin-top: 12px; }
-    .pdf-section-staging .pricing-table th,
-    .pdf-section-staging .pricing-table td { padding: 9px 10px; font-size: 12px; }
-    .pdf-section-staging .highlight { font-size: 11px; padding: 2px 6px; }
-    .pdf-section-staging .chart-container { padding: 14px; margin: 0; border-radius: 6px; }
-    .pdf-section-staging .chart-pdf-image {
-      display: block;
-      width: 100%;
-      height: auto;
-      max-height: none;
-      object-fit: contain;
-    }
-    .pdf-section-staging .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-    .pdf-section-staging .analysis-card { padding: 12px; border-radius: 6px; box-shadow: none; }
-    .pdf-section-staging .analysis-card h3 { font-size: 12px; margin-bottom: 8px; }
-    .pdf-section-staging .analysis-card p { font-size: 11px; line-height: 1.5; }
-    .pdf-section-staging .scenario-box { padding: 12px; margin: 0; }
-    .pdf-section-staging .scenario-box p { font-size: 12px; }
-    .pdf-section-staging .scenario-title { font-size: 12px; margin-bottom: 8px; }
-    .pdf-section-staging .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
-    .pdf-section-staging .metric { padding: 10px; box-shadow: none; border: 1px solid #e5ecf5; }
-    .pdf-section-staging .metric-value { font-size: 15px; }
-    .pdf-section-staging .metric-label { font-size: 10px; margin-top: 5px; }
-    .pdf-section-staging .cta {
-      padding: 24px;
-      margin-top: 0;
-      border-radius: 6px;
-    }
-    .pdf-section-staging .cta h2 { font-size: 19px; margin-bottom: 12px; }
-    .pdf-section-staging .cta p { font-size: 12px; margin: 0; }
-    .pdf-section-staging .cta p[style] { margin-top: 12px !important; font-size: 12px !important; }
-    .pdf-section-staging .footer { padding: 14px; font-size: 11px; line-height: 1.55; }
-    .pdf-section-staging .footer p { margin-bottom: 6px; }
   </style>
 </head>
 <body>
@@ -439,12 +441,11 @@
     </div>
   </div>
 
-  <div class="quote-actions">
-    <button type="button" class="btn-pdf" id="downloadQuoteBtn" onclick="downloadQuote()">Download Quote</button>
+  <div class="quote-toolbar">
+    <button type="button" class="btn" onclick="window.print()">Print Quote</button>
+    <button type="button" class="btn btn-secondary" onclick="history.back()">Back to Builder</button>
   </div>
 
-  <script src="{{ url_for('static', filename='js/html2canvas.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/jspdf.umd.min.js') }}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script>
     const tierPrices = {{ tier_prices | safe }};
@@ -521,372 +522,6 @@
         }
       }
     });
-
-    const PDF_CAPTURE_SCALE = 3;
-    const CHART_PDF_SCALE = 4;
-
-    function scaleFontSetting(font, scale) {
-      if (!font) return font;
-      if (typeof font === 'number') return Math.round(font * scale);
-      if (typeof font.size === 'number') {
-        return { ...font, size: Math.round(font.size * scale) };
-      }
-      return font;
-    }
-
-    function prepareChartForPdfExport(chart, scale) {
-      const options = chart.options;
-      const backup = {
-        layout: options.layout ? JSON.parse(JSON.stringify(options.layout)) : null,
-        plugins: {},
-        scales: {},
-        datasets: chart.data.datasets.map((ds) => ({
-          borderWidth: ds.borderWidth,
-          pointRadius: ds.pointRadius,
-          maxBarThickness: ds.maxBarThickness,
-          borderRadius: ds.borderRadius,
-        })),
-      };
-
-      if (options.layout && options.layout.padding && typeof options.layout.padding === 'object') {
-        ['top', 'right', 'bottom', 'left'].forEach((side) => {
-          if (typeof options.layout.padding[side] === 'number') {
-            options.layout.padding[side] = Math.round(options.layout.padding[side] * scale);
-          }
-        });
-      }
-
-      const legend = options.plugins && options.plugins.legend;
-      if (legend && legend.labels) {
-        backup.plugins.legend = {
-          boxWidth: legend.labels.boxWidth,
-          font: legend.labels.font ? { ...legend.labels.font } : undefined,
-        };
-        if (typeof legend.labels.boxWidth === 'number') {
-          legend.labels.boxWidth = Math.round(legend.labels.boxWidth * scale);
-        }
-        legend.labels.font = scaleFontSetting(legend.labels.font, scale);
-      }
-
-      Object.entries(options.scales || {}).forEach(([axisId, axis]) => {
-        backup.scales[axisId] = {
-          ticksFont: axis.ticks && axis.ticks.font ? { ...axis.ticks.font } : undefined,
-          titleFont: axis.title && axis.title.font ? { ...axis.title.font } : undefined,
-        };
-        if (axis.ticks && axis.ticks.font) {
-          axis.ticks.font = scaleFontSetting(axis.ticks.font, scale);
-        }
-        if (axis.title && axis.title.font) {
-          axis.title.font = scaleFontSetting(axis.title.font, scale);
-        }
-      });
-
-      chart.data.datasets.forEach((dataset) => {
-        if (typeof dataset.borderWidth === 'number') dataset.borderWidth = Math.round(dataset.borderWidth * scale);
-        if (typeof dataset.pointRadius === 'number') dataset.pointRadius = Math.round(dataset.pointRadius * scale);
-        if (typeof dataset.maxBarThickness === 'number') dataset.maxBarThickness = Math.round(dataset.maxBarThickness * scale);
-        if (typeof dataset.borderRadius === 'number') dataset.borderRadius = Math.round(dataset.borderRadius * scale);
-      });
-
-      return backup;
-    }
-
-    function restoreChartAfterPdfExport(chart, backup) {
-      const options = chart.options;
-
-      if (backup.layout) {
-        options.layout = backup.layout;
-      }
-
-      const legend = options.plugins && options.plugins.legend;
-      if (legend && legend.labels && backup.plugins.legend) {
-        legend.labels.boxWidth = backup.plugins.legend.boxWidth;
-        legend.labels.font = backup.plugins.legend.font;
-      }
-
-      Object.entries(backup.scales).forEach(([axisId, axisBackup]) => {
-        const axis = options.scales[axisId];
-        if (!axis) return;
-        if (axis.ticks && axisBackup.ticksFont) axis.ticks.font = axisBackup.ticksFont;
-        if (axis.title && axisBackup.titleFont) axis.title.font = axisBackup.titleFont;
-      });
-
-      chart.data.datasets.forEach((dataset, index) => {
-        const dsBackup = backup.datasets[index];
-        if (!dsBackup) return;
-        dataset.borderWidth = dsBackup.borderWidth;
-        dataset.pointRadius = dsBackup.pointRadius;
-        dataset.maxBarThickness = dsBackup.maxBarThickness;
-        dataset.borderRadius = dsBackup.borderRadius;
-      });
-    }
-
-    async function exportChartForPdf(chart) {
-      if (!chart || !chart.canvas) return null;
-      const canvas = chart.canvas;
-      const originalWidth = canvas.width;
-      const originalHeight = canvas.height;
-      const backup = prepareChartForPdfExport(chart, CHART_PDF_SCALE);
-
-      chart.resize(originalWidth * CHART_PDF_SCALE, originalHeight * CHART_PDF_SCALE);
-      chart.update('none');
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-      const dataUrl = chart.toBase64Image('image/png', 1.0);
-
-      restoreChartAfterPdfExport(chart, backup);
-      chart.resize(originalWidth, originalHeight);
-      chart.update('none');
-
-      return dataUrl;
-    }
-
-    async function swapChartsForPdf() {
-      const replacements = [];
-      for (const canvas of document.querySelectorAll('canvas')) {
-        const chart = typeof Chart !== 'undefined' && Chart.getChart ? Chart.getChart(canvas) : null;
-        const dataUrl = chart ? await exportChartForPdf(chart) : canvas.toDataURL('image/png', 1.0);
-
-        const img = document.createElement('img');
-        img.src = dataUrl;
-        img.alt = 'Chart';
-        img.className = 'chart-pdf-image';
-        img.style.width = '100%';
-        img.style.height = 'auto';
-        img.style.display = 'block';
-        canvas.parentNode.insertBefore(img, canvas);
-        canvas.style.display = 'none';
-        replacements.push({ canvas, img });
-        if (!img.complete) {
-          await new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        }
-      }
-      return replacements;
-    }
-
-    function getJsPDFConstructor() {
-      if (window.jspdf && window.jspdf.jsPDF) {
-        return window.jspdf.jsPDF;
-      }
-      if (window.jsPDF) {
-        return window.jsPDF;
-      }
-      return null;
-    }
-
-    function fitCanvasToPage(canvas, contentWidth) {
-      const renderWidth = contentWidth;
-      const renderHeight = (canvas.height * renderWidth) / canvas.width;
-      return { renderWidth, renderHeight };
-    }
-
-    function collectPdfSections() {
-      const sections = [];
-      const header = document.querySelector('.header');
-      if (header) {
-        sections.push(header);
-      }
-
-      document.querySelectorAll('.container > .section, .container > .optimization-alert').forEach((section) => {
-        sections.push(section);
-      });
-
-      ['.cta', '.footer'].forEach((selector) => {
-        const section = document.querySelector(selector);
-        if (section) {
-          sections.push(section);
-        }
-      });
-
-      return sections;
-    }
-
-    async function captureSection(sectionElement, options = {}) {
-      const { excludeChart = false } = options;
-      const staging = document.createElement('div');
-      staging.className = 'pdf-section-staging';
-      staging.style.cssText = 'position:fixed;left:-10000px;top:0;width:700px;background:#fff;';
-      const clone = sectionElement.cloneNode(true);
-      if (excludeChart) {
-        clone.querySelectorAll('.chart-pdf-image, .chart-container canvas').forEach((el) => el.remove());
-      }
-      staging.appendChild(clone);
-      document.body.appendChild(staging);
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-      const canvas = await html2canvas(staging, {
-        scale: PDF_CAPTURE_SCALE,
-        useCORS: true,
-        logging: false,
-        scrollY: 0,
-        backgroundColor: '#ffffff',
-        width: staging.scrollWidth,
-        height: staging.scrollHeight,
-        windowWidth: staging.scrollWidth,
-        windowHeight: staging.scrollHeight,
-        imageTimeout: 0,
-      });
-
-      staging.remove();
-      return canvas;
-    }
-
-    function loadImageAsCanvas(src) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          const chartCanvas = document.createElement('canvas');
-          chartCanvas.width = img.naturalWidth;
-          chartCanvas.height = img.naturalHeight;
-          chartCanvas.getContext('2d').drawImage(img, 0, 0);
-          resolve(chartCanvas);
-        };
-        img.onerror = reject;
-        img.src = src;
-      });
-    }
-
-    function placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap) {
-      const fitted = fitCanvasToPage(canvas, contentWidth);
-      if (currentY + fitted.renderHeight > maxY && currentY > margin) {
-        pdf.addPage();
-        currentY = margin;
-      }
-      pdf.addImage(canvas, 'PNG', margin, currentY, fitted.renderWidth, fitted.renderHeight, undefined, 'NONE');
-      return currentY + fitted.renderHeight + sectionGap;
-    }
-
-    async function addSectionToPdf(pdf, section, margin, contentWidth, maxY, currentY, sectionGap) {
-      const chartImg = section.querySelector('img.chart-pdf-image');
-      if (chartImg && chartImg.src) {
-        const bodyCanvas = await captureSection(section, { excludeChart: true });
-        currentY = placeCanvasOnPdf(pdf, bodyCanvas, margin, contentWidth, maxY, currentY, sectionGap);
-        const chartCanvas = await loadImageAsCanvas(chartImg.src);
-        return placeCanvasOnPdf(pdf, chartCanvas, margin, contentWidth, maxY, currentY, sectionGap);
-      }
-
-      const canvas = await captureSection(section);
-      return placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap);
-    }
-
-    async function buildQuotePdfBlob() {
-      const JsPDF = getJsPDFConstructor();
-      if (!JsPDF || typeof html2canvas !== 'function') {
-        throw new Error('PDF libraries are not available.');
-      }
-
-      const pdf = new JsPDF({ unit: 'in', format: 'letter', orientation: 'portrait' });
-      const margin = 0.45;
-      const sectionGap = 0.12;
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const contentWidth = pageWidth - (margin * 2);
-      const maxY = pageHeight - margin;
-
-      let currentY = margin;
-      const sections = collectPdfSections();
-
-      for (let index = 0; index < sections.length; index += 1) {
-        currentY = await addSectionToPdf(pdf, sections[index], margin, contentWidth, maxY, currentY, sectionGap);
-      }
-
-      return pdf.output('blob');
-    }
-
-    function restoreCharts(replacements) {
-      replacements.forEach(({ canvas, img }) => {
-        img.remove();
-        canvas.style.display = '';
-      });
-    }
-
-    function getPywebviewApi() {
-      if (window.pywebview && window.pywebview.api) {
-        return window.pywebview.api;
-      }
-      if (typeof pywebview !== 'undefined' && pywebview.api) {
-        return pywebview.api;
-      }
-      return null;
-    }
-
-    function blobToBase64(blob) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(String(reader.result).split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    function triggerBrowserDownload(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    async function downloadQuote() {
-      const button = document.getElementById('downloadQuoteBtn');
-      const filename = `Freight-Quote-{{ quote.quote_number }}.pdf`;
-
-      if (!getJsPDFConstructor() || typeof html2canvas !== 'function') {
-        alert('PDF library failed to load. Please restart the app and try again.');
-        return;
-      }
-
-      button.disabled = true;
-      button.textContent = 'Preparing quote...';
-
-      window.scrollTo(0, 0);
-      document.body.classList.add('pdf-export');
-      const chartReplacements = await swapChartsForPdf();
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-      try {
-        const pdfBlob = await buildQuotePdfBlob();
-
-        const api = getPywebviewApi();
-        if (api && api.save_pdf_file) {
-          const pdfBase64 = await blobToBase64(pdfBlob);
-          const prepareResponse = await fetch('/quote/prepare-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pdf_base64: pdfBase64 }),
-          });
-          const prepared = await prepareResponse.json();
-          if (!prepared.success) {
-            alert('Could not prepare the quote PDF. Please try again.');
-            return;
-          }
-
-          const result = await api.save_pdf_file(prepared.token, filename);
-          if (result && result.cancelled) {
-            return;
-          }
-          if (result && !result.success) {
-            alert(result.error || 'Could not save the quote.');
-          }
-        } else {
-          triggerBrowserDownload(pdfBlob, filename);
-        }
-      } catch (error) {
-        console.error(error);
-        alert('Could not generate the quote PDF. Please try again.');
-      } finally {
-        restoreCharts(chartReplacements);
-        document.body.classList.remove('pdf-export');
-        button.disabled = false;
-        button.textContent = 'Download Quote';
-      }
-    }
   </script>
 </body>
 </html>

@@ -390,6 +390,45 @@ def detect_phantom_consolidation(requested_volume, tier_prices):
     return {"show": False}
 
 
+def norm_ppf(probability):
+    """Standard normal inverse CDF (equivalent to scipy.stats.norm.ppf)."""
+    p = max(1e-9, min(1 - 1e-9, float(probability)))
+    return math.sqrt(2) * math.erfinv(2 * p - 1)
+
+
+def lane_sample_std_dev(historical_lane_data):
+    """Sample standard deviation from historical lane transit times."""
+    values = [float(x) for x in historical_lane_data]
+    count = len(values)
+    if count < 2:
+        return 0.0
+    mean = sum(values) / count
+    variance = sum((value - mean) ** 2 for value in values) / (count - 1)
+    return math.sqrt(variance)
+
+
+def calculate_buffer_days(desired_csl, std_dev=None, historical_lane_data=None):
+    """
+    Safety-stock buffer days for a single LTL shipment at the desired CSL.
+    buffer_days = Z(CSL) × lane_standard_deviation
+    """
+    probability = float(desired_csl) / 100.0
+    z_score = norm_ppf(probability)
+
+    if historical_lane_data:
+        lane_std = lane_sample_std_dev(historical_lane_data)
+    else:
+        lane_std = max(0.0, float(std_dev or 0.0))
+
+    buffer_days = z_score * lane_std
+    return {
+        "buffer_days": round(buffer_days, 1),
+        "z_score": round(z_score, 3),
+        "lane_std_dev": round(lane_std, 2),
+        "desired_csl": int(desired_csl),
+    }
+
+
 def calculate_transit_prediction(mean_days, std_dev, sample_size):
     sample_count = max(2, int(sample_size))
     mean = float(mean_days)
@@ -586,8 +625,6 @@ def calculate_ltl_supply_metrics(tier_prices, distance, analysis_config):
     }
 
 
-Z_CSL = {90: 1.282, 95: 1.645, 99: 2.326}
-
 NMFC_DENSITY_BRACKETS = (
     (50, 50),
     (35, 55),
@@ -610,14 +647,6 @@ SINGLE_ACCESSORIAL_DEFAULTS = {
     "appointment": 45.0,
     "limited_access": 65.0,
 }
-
-
-def z_for_csl(desired_csl):
-    if desired_csl >= 99:
-        return Z_CSL[99]
-    if desired_csl >= 95:
-        return Z_CSL[95]
-    return Z_CSL[90]
 
 
 def nmfc_class_from_density(density):
@@ -710,8 +739,7 @@ def calculate_single_ltl_analytics(payload, miles):
     mean_transit = payload["transit_mean_days"]
     std_dev = payload["transit_std_dev"]
     lane_cv = round(std_dev / mean_transit, 3) if mean_transit > 0 else None
-    z_value = z_for_csl(payload["desired_csl"])
-    safety_days = round(z_value * std_dev, 1)
+    buffer = calculate_buffer_days(payload["desired_csl"], std_dev=std_dev)
     transit_prediction = calculate_transit_prediction(mean_transit, std_dev, 12)
 
     distance = miles if miles and miles > 0 else None
@@ -734,9 +762,10 @@ def calculate_single_ltl_analytics(payload, miles):
         "penalty_fee": payload["reclassification_penalty"],
         "lane_cv": lane_cv,
         "avg_transit_days": round(mean_transit, 1),
-        "safety_days": safety_days,
-        "desired_csl": payload["desired_csl"],
-        "z_value": z_value,
+        "safety_days": buffer["buffer_days"],
+        "desired_csl": buffer["desired_csl"],
+        "z_value": buffer["z_score"],
+        "lane_std_dev": buffer["lane_std_dev"],
         "transit_prediction": transit_prediction,
         "cost_per_pallet_mile": cost_per_pallet_mile,
         "pipeline_inventory_cost": pipeline_inventory_cost,
