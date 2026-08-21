@@ -31,10 +31,38 @@
     .pricing-table td { padding: 11px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
     .pricing-table tbody tr:last-child td { border-bottom: none; }
     .highlight { background: #ffd700; color: #1e3c72; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
-    .metric { background: #f8f9fa; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .metric-value { font-size: 22px; font-weight: bold; color: #2a5298; }
-    .metric-label { font-size: 11px; color: #666; margin-top: 4px; text-transform: uppercase; }
+    .optimization-alert {
+      background: #fff4e8;
+      border: 2px solid #f0ad4e;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #1e3c72;
+    }
+    .optimization-alert h3 { font-size: 15px; margin-bottom: 10px; text-transform: uppercase; }
+    .optimization-alert p { margin-bottom: 8px; }
+    .optimization-alert .action-line { font-weight: 700; margin-top: 8px; }
+    .analytics-subsection { margin-top: 14px; }
+    .analytics-subsection:first-child { margin-top: 0; }
+    .analytics-subsection h3 { color: #1e3c72; font-size: 15px; margin-bottom: 8px; }
+    .transit-timeline {
+      background: #f8fbff;
+      border: 1px solid #dbe7f5;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+    .transit-bar-wrap { position: relative; height: 28px; background: #e8eef7; border-radius: 999px; margin: 10px 0 8px; overflow: hidden; }
+    .transit-bar-range { position: absolute; top: 0; height: 100%; background: linear-gradient(90deg, #2a5298 0%, #4facfe 100%); border-radius: 999px; }
+    .transit-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #334e7b; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .kpi-block { background: #f8fbff; border: 1px solid #dbe7f5; border-radius: 8px; padding: 12px 10px; text-align: center; }
+    .kpi-block .kpi-value { font-size: 20px; font-weight: 700; color: #2a5298; line-height: 1.2; }
+    .kpi-block .kpi-title { font-size: 11px; font-weight: 700; color: #1e3c72; margin-bottom: 6px; text-transform: uppercase; }
+    .kpi-block .kpi-note { font-size: 10px; color: #666; margin-top: 6px; line-height: 1.35; }
+    .ledger-table td:last-child, .ledger-table th:last-child { text-align: right; }
     .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-top: 14px; }
     .cta h2 { margin-bottom: 20px; font-size: 28px; }
     .footer { text-align: center; padding: 30px; color: #666; font-size: 14px; }
@@ -105,47 +133,109 @@
           </div>
         </div>
         <div class="route-summary">
-          <small>Distance: {{ quote.distance_display }} | Transit Time: {{ quote.transit_time }} | Pallets: {{ quote.pallet_count }}</small>
+          <small>
+            Distance: {{ quote.distance_display }}
+            | 90% Delivery Window: {{ transit_prediction.display_window }}
+            | Pallets: {{ quote.pallet_count }}
+          </small>
         </div>
       </div>
     </div>
 
-    <div class="section" id="section-shipment">
-      <h2 class="section-title">Shipment Pricing</h2>
-      <table class="pricing-table">
+    <div class="section" id="section-ledger">
+      <h2 class="section-title">Guaranteed All-In Freight Ledger</h2>
+      <table class="pricing-table ledger-table">
         <thead>
           <tr>
-            <th>Lane</th>
-            <th>Pallets</th>
-            <th>Price per Pallet</th>
-            <th>Total Shipment Cost</th>
+            <th>Item Description</th>
+            <th>Operational Driver</th>
+            <th>Quoted All-In Cost</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>{{ quote.origin_city }}, {{ quote.origin_zip }} → {{ quote.destination_city }}, {{ quote.destination_zip }}</td>
-            <td>{{ quote.pallet_count }}</td>
-            <td>${{ "%.2f"|format(quote.price_per_pallet) }}</td>
-            <td><span class="highlight">${{ "%.2f"|format(quote.total_cost) }}</span></td>
+            <td><strong>Linehaul Base Fee</strong></td>
+            <td>Base Mileage Charge ({{ analytics.ledger.distance_miles if analytics.ledger.distance_miles is not none else 'N/A' }} miles)</td>
+            <td>${{ "%.2f"|format(analytics.ledger.linehaul_cost) }}</td>
+          </tr>
+          <tr>
+            <td><strong>Fuel Surcharge (FSC)</strong></td>
+            <td>Pegged to Weekly EIA Diesel Index</td>
+            <td>${{ "%.2f"|format(analytics.ledger.fuel_cost) }}</td>
+          </tr>
+          <tr>
+            <td><strong>Accessorials</strong></td>
+            <td>{{ analytics.accessorial_summary }}</td>
+            <td>${{ "%.2f"|format(analytics.ledger.accessorial_cost) }}</td>
+          </tr>
+          <tr>
+            <td><strong>Total All-In Shipment Cost</strong></td>
+            <td>Guaranteed Spot Rate (No Hidden Fees)</td>
+            <td><span class="highlight">${{ "%.2f"|format(analytics.ledger.total_cost) }}</span></td>
           </tr>
         </tbody>
       </table>
+    </div>
 
-      <div class="metrics">
-        <div class="metric">
-          <div class="metric-value">${{ "%.2f"|format(quote.price_per_pallet) }}</div>
-          <div class="metric-label">Quoted rate / pallet</div>
+    {% if analytics.show_reclassification %}
+    <div class="optimization-alert" id="section-reclassification">
+      <h3>⚠️ Proactive Reclassification Insurance Notice</h3>
+      <p><strong>Calculated Freight Density:</strong> {{ analytics.calculated_density }} lbs/cu ft | <strong>Estimated NMFC Class:</strong> {{ analytics.nmfc_class }}</p>
+      <p>Carriers heavily audit single-shipment footprints. Based on your inputted dimensions, if your cargo overhangs the standard 48"x48" pallet boundary by even 2 inches, your freight class shifts to Class {{ analytics.higher_nmfc_class }}, triggering an automatic ${{ "%.2f"|format(analytics.penalty_fee) }} post-delivery correction fee from the terminal network.</p>
+      <p class="action-line">👉 Broker Action Taken: Our team has pre-vetted this profile with the local hub dispatcher to lock in this specific class rate, preventing post-delivery invoice discrepancies.</p>
+    </div>
+    {% endif %}
+
+    <div class="section" id="section-analytics">
+      <h2 class="section-title">Advanced Logistics Analytics &amp; Lead Time Impacts</h2>
+
+      <div class="analytics-subsection">
+        <h3>Predictive Reliability &amp; Safety Stock Multipliers</h3>
+        <div class="transit-timeline">
+          <div class="transit-meta">
+            <span><strong>Mean Transit Time (μ):</strong> {{ analytics.avg_transit_days }} Business Days</span>
+            <span><strong>Lane Coefficient of Variation (CV):</strong> {{ analytics.lane_cv if analytics.lane_cv is not none else 'N/A' }}</span>
+            <span><strong>Required Buffer Days:</strong> {{ analytics.safety_days }} Days at {{ analytics.desired_csl }}% CSL</span>
+          </div>
+          {% set span = transit_prediction.upper_interval_days - transit_prediction.lower_interval_days %}
+          {% set bar_left = ((transit_prediction.lower_interval_days - 1) / 10 * 100) if transit_prediction.lower_interval_days <= 10 else 0 %}
+          {% set bar_width = (span / 10 * 100) if span > 0 else 20 %}
+          {% set max_width = 100 - bar_left %}
+          <div class="transit-bar-wrap">
+            <div class="transit-bar-range" style="left: {{ bar_left }}%; width: {{ bar_width if bar_width < max_width else max_width }}%;"></div>
+          </div>
+          <p><strong>90% Delivery Prediction Interval:</strong> {{ transit_prediction.lower_interval_days }} to {{ transit_prediction.upper_interval_days }} Business Days</p>
         </div>
-        <div class="metric">
-          <div class="metric-value">${{ "%.2f"|format(quote.total_cost) }}</div>
-          <div class="metric-label">Total lane cost</div>
+      </div>
+
+      <div class="analytics-subsection">
+        <h3>Advanced Single Shipment Logistics KPIs</h3>
+        <div class="kpi-row">
+          <div class="kpi-block">
+            <div class="kpi-title">Cost Per Pallet-Mile</div>
+            <div class="kpi-value">
+              {% if analytics.cost_per_pallet_mile is not none %}${{ "%.2f"|format(analytics.cost_per_pallet_mile) }}{% else %}N/A{% endif %}
+            </div>
+            <div class="kpi-note">Pure Variable Unit</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-title">Pipeline Inventory Cost</div>
+            <div class="kpi-value">${{ "%.2f"|format(analytics.pipeline_inventory_cost) }}</div>
+            <div class="kpi-note">Capital Tied Up in Lane</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-title">Freight Density</div>
+            <div class="kpi-value">{{ analytics.calculated_density }}</div>
+            <div class="kpi-note">lbs/cf · Determines Hub Profile</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-title">Equivalent Fuel Burn</div>
+            <div class="kpi-value">
+              {% if analytics.equivalent_gallons is not none %}{{ analytics.equivalent_gallons }} gal{% else %}N/A{% endif %}
+            </div>
+            <div class="kpi-note">Carbon Metric Proxy</div>
+          </div>
         </div>
-        {% if quote.cost_per_pallet_mile is not none %}
-        <div class="metric">
-          <div class="metric-value">${{ "%.2f"|format(quote.cost_per_pallet_mile) }}</div>
-          <div class="metric-label">Cost per pallet-mile</div>
-        </div>
-        {% endif %}
       </div>
     </div>
 
@@ -187,7 +277,7 @@
       const sections = [];
       const header = document.querySelector('.header');
       if (header) sections.push(header);
-      document.querySelectorAll('.container > .section').forEach((section) => sections.push(section));
+      document.querySelectorAll('.container > .section, .container > .optimization-alert').forEach((section) => sections.push(section));
       ['.cta', '.footer'].forEach((selector) => {
         const section = document.querySelector(selector);
         if (section) sections.push(section);

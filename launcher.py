@@ -75,12 +75,8 @@ def main() -> None:
     url = f"http://127.0.0.1:{APP_PORT}/"
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()
-
     if not wait_for_server(url):
         raise RuntimeError("The quote generator server did not start.")
-
     open_desktop_window(url)
-
-
 if __name__ == "__main__":
     main()

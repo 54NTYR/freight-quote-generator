@@ -155,6 +155,40 @@
             margin-top: 10px;
         }
 
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .analysis-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .analysis-card h3 {
+            color: #1e3c72;
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .field-hint {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .subsection-note {
+            margin-bottom: 16px;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
         .error {
             color: #dc3545;
             font-size: 14px;
@@ -272,6 +306,148 @@
                     </div>
                 </div>
 
+                <div class="form-section">
+                    <h2 class="section-title">Supply Chain Analysis Inputs</h2>
+                    <p class="subsection-note">
+                        These values drive optimization alerts, predictive transit windows, EOQ recommendations, and ESG metrics on the quote output.
+                    </p>
+
+                    <div class="analysis-card" style="margin-bottom: 20px;">
+                        <h3>Quote &amp; Inventory Assumptions</h3>
+                        <div class="analysis-grid">
+                            <div class="form-group">
+                                <label for="requested_volume">Requested Pallet Volume</label>
+                                <input type="number" id="requested_volume" name="requested_volume" value="5" min="1" max="52" step="1" required>
+                                <span class="field-hint">Triggers phantom volume consolidation alerts at tier cliffs (e.g. 5 → 6 pallets).</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="annual_demand">Annual Demand (Pallets/Year)</label>
+                                <input type="number" id="annual_demand" name="annual_demand" value="416" min="1" step="1" required>
+                                <span class="field-hint">Used for EOQ shipping frequency matrix (e.g. 8 pallets/week × 52).</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="max_chart_pallets">Max Pallets (Chart)</label>
+                                <input type="number" id="max_chart_pallets" name="max_chart_pallets" value="14" min="1" max="52" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="max_trailer_pallets">Trailer Capacity (Pallets)</label>
+                                <input type="number" id="max_trailer_pallets" name="max_trailer_pallets" value="26" min="1" max="52" step="1" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-card" style="margin-bottom: 20px;">
+                        <h3>Predictive Transit (90% Confidence)</h3>
+                        <div class="analysis-grid">
+                            <div class="form-group">
+                                <label for="transit_mean_days">Mean Transit Days (X̄)</label>
+                                <input type="number" id="transit_mean_days" name="transit_mean_days" value="3" min="0.1" step="0.1" required>
+                                <span class="field-hint">Historical average for this lane. Leave default to use distance estimate.</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="transit_std_dev">Std Dev (s)</label>
+                                <input type="number" id="transit_std_dev" name="transit_std_dev" value="0.5" min="0" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="transit_sample_size">Sample Size (n)</label>
+                                <input type="number" id="transit_sample_size" name="transit_sample_size" value="12" min="2" step="1" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-card" style="margin-bottom: 20px;">
+                        <h3>Carbon &amp; Consolidation</h3>
+                        <div class="analysis-grid">
+                            <div class="form-group">
+                                <label for="carbon_baseline_trips">Unoptimized Trips</label>
+                                <input type="number" id="carbon_baseline_trips" name="carbon_baseline_trips" value="2" min="1" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="carbon_optimized_trips">Optimized Trips</label>
+                                <input type="number" id="carbon_optimized_trips" name="carbon_optimized_trips" value="1" min="1" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="emissions_factor">Emissions Factor (kg CO₂ / pallet-mile)</label>
+                                <input type="number" id="emissions_factor" name="emissions_factor" value="0.000161" min="0" step="0.000001" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-grid">
+                        <div class="analysis-card">
+                            <h3>Scenario 1</h3>
+                            <div class="form-group">
+                                <label for="scenario_1_title">Title</label>
+                                <input type="text" id="scenario_1_title" name="scenario_1_title" value="Scenario 1: E-Commerce Retailer (Steady Demand)">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_1_desc">Description</label>
+                                <input type="text" id="scenario_1_desc" name="scenario_1_desc" value="Weekly demand of 8 pallets.">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_1_pallets">Recommended Pallets</label>
+                                <input type="number" id="scenario_1_pallets" name="scenario_1_pallets" value="8" min="1" max="52" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_1_current_frequency">Current Shipments / Week</label>
+                                <input type="number" id="scenario_1_current_frequency" name="scenario_1_current_frequency" value="2" min="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_1_current_pallets_per_ship">Current Pallets / Shipment</label>
+                                <input type="number" id="scenario_1_current_pallets_per_ship" name="scenario_1_current_pallets_per_ship" value="4" min="0" step="1">
+                            </div>
+                        </div>
+
+                        <div class="analysis-card">
+                            <h3>Scenario 2</h3>
+                            <div class="form-group">
+                                <label for="scenario_2_title">Title</label>
+                                <input type="text" id="scenario_2_title" name="scenario_2_title" value="Scenario 2: Seasonal Business (Bi-Weekly Demand)">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_2_desc">Description</label>
+                                <input type="text" id="scenario_2_desc" name="scenario_2_desc" value="Bi-weekly shipment of 12 pallets.">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_2_pallets">Recommended Pallets</label>
+                                <input type="number" id="scenario_2_pallets" name="scenario_2_pallets" value="12" min="1" max="52" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_2_current_frequency">Current Shipments / Week</label>
+                                <input type="number" id="scenario_2_current_frequency" name="scenario_2_current_frequency" value="3" min="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_2_current_pallets_per_ship">Current Pallets / Shipment</label>
+                                <input type="number" id="scenario_2_current_pallets_per_ship" name="scenario_2_current_pallets_per_ship" value="4" min="0" step="1">
+                            </div>
+                        </div>
+
+                        <div class="analysis-card">
+                            <h3>Scenario 3</h3>
+                            <div class="form-group">
+                                <label for="scenario_3_title">Title</label>
+                                <input type="text" id="scenario_3_title" name="scenario_3_title" value="Scenario 3: Bulk Distribution Center (Monthly Replenishment)">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_3_desc">Description</label>
+                                <input type="text" id="scenario_3_desc" name="scenario_3_desc" value="Monthly replenishment of 14 pallets.">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_3_pallets">Recommended Pallets</label>
+                                <input type="number" id="scenario_3_pallets" name="scenario_3_pallets" value="14" min="1" max="52" step="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_3_current_frequency">Current Shipments / Week</label>
+                                <input type="number" id="scenario_3_current_frequency" name="scenario_3_current_frequency" value="2" min="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="scenario_3_current_pallets_per_ship">Current Pallets / Shipment</label>
+                                <input type="number" id="scenario_3_current_pallets_per_ship" name="scenario_3_current_pallets_per_ship" value="7" min="0" step="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">🚀 Generate Professional Quote</button>
                     <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
@@ -281,7 +457,41 @@
     </div>
 
     <script>
-        // Predefined templates
+        const analysisDefaults = {
+            requested_volume: 5,
+            annual_demand: 416,
+            max_chart_pallets: 14,
+            max_trailer_pallets: 26,
+            transit_mean_days: 3,
+            transit_std_dev: 0.5,
+            transit_sample_size: 12,
+            carbon_baseline_trips: 2,
+            carbon_optimized_trips: 1,
+            emissions_factor: 0.000161,
+            scenario_1_title: 'Scenario 1: E-Commerce Retailer (Steady Demand)',
+            scenario_1_desc: 'Weekly demand of 8 pallets.',
+            scenario_1_pallets: 8,
+            scenario_1_current_frequency: 2,
+            scenario_1_current_pallets_per_ship: 4,
+            scenario_2_title: 'Scenario 2: Seasonal Business (Bi-Weekly Demand)',
+            scenario_2_desc: 'Bi-weekly shipment of 12 pallets.',
+            scenario_2_pallets: 12,
+            scenario_2_current_frequency: 3,
+            scenario_2_current_pallets_per_ship: 4,
+            scenario_3_title: 'Scenario 3: Bulk Distribution Center (Monthly Replenishment)',
+            scenario_3_desc: 'Monthly replenishment of 14 pallets.',
+            scenario_3_pallets: 14,
+            scenario_3_current_frequency: 2,
+            scenario_3_current_pallets_per_ship: 7
+        };
+
+        function loadAnalysisDefaults() {
+            Object.entries(analysisDefaults).forEach(([key, value]) => {
+                const element = document.getElementById(key);
+                if (element) element.value = value;
+            });
+        }
+
         const templates = {
             'standard': {
                 tier1_price: 360,
@@ -356,8 +566,8 @@
                 document.getElementById('quoteForm').reset();
                 document.getElementById('distance-info').style.display = 'none';
                 
-                // Reset to default values
                 loadTemplate('standard');
+                loadAnalysisDefaults();
             }
         }
 

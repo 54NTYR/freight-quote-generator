@@ -30,18 +30,73 @@
     .pricing-table td { padding: 11px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
     .pricing-table tbody tr:last-child td { border-bottom: none; }
     .highlight { background: #ffd700; color: #1e3c72; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-    .chart-container { position: relative; margin: 0 0 16px 0; padding: 16px; background: #eef4fb; border-radius: 10px; }
-    .chart-canvas { width: 100%; height: 320px; }
-    .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 14px; }
-    .analysis-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-    .analysis-card h3 { margin-bottom: 8px; font-size: 16px; }
-    .analysis-card p { font-size: 13px; line-height: 1.5; }
-    .scenario-box { background: #f0f4f8; padding: 16px; border-left: 4px solid #2a5298; margin: 0; border-radius: 5px; }
-    .scenario-title { color: #2a5298; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
-    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 12px; }
-    .metric { background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .metric-value { font-size: 22px; font-weight: bold; color: #2a5298; }
-    .metric-label { font-size: 11px; color: #666; margin-top: 4px; text-transform: uppercase; }
+    .chart-container { position: relative; margin: 0; padding: 12px; background: #eef4fb; border-radius: 10px; }
+    .chart-canvas { width: 100%; height: 260px; }
+    .optimization-alert {
+      background: #fff8e6;
+      border: 2px solid #ffd700;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #1e3c72;
+    }
+    .optimization-alert h3 {
+      font-size: 15px;
+      margin-bottom: 10px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    .optimization-alert p { margin-bottom: 8px; }
+    .optimization-alert .action-line { font-weight: 700; margin-top: 8px; }
+    .scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .scenario-box { background: #f0f4f8; padding: 12px; border-left: 4px solid #2a5298; border-radius: 5px; }
+    .scenario-title { color: #2a5298; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
+    .scenario-box p { font-size: 12px; line-height: 1.45; margin-bottom: 6px; }
+    .scenario-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .scenario-metric { background: white; border-radius: 6px; padding: 8px; text-align: center; border: 1px solid #e5ecf5; }
+    .scenario-metric-value { font-size: 16px; font-weight: 700; color: #2a5298; }
+    .scenario-metric-label { font-size: 10px; color: #666; text-transform: uppercase; margin-top: 2px; }
+    .analytics-subsection { margin-top: 14px; }
+    .analytics-subsection:first-child { margin-top: 0; }
+    .analytics-subsection h3 { color: #1e3c72; font-size: 15px; margin-bottom: 8px; }
+    .transit-timeline {
+      background: #f8fbff;
+      border: 1px solid #dbe7f5;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+    .transit-bar-wrap { position: relative; height: 28px; background: #e8eef7; border-radius: 999px; margin: 10px 0 8px; overflow: hidden; }
+    .transit-bar-range {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #2a5298 0%, #4facfe 100%);
+      border-radius: 999px;
+    }
+    .transit-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #334e7b; }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .kpi-block {
+      background: #f8fbff;
+      border: 1px solid #dbe7f5;
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .kpi-block .kpi-value { font-size: 20px; font-weight: 700; color: #2a5298; line-height: 1.2; }
+    .kpi-block .kpi-title { font-size: 11px; font-weight: 700; color: #1e3c72; margin-bottom: 6px; text-transform: uppercase; }
+    .kpi-block .kpi-note { font-size: 10px; color: #666; margin-top: 6px; line-height: 1.35; }
+    .eoq-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+    .eoq-table th, .eoq-table td { border: 1px solid #e0e0e0; padding: 8px 10px; text-align: center; }
+    .eoq-table th { background: #2a5298; color: white; font-weight: 600; }
+    .eoq-table td:first-child, .eoq-table th:first-child { text-align: left; }
     .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-top: 14px; }
     .cta h2 { margin-bottom: 20px; font-size: 28px; }
     .footer { text-align: center; padding: 30px; color: #666; font-size: 14px; }
@@ -73,9 +128,12 @@
       .location h3 { font-size: 13px !important; }
       .location p { font-size: 15px !important; }
       .route-summary { font-size: 11px !important; }
-      .section { margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
-      .pricing-table th, .pricing-table td { padding: 8px; }
-      .chart-container { padding: 10px !important; }
+      .section { margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
+      .chart-container { padding: 8px !important; }
+      .chart-canvas { height: 220px !important; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .scenario-grid { grid-template-columns: 1fr; }
+      .optimization-alert { padding: 10px; font-size: 11px; }
       .footer { font-size: 10px !important; padding: 8px !important; }
       .quote-actions { display: none; }
       .section, .header, .route-info, .scenario-box { break-inside: avoid; page-break-inside: avoid; }
@@ -186,7 +244,11 @@
           </div>
         </div>
         <div class="route-summary">
-          <small>Distance: {{ quote.distance }} miles | Transit Time: {{ quote.transit_time }}</small>
+          <small>
+            Distance: {% if quote.distance >= 0 %}{{ quote.distance }} miles{% else %}N/A{% endif %}
+            | 90% Delivery Window: {{ transit_prediction.display_window }}
+            | Lane Reliability: {{ transit_prediction.reliability_rating }}
+          </small>
         </div>
       </div>
     </div>
@@ -219,57 +281,148 @@
       </table>
     </div>
 
+    {% if phantom_consolidation.show %}
+    <div class="optimization-alert" id="section-optimization-alert">
+      <h3>💡 Freight Optimization Notice</h3>
+      <p>You have requested a quote for <strong>{{ phantom_consolidation.requested_volume }} pallets</strong> at a total cost of <strong>${{ "%.2f"|format(phantom_consolidation.current_total_cost) }}</strong>.</p>
+      <p>By utilizing our <strong>{{ phantom_consolidation.optimized_tier_label }}</strong> and consolidating your shipment to <strong>{{ phantom_consolidation.optimized_volume }} pallets</strong>, your total freight cost drops to <strong>${{ "%.2f"|format(phantom_consolidation.optimized_total_cost) }}</strong>.</p>
+      <p class="action-line">👉 Net Action: We recommend adding {{ phantom_consolidation.pallet_differential }} phantom/buffer pallet{% if phantom_consolidation.pallet_differential != 1 %}s{% endif %} to your shipment to save a net total of <strong>${{ "%.2f"|format(phantom_consolidation.net_financial_savings) }}</strong> on this lane.</p>
+    </div>
+    {% endif %}
+
     <div class="section" id="section-price-chart">
-      <h2 class="section-title">Pricing Analysis & Visualization</h2>
+      <h2 class="section-title">Unified Pricing &amp; Consolidation Visualization</h2>
       <div class="chart-container">
-        <canvas id="priceChart" class="chart-canvas" width="800" height="300"></canvas>
-      </div>
-    </div>
-
-    <div class="section" id="section-efficiency-chart">
-      <h2 class="section-title">Cost Efficiency Analysis</h2>
-      <div class="chart-container">
-        <canvas id="efficiencyChart" class="chart-canvas" width="800" height="300"></canvas>
-      </div>
-    </div>
-
-    <div class="section" id="section-volume-analysis">
-      <h2 class="section-title">Detailed Volume Analysis</h2>
-      <div class="analysis-grid">
-        <div class="analysis-card"><h3>Small Shipments (1 pallet)</h3><p>Ideal for urgent, small-volume needs or sample shipments. While the per-pallet cost is highest, this option provides maximum flexibility for businesses testing new markets or handling emergency shipments.</p></div>
-        <div class="analysis-card" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);"><h3>Standard Volume (2-5 pallets)</h3><p>Perfect for regular shipments and small businesses. Achieve {{ ((base_price - quote.pricing_tiers[1].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% cost savings while maintaining shipment flexibility.</p></div>
-        <div class="analysis-card" style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);"><h3>Volume Shipments (6-10 pallets)</h3><p>Optimized for established businesses with consistent demand. At {{ ((base_price - quote.pricing_tiers[2].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% savings, this tier significantly reduces logistics costs while utilizing truck space efficiently.</p></div>
-        <div class="analysis-card" style="background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%);"><h3>Bulk Operations (11-14 pallets)</h3><p>Maximum efficiency tier with {{ ((base_price - quote.pricing_tiers[3].price_per_pallet) / base_price * 100) | round(0, 'ceil') }}% savings. Ideal for distribution centers and businesses with high-volume needs.</p></div>
+        <canvas id="priceChart" class="chart-canvas" width="800" height="260"></canvas>
       </div>
     </div>
 
     <div class="section" id="section-shipping-recommendations">
       <h2 class="section-title">Optimum Shipping Recommendations</h2>
-      <div class="scenario-box">
-        <div class="scenario-title">Scenario 1: E-Commerce Retailer (Steady Demand)</div>
-        <p><strong>Weekly Demand:</strong> 8 pallets | <strong>Current Practice:</strong> 2 shipments of 4 pallets each</p>
-        <div class="metrics">
-          <div class="metric"><div class="metric-value">${{ 8 * quote.pricing_tiers[2].price_per_pallet }}</div><div class="metric-label">Recommended Cost</div></div>
-          <div class="metric"><div class="metric-value">${{ (8 * base_price) - (8 * quote.pricing_tiers[2].price_per_pallet) }}</div><div class="metric-label">Savings vs. Individual</div></div>
-          <div class="metric"><div class="metric-value">8 pallets</div><div class="metric-label">Optimal Volume</div></div>
+      <div class="scenario-grid">
+        {% for scenario in scenarios %}
+        <div class="scenario-box">
+          <div class="scenario-title">{{ scenario.title }}</div>
+          <p>{{ scenario.desc }}</p>
+          {% if scenario.current_practice %}
+          <p><strong>Current:</strong> {{ scenario.current_practice }}</p>
+          {% endif %}
+          <div class="scenario-metrics">
+            <div class="scenario-metric">
+              <div class="scenario-metric-value">${{ "%.0f"|format(scenario.recommended_cost) }}</div>
+              <div class="scenario-metric-label">Recommended</div>
+            </div>
+            <div class="scenario-metric">
+              <div class="scenario-metric-value">${{ "%.0f"|format(scenario.savings) }}</div>
+              <div class="scenario-metric-label">Savings</div>
+            </div>
+            <div class="scenario-metric">
+              <div class="scenario-metric-value">{{ scenario.optimal_volume }}</div>
+              <div class="scenario-metric-label">Pallets</div>
+            </div>
+            {% if scenario.current_cost is not none %}
+            <div class="scenario-metric">
+              <div class="scenario-metric-value">${{ "%.0f"|format(scenario.current_cost) }}</div>
+              <div class="scenario-metric-label">Current Cost</div>
+            </div>
+            {% endif %}
+          </div>
         </div>
-      </div>
-    </div>
-
-    <div class="section" id="section-storage-chart">
-      <h2 class="section-title">Storage vs. Shipping Frequency Analysis</h2>
-      <div class="chart-container">
-        <canvas id="breakEvenChart" class="chart-canvas" width="800" height="280"></canvas>
+        {% endfor %}
       </div>
     </div>
 
     <div class="section" id="section-supply-metrics">
-      <h2 class="section-title">Advanced Supply Chain Metrics</h2>
-      <div class="metrics">
-        <div class="metric"><div class="metric-value">${{ (quote.pricing_tiers[3].price_per_pallet / (quote.distance if quote.distance > 0 else 1)) | round(2) }}</div><div class="metric-label">Cost per Pallet-Mile (Tier 4)</div></div>
-        <div class="metric"><div class="metric-value">87%</div><div class="metric-label">Truck Utilization (14 pallets)</div></div>
-        <div class="metric"><div class="metric-value">2.25x</div><div class="metric-label">ROI on Volume Consolidation</div></div>
-        <div class="metric"><div class="metric-value">32%</div><div class="metric-label">Carbon Reduction</div></div>
+      <h2 class="section-title">Advanced Supply Chain Metrics &amp; Predictive Analytics</h2>
+
+      <div class="analytics-subsection">
+        <h3>Predictive Reliability &amp; Transit Windows</h3>
+        <div class="transit-timeline">
+          <div class="transit-meta">
+            <span><strong>Lane Reliability Index:</strong> {{ transit_prediction.reliability_rating }} (CV = {{ transit_prediction.coefficient_of_variation if transit_prediction.coefficient_of_variation is not none else 'N/A' }})</span>
+            <span><strong>Historical Mean:</strong> {{ transit_prediction.mean_days }} days (n = {{ transit_prediction.sample_size }})</span>
+          </div>
+          {% set span = transit_prediction.upper_interval_days - transit_prediction.lower_interval_days %}
+          {% set bar_left = ((transit_prediction.lower_interval_days - 1) / 10 * 100) if transit_prediction.lower_interval_days <= 10 else 0 %}
+          {% set bar_width = (span / 10 * 100) if span > 0 else 20 %}
+          {% set max_width = 100 - bar_left %}
+          <div class="transit-bar-wrap">
+            <div class="transit-bar-range" style="left: {{ bar_left }}%; width: {{ bar_width if bar_width < max_width else max_width }}%;"></div>
+          </div>
+          <p><strong>90% Delivery Prediction Interval:</strong> Expected Delivery Window: {{ transit_prediction.lower_interval_days }} to {{ transit_prediction.upper_interval_days }} Business Days</p>
+        </div>
+      </div>
+
+      <div class="analytics-subsection">
+        <h3>Inventory Holding vs. Shipping Frequency Matrix (EOQ)</h3>
+        <table class="eoq-table">
+          <thead>
+            <tr>
+              <th>If Your Weekly Storage Cost/Pallet is:</th>
+              {% for row in eoq_matrix %}
+              <th>{{ row.weekly_storage_label }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Optimal Order Quantity (EOQ)</strong></td>
+              {% for row in eoq_matrix %}
+              <td>{{ row.order_label }}</td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td><strong>Recommended Shipping Frequency</strong></td>
+              {% for row in eoq_matrix %}
+              <td>{{ row.frequency }}</td>
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="analytics-subsection">
+        <h3>Advanced Supply Chain Efficiency KPIs</h3>
+        <div class="kpi-row">
+          <div class="kpi-block">
+            <div class="kpi-title">Cost Per Pallet-Mile</div>
+            <div class="kpi-value">
+              {% if supply_metrics.cost_per_pallet_mile is not none %}
+                ${{ "%.2f"|format(supply_metrics.cost_per_pallet_mile) }}
+              {% else %}
+                N/A
+              {% endif %}
+            </div>
+            <div class="kpi-note">Large Tier 4 Rate</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-title">Truck Utilization</div>
+            <div class="kpi-value">{{ supply_metrics.utilization_pct }}%</div>
+            <div class="kpi-note">{{ supply_metrics.utilization_pallets }} Pallets / {{ supply_metrics.max_trailer_pallets }} Max</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-title">Consolidation Leverage</div>
+            <div class="kpi-value">
+              {% if supply_metrics.consolidation_multiplier is not none %}
+                {{ supply_metrics.consolidation_multiplier }}x
+              {% else %}
+                N/A
+              {% endif %}
+            </div>
+            <div class="kpi-note">Volume Multiplier (Tier 1 ÷ Tier 4)</div>
+          </div>
+          <div class="kpi-block">
+            <div class="kpi-title">Net Carbon Savings</div>
+            <div class="kpi-value">
+              {% if supply_metrics.co2_saved_kg is not none %}
+                {{ supply_metrics.co2_saved_kg }} kg
+              {% else %}
+                N/A
+              {% endif %}
+            </div>
+            <div class="kpi-note">{{ supply_metrics.carbon_reduction_pct }}% Trip Reduction (ESG Marker)</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -295,82 +448,76 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <script>
     const tierPrices = {{ tier_prices | safe }};
-    const palletCounts = Array.from({length: 14}, (_, i) => i + 1);
-    const prices = palletCounts.map(count => {
+    const analysisConfig = {{ analysis_config | safe }};
+    const maxChartPallets = analysisConfig.max_chart_pallets || 14;
+
+    function priceForPalletCount(count) {
       if (count === 1) return tierPrices.tier1;
       if (count <= 5) return tierPrices.tier2;
       if (count <= 10) return tierPrices.tier3;
       return tierPrices.tier4;
-    });
+    }
+
+    const palletCounts = Array.from({length: maxChartPallets}, (_, i) => i + 1);
+    const prices = palletCounts.map(priceForPalletCount);
     const totalCosts = palletCounts.map((count, index) => count * prices[index]);
 
     const chartDefaults = {
       responsive: false,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
     };
 
     new Chart(document.getElementById('priceChart'), {
       type: 'bar',
       data: {
-        labels: palletCounts.map(n => `${n} Pallet${n > 1 ? 's' : ''}`),
+        labels: palletCounts.map(n => `${n}`),
         datasets: [
-          { label: 'Price per Pallet ($)', data: prices, backgroundColor: 'rgba(42,82,152,0.7)', borderColor: 'rgba(42,82,152,1)', borderWidth: 2, yAxisID: 'y' },
-          { label: 'Total Cost ($)', data: totalCosts, type: 'line', borderColor: 'rgba(255,215,0,1)', backgroundColor: 'rgba(255,215,0,0.1)', borderWidth: 3, pointBackgroundColor: 'rgba(255,215,0,1)', pointRadius: 4, yAxisID: 'y1' }
+          {
+            label: 'Price per Pallet ($)',
+            data: prices,
+            backgroundColor: 'rgba(42,82,152,0.75)',
+            borderColor: 'rgba(42,82,152,1)',
+            borderWidth: 1,
+            borderRadius: 4,
+            maxBarThickness: 42,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Total Shipment Cost ($)',
+            data: totalCosts,
+            type: 'line',
+            borderColor: 'rgba(255,215,0,1)',
+            backgroundColor: 'rgba(255,215,0,0.08)',
+            borderWidth: 2,
+            pointBackgroundColor: 'rgba(255,215,0,1)',
+            pointRadius: 3,
+            tension: 0.15,
+            yAxisID: 'y1'
+          }
         ]
       },
       options: {
         ...chartDefaults,
-        layout: { padding: { bottom: 12 } },
+        layout: { padding: { bottom: 8, top: 4, right: 8 } },
         scales: {
-          x: { title: { display: true, text: 'Number of Pallets', font: { size: 11 } }, ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, title: { display: true, text: 'Price per Pallet ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } },
-          y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Total Cost ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
-        }
-      }
-    });
-
-    const avgCostPerPallet = palletCounts.map((count, idx) => totalCosts[idx] / count);
-    const cumulativeSavings = palletCounts.map(count => tierPrices.tier1 * count - (prices[count - 1] * count));
-    new Chart(document.getElementById('efficiencyChart'), {
-      type: 'line',
-      data: {
-        labels: palletCounts,
-        datasets: [
-          { label: 'Average Cost per Pallet', data: avgCostPerPallet, borderWidth: 2, borderColor: 'rgba(75,192,192,1)', backgroundColor: 'rgba(75,192,192,0.2)', fill: true },
-          { label: 'Cumulative Savings vs. Single Shipments', data: cumulativeSavings, borderWidth: 2, borderColor: 'rgba(255,99,132,1)', backgroundColor: 'rgba(255,99,132,0.2)', fill: true }
-        ]
-      },
-      options: {
-        ...chartDefaults,
-        layout: { padding: { bottom: 12 } },
-        scales: {
-          x: { title: { display: true, text: 'Number of Pallets', font: { size: 11 } }, ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, title: { display: true, text: 'Cost ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
-        }
-      }
-    });
-
-    const strategies = [
-      { name: 'Daily (2–3 pallets)', frequency: 5, pallets: 3, cost: tierPrices.tier2 },
-      { name: 'Twice Weekly (7 pallets)', frequency: 2, pallets: 7, cost: tierPrices.tier3 },
-      { name: 'Weekly (14 pallets)', frequency: 1, pallets: 14, cost: tierPrices.tier4 }
-    ];
-    const storageCosts = Array.from({length: 20}, (_, i) => i * 5);
-    const datasets = strategies.map((s, i) => {
-      const colors = ['rgba(255,99,132,1)', 'rgba(54,162,235,1)', 'rgba(75,192,192,1)'];
-      const weeklyShipCost = s.frequency * s.pallets * s.cost;
-      return { label: s.name, data: storageCosts.map(sc => weeklyShipCost + (s.pallets / 2) * sc), borderColor: colors[i], backgroundColor: colors[i].replace('1)', '0.2)'), borderWidth: 2, fill: true };
-    });
-    new Chart(document.getElementById('breakEvenChart'), {
-      type: 'line',
-      data: { labels: storageCosts.map(c => `$${c}/pallet/week`), datasets },
-      options: {
-        ...chartDefaults,
-        layout: { padding: { bottom: 12 } },
-        scales: {
-          x: { title: { display: true, text: 'Storage Cost per Pallet', font: { size: 11 } }, ticks: { autoSkip: true, maxTicksLimit: 8, maxRotation: 0, font: { size: 10 } } },
-          y: { beginAtZero: true, title: { display: true, text: 'Total Weekly Cost ($)', font: { size: 11 } }, ticks: { font: { size: 10 } } }
+          x: {
+            title: { display: true, text: 'Number of Pallets', font: { size: 11 } },
+            ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: false }
+          },
+          y: {
+            beginAtZero: true,
+            position: 'left',
+            title: { display: true, text: 'Price per Pallet ($)', font: { size: 11 } },
+            ticks: { font: { size: 10 } }
+          },
+          y1: {
+            beginAtZero: true,
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Total Cost ($)', font: { size: 11 } },
+            ticks: { font: { size: 10 } }
+          }
         }
       }
     });
@@ -543,7 +690,7 @@
         sections.push(header);
       }
 
-      document.querySelectorAll('.container > .section').forEach((section) => {
+      document.querySelectorAll('.container > .section, .container > .optimization-alert').forEach((section) => {
         sections.push(section);
       });
 

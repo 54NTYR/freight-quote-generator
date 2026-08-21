@@ -54,6 +54,36 @@
             box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
         }
 
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-row label {
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
+        .field-hint {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .fee-inline {
+            max-width: 120px;
+            margin-left: auto;
+        }
+
         .distance-info {
             background: #e8f4f8;
             padding: 15px;
@@ -190,29 +220,120 @@
                 </div>
 
                 <div class="form-section">
-                    <h2 class="section-title">Shipment Details</h2>
+                    <h2 class="section-title">Cargo Profile</h2>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="pallet_count">Number of Pallets</label>
                             <input type="number" id="pallet_count" name="pallet_count" value="6" min="1" max="999" step="1" required>
                         </div>
                         <div class="form-group">
-                            <label for="price_per_pallet">Price per Pallet ($)</label>
+                            <label for="cargo_weight">Total Cargo Weight (lbs)</label>
+                            <input type="number" id="cargo_weight" name="cargo_weight" value="3000" min="1" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="commodity_value_per_pallet">Commodity Value / Pallet ($)</label>
+                            <input type="number" id="commodity_value_per_pallet" name="commodity_value_per_pallet" value="5000" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pallet_length">Pallet Length (in)</label>
+                            <input type="number" id="pallet_length" name="pallet_length" value="48" min="1" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pallet_width">Pallet Width (in)</label>
+                            <input type="number" id="pallet_width" name="pallet_width" value="48" min="1" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pallet_height">Pallet Height (in)</label>
+                            <input type="number" id="pallet_height" name="pallet_height" value="48" min="1" step="0.1" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">All-In Pricing Ledger</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="linehaul_cost">Linehaul Base Fee ($)</label>
+                            <input type="number" id="linehaul_cost" name="linehaul_cost" value="984" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fuel_surcharge">Fuel Surcharge / FSC ($)</label>
+                            <input type="number" id="fuel_surcharge" name="fuel_surcharge" value="216" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="price_per_pallet">Quoted Rate / Pallet ($)</label>
                             <input type="number" id="price_per_pallet" name="price_per_pallet" value="200" min="0" step="0.01" required>
+                            <span class="field-hint">Auto-syncs linehaul + FSC when edited.</span>
+                        </div>
+                    </div>
+                    <h3 class="section-title" style="font-size:16px;margin-top:10px;">Accessorials</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div class="checkbox-row">
+                                <input type="checkbox" id="accessorial_liftgate" name="accessorial_liftgate">
+                                <label for="accessorial_liftgate">Liftgate</label>
+                                <input type="number" class="fee-inline" id="fee_liftgate" name="fee_liftgate" value="75" min="0" step="0.01">
+                            </div>
+                            <div class="checkbox-row">
+                                <input type="checkbox" id="accessorial_residential" name="accessorial_residential">
+                                <label for="accessorial_residential">Residential Delivery</label>
+                                <input type="number" class="fee-inline" id="fee_residential" name="fee_residential" value="85" min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-row">
+                                <input type="checkbox" id="accessorial_appointment" name="accessorial_appointment">
+                                <label for="accessorial_appointment">Appointment Required</label>
+                                <input type="number" class="fee-inline" id="fee_appointment" name="fee_appointment" value="45" min="0" step="0.01">
+                            </div>
+                            <div class="checkbox-row">
+                                <input type="checkbox" id="accessorial_limited_access" name="accessorial_limited_access">
+                                <label for="accessorial_limited_access">Limited Access</label>
+                                <input type="number" class="fee-inline" id="fee_limited_access" name="fee_limited_access" value="65" min="0" step="0.01">
+                            </div>
                         </div>
                     </div>
                     <div class="shipment-summary">
                         <div class="summary-row">
-                            <span>Pallets</span>
-                            <span id="summary-pallets">6</span>
+                            <span>Linehaul + FSC</span>
+                            <span id="summary-base">$1,200.00</span>
                         </div>
                         <div class="summary-row">
-                            <span>Rate per pallet</span>
-                            <span id="summary-rate">$200.00</span>
+                            <span>Accessorials</span>
+                            <span id="summary-accessorials">$0.00</span>
                         </div>
                         <div class="summary-row">
-                            <span>Estimated total</span>
+                            <span>All-in total</span>
                             <span id="summary-total">$1,200.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Transit &amp; Service Level</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="transit_mean_days">Mean Transit Days (μ)</label>
+                            <input type="number" id="transit_mean_days" name="transit_mean_days" value="3" min="0.1" step="0.1">
+                            <span class="field-hint">Leave default to estimate from lane distance.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="transit_std_dev">Transit Std Dev (σ)</label>
+                            <input type="number" id="transit_std_dev" name="transit_std_dev" value="0.5" min="0" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="desired_csl">Desired Cycle Service Level (%)</label>
+                            <input type="number" id="desired_csl" name="desired_csl" value="95" min="90" max="99" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="annual_holding_rate">Annual Holding Rate (%)</label>
+                            <input type="number" id="annual_holding_rate" name="annual_holding_rate" value="20" min="0" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reclassification_penalty">Reclassification Penalty ($)</label>
+                            <input type="number" id="reclassification_penalty" name="reclassification_penalty" value="125" min="0" step="0.01" required>
                         </div>
                     </div>
                 </div>
@@ -227,14 +348,44 @@
 
     <script>
         const palletInput = document.getElementById('pallet_count');
+        const linehaulInput = document.getElementById('linehaul_cost');
+        const fuelInput = document.getElementById('fuel_surcharge');
         const rateInput = document.getElementById('price_per_pallet');
+        const accessorialChecks = [
+            ['accessorial_liftgate', 'fee_liftgate'],
+            ['accessorial_residential', 'fee_residential'],
+            ['accessorial_appointment', 'fee_appointment'],
+            ['accessorial_limited_access', 'fee_limited_access'],
+        ];
 
-        function updateSummary() {
+        function accessorialTotal() {
+            return accessorialChecks.reduce((sum, [checkId, feeId]) => {
+                const checkbox = document.getElementById(checkId);
+                const fee = parseFloat(document.getElementById(feeId).value) || 0;
+                return sum + (checkbox.checked ? fee : 0);
+            }, 0);
+        }
+
+        function syncFromRate() {
             const pallets = Math.max(1, parseInt(palletInput.value, 10) || 1);
             const rate = Math.max(0, parseFloat(rateInput.value) || 0);
-            document.getElementById('summary-pallets').textContent = pallets;
-            document.getElementById('summary-rate').textContent = `$${rate.toFixed(2)}`;
-            document.getElementById('summary-total').textContent = `$${(pallets * rate).toFixed(2)}`;
+            const total = pallets * rate;
+            const linehaul = total * 0.82;
+            linehaulInput.value = linehaul.toFixed(2);
+            fuelInput.value = (total * 0.18).toFixed(2);
+        }
+
+        function updateSummary() {
+            const linehaul = Math.max(0, parseFloat(linehaulInput.value) || 0);
+            const fuel = Math.max(0, parseFloat(fuelInput.value) || 0);
+            const accessorials = accessorialTotal();
+            const base = linehaul + fuel;
+            const total = base + accessorials;
+            const pallets = Math.max(1, parseInt(palletInput.value, 10) || 1);
+            document.getElementById('summary-base').textContent = `$${base.toFixed(2)}`;
+            document.getElementById('summary-accessorials').textContent = `$${accessorials.toFixed(2)}`;
+            document.getElementById('summary-total').textContent = `$${total.toFixed(2)}`;
+            rateInput.value = (total / pallets).toFixed(2);
         }
 
         async function calculateDistance() {
@@ -283,7 +434,8 @@
 
         document.getElementById('quoteForm').addEventListener('submit', function(e) {
             const pallets = parseInt(palletInput.value, 10);
-            const rate = parseFloat(rateInput.value);
+            const linehaul = parseFloat(linehaulInput.value);
+            const total = parseFloat(document.getElementById('summary-total').textContent.replace('$', ''));
 
             if (!Number.isFinite(pallets) || pallets < 1) {
                 e.preventDefault();
@@ -291,9 +443,9 @@
                 return;
             }
 
-            if (!Number.isFinite(rate) || rate < 0) {
+            if (!Number.isFinite(linehaul) || linehaul < 0 || !Number.isFinite(total) || total <= 0) {
                 e.preventDefault();
-                alert('Enter a valid price per pallet.');
+                alert('Enter valid linehaul, fuel, and accessorial pricing.');
                 return;
             }
 
@@ -303,7 +455,13 @@
         });
 
         palletInput.addEventListener('input', updateSummary);
-        rateInput.addEventListener('input', updateSummary);
+        linehaulInput.addEventListener('input', updateSummary);
+        fuelInput.addEventListener('input', updateSummary);
+        rateInput.addEventListener('input', () => { syncFromRate(); updateSummary(); });
+        accessorialChecks.forEach(([checkId, feeId]) => {
+            document.getElementById(checkId).addEventListener('change', updateSummary);
+            document.getElementById(feeId).addEventListener('input', updateSummary);
+        });
         updateSummary();
     </script>
 </body>

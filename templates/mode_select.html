@@ -26,6 +26,7 @@
             justify-content: center;
             align-items: center;
             padding: 22px 16px;
+            min-height: 64px;
             border-radius: 12px;
             background: #2a5298;
             color: white;
@@ -49,6 +50,9 @@
         .mode-dropdown {
             position: relative;
             z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
         }
 
         .mode-dropdown.is-open {
@@ -57,10 +61,20 @@
 
         .mode-dropdown-trigger {
             gap: 8px;
+            min-height: 64px;
+            border-radius: 12px;
+            font-family: inherit;
+            letter-spacing: 0;
+            line-height: 1.2;
+        }
+
+        .mode-dropdown-trigger span:first-child {
+            font-size: 18px;
+            font-weight: 700;
         }
 
         .mode-dropdown-caret {
-            font-size: 14px;
+            font-size: 16px;
             line-height: 1;
             opacity: 0.9;
         }
@@ -118,12 +132,6 @@
             font-weight: 400;
             color: #667;
         }
-
-        .mode-dropdown-hint {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #666;
-        }
     </style>
 </head>
 <body>
@@ -162,7 +170,6 @@
                 <a class="mode-button" href="/dray">DRAY</a>
                 <a class="mode-button" href="/international">INTERNATIONAL</a>
             </div>
-            <p class="mode-dropdown-hint">Click LTL to choose Single Shipment or Tiered.</p>
         </div>
     </div>
 

@@ -14,165 +14,195 @@
         .company-left img { height: 68px; object-fit: contain; }
         .company-center { flex: 1 1 auto; text-align: center; }
         .company-right { flex: 0 0 auto; text-align: right; min-width: 160px; }
-        .logo { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
-        .quote-number { text-align: right; opacity: 0.95; font-size: 12px; line-height: 1.4; }
+        .quote-number { text-align: right; opacity: 0.95; line-height: 1.4; }
         .route-info { background: rgba(255,255,255,0.14); padding: 10px; border-radius: 10px; margin-top: 10px; }
         .route-detail { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
         .location { flex: 1; text-align: center; background: rgba(255,255,255,0.24); padding: 14px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); }
         .location h3 { font-size: 18px; letter-spacing: 1.2px; margin-bottom: 6px; color: white; font-weight: 700; text-transform: uppercase; }
-        .location p { font-size: 14px; margin-bottom: 4px; color: white; font-weight: 400; line-height: 1.2; }
-        .location small { color: rgba(255,255,255,0.82); font-size: 11px; }
+        .location p { margin-bottom: 4px; color: white; font-weight: 400; line-height: 1.2; }
+        .leg-row-name,
+        .quote-number,
+        .location p,
+        .route-summary { font-size: 13px; font-family: inherit; }
         .arrow { font-size: 22px; color: #ffd700; }
-        .route-summary { text-align: center; margin-top: 10px; color: rgba(255,255,255,0.92); font-size: 13px; }
+        .route-summary { text-align: center; margin-top: 10px; color: rgba(255,255,255,0.92); }
         .quote-title { font-size: 28px; font-weight: 500; text-align: center; margin: 6px 0; letter-spacing: 0.2px; }
-        .quote-title-inline { font-size: 16px; font-weight: 600; color: white; }
         .section { background: white; padding: 14px; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
         .summary-section { background: transparent; padding: 0; margin-bottom: 14px; border-radius: 10px; box-shadow: none; }
         .lane-details, .lane-notes { margin-bottom: 10px; }
-        .lane-section-title { display: block; font-size: 13px; font-weight: 700; color: #1e3c72; margin-bottom: 8px; }
         .lane-details-text, .lane-notes-text { font-size: 14px; color: #334e7b; line-height: 1.45; white-space: pre-wrap; }
         .quote-notes { margin-top: 0; font-size: 14px; line-height: 1.45; }
         .quote-notes-text { white-space: pre-wrap; margin-top: 6px; }
         .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 14px; padding-bottom: 7px; border-bottom: 3px solid #2a5298; }
-        .pricing-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        .pricing-table th { background: #2a5298; color: white; padding: 11px 12px; text-align: left; font-weight: 600; }
-        .pricing-table td { padding: 11px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+        .pricing-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .pricing-table th { background: #2a5298; color: white; padding: 9px 10px; text-align: left; font-weight: 600; font-size: 13px; line-height: 1.25; }
+        .pricing-table td { padding: 8px 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; font-size: 13px; line-height: 1.3; }
+        .pricing-table th.col-legs { text-align: center; }
+        .pricing-table th.col-fees,
+        .pricing-table th.col-total { text-align: right; }
         .pricing-table tbody tr:last-child td { border-bottom: none; }
-        .chart-container { position: relative; margin: 0 0 16px 0; padding: 16px; background: #eef4fb; border-radius: 10px; }
-        .chart-header { font-size: 17px; font-weight: 700; color: #1e3c72; margin-bottom: 12px; }
-        .chart-canvas { width: 100%; height: 320px; }
-        .lane { margin-bottom: 18px; border-left: 4px solid #2a5298; padding: 18px; border-radius: 12px; background: white; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
-        .leg-list { margin-top: 12px; }
-        .leg { display:flex; justify-content:space-between; align-items:center; gap: 12px; padding:10px 12px; background: white; border-radius: 10px; margin-bottom:10px; border: 1px solid #e5ecf5; }
-        .leg .left { display:flex; flex-direction:column; gap: 4px; }
-        .leg .right { min-width: 95px; text-align:right; font-weight:700; color: #1e3c72; }
-        .lane h3 { margin-bottom:10px; font-size:17px; color: #1b3f72; }
-        .lane .summary-label { font-size: 13px; font-weight: 700; color: #1e3c72; }
-        .lane .summary-detail { font-size: 12px; color: #334e7b; }
-        .btn { padding: 10px 18px; border-radius: 6px; background: #ffd700; color: #1e3c72; border: none; font-weight: 700; cursor: pointer; }
-        .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-top: 30px; }
-        .cta h2 { margin-bottom: 20px; font-size: 28px; }
-        .footer { text-align: center; padding: 30px; color: #666; font-size: 14px; }
-        .quote-actions { max-width: 940px; margin: 16px auto 0; padding: 0 16px 24px; text-align: center; }
-        .btn-pdf {
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
+        .breakdown-lane-desc { font-size: 12px; color: #666; line-height: 1.25; margin-top: 2px; }
+        .breakdown-leg-row { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 3px; line-height: 1.25; }
+        .breakdown-leg-price { color: #334e7b; white-space: nowrap; }
+        .breakdown-transit { font-size: 12px; color: #666; margin-bottom: 4px; line-height: 1.2; }
+        .breakdown-fees,
+        .breakdown-total { text-align: right; }
+        .chart-container {
+            position: relative;
+            margin: 0;
+            padding: 12px;
+            background: #eef4fb;
+            border-radius: 10px;
+        }
+        .chart-header { font-size: 17px; font-weight: 700; color: #1e3c72; margin-bottom: 8px; line-height: 1.2; }
+        .chart-canvas-wrap { width: 100%; }
+        .chart-canvas { display: block; max-width: 100%; }
+        #section-chart.section {
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+        .lane { margin-bottom: 14px; border-left: 4px solid #2a5298; padding: 14px; border-radius: 12px; background: white; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
+        .lane h3 { margin-bottom: 8px; font-size: 17px; color: #1b3f72; }
+        .leg-list { margin-top: 10px; }
+        .leg-list-box {
+            border: 1px solid #e5ecf5;
+            border-radius: 10px;
+            background: #fafbfd;
+            overflow: hidden;
+        }
+        .leg-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5ecf5;
+        }
+        .leg-row:last-child { border-bottom: none; }
+        .leg-row-left { display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; }
+        .leg-row-name { color: #333; }
+        .leg-row-transit { font-size: 12px; color: #666; }
+        .leg-row-price {
+            min-width: 95px;
+            text-align: right;
             font-size: 14px;
+            color: #334e7b;
+            font-weight: 400;
+        }
+        .leg-row-total .leg-row-price {
             font-weight: 700;
-            cursor: pointer;
+            color: #1e3c72;
+        }
+        .btn {
+            padding: 10px 18px;
+            border-radius: 6px;
             background: #ffd700;
             color: #1e3c72;
-            transition: all 0.2s;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
         }
-        .btn-pdf:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
-        .btn-pdf:disabled { opacity: 0.7; cursor: wait; }
-        .chart-pdf-image { width: 100%; height: auto; object-fit: contain; display: block; }
+        .btn-secondary {
+            background: #f0f4f8;
+            color: #1e3c72;
+            border: 1px solid #d0d7e4;
+        }
+        .quote-toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            max-width: 940px;
+            margin: 16px auto 24px;
+            padding: 0 16px;
+        }
+        .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 28px; border-radius: 10px; text-align: center; margin-top: 10px; }
+        .cta h2 { margin-bottom: 12px; font-size: 24px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
         @page { size: A4 portrait; margin: 12mm; }
         @media print {
-            html, body { margin: 0; padding: 0; background: #fff; font-size: 11px; line-height: 1.35; }
-            .container { max-width: 100%; margin: 0; padding: 4px; }
-            .header { box-shadow: 0 3px 8px rgba(0,0,0,0.06); margin-bottom: 10px; border-radius: 6px; padding: 8px 10px; }
+            html, body {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+                font-size: 11px;
+                line-height: 1.35;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .container { max-width: 100%; margin: 0; padding: 0 4px 4px; }
+            .header {
+                box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+                margin-bottom: 10px;
+                margin-top: 0;
+                border-radius: 6px;
+                padding: 8px 10px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .company-info { margin-bottom: 8px; gap: 10px; align-items: center; }
+            .company-left { padding: 0 0 0 12px !important; min-width: 0 !important; }
             .company-info img { height: 28px !important; }
-            .company-center, .company-right { font-size: 11px !important; }
-            .quote-title { font-size: 19px !important; }
+            .company-left img,
+            .company-left img[style] { height: 28px !important; }
+            .company-center { font-size: 11px !important; }
+            .quote-title { font-size: 19px !important; margin: 4px 0 !important; line-height: 1.2 !important; }
             .route-info { margin-top: 0; padding: 8px; }
+            .route-detail { gap: 8px; align-items: center; }
             .location { padding: 8px; }
-            .location h3 { font-size: 13px !important; }
-            .location p { font-size: 15px !important; }
+            .location h3 { font-size: 13px !important; margin-bottom: 4px !important; letter-spacing: 0.8px !important; }
+            .leg-row-name,
+            .quote-number,
+            .location p,
             .route-summary { font-size: 11px !important; }
-            .section { margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
-            .pricing-table th, .pricing-table td { padding: 8px 8px; }
-            .chart-container { padding: 10px !important; }
-            .lane { margin-bottom: 8px; padding: 8px; }
-            .leg { padding: 6px 8px; margin-bottom: 8px; }
+            .location p { margin-bottom: 0 !important; line-height: 1.2 !important; }
+            .route-summary { margin-top: 8px !important; }
+            .arrow { font-size: 18px !important; }
+            .section { margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
+            .section-title { margin-bottom: 8px; padding-bottom: 5px; font-size: 16px !important; }
+            .summary-section { margin-bottom: 6px; }
+            #section-breakdown,
+            #section-chart { padding: 6px 8px !important; margin-bottom: 4px !important; }
+            #section-breakdown .section-title,
+            #section-chart .chart-header { margin-bottom: 6px !important; padding-bottom: 4px !important; }
+            .pricing-table { margin-top: 4px; }
+            .pricing-table th,
+            .pricing-table td {
+                padding: 4px 8px;
+                font-size: 11px;
+                line-height: 1.25;
+            }
+            .breakdown-lane-desc { font-size: 11px !important; }
+            .breakdown-leg-row { margin-bottom: 2px; }
+            .breakdown-transit { font-size: 11px !important; margin-bottom: 2px !important; }
+            .chart-container { padding: 8px !important; margin-bottom: 0 !important; }
+            .chart-header { font-size: 13px !important; margin-bottom: 4px !important; }
+            #section-chart { break-inside: avoid; page-break-inside: avoid; }
+            .lane { margin-bottom: 6px; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+            .lane h3 { font-size: 13px !important; margin-bottom: 6px !important; }
+            .lane-details, .lane-notes { margin-bottom: 6px; }
+            .lane-details-text, .lane-notes-text, .quote-notes, .quote-notes-text { font-size: 11px !important; line-height: 1.35; }
+            .leg-list { margin-top: 8px; }
+            .leg-row { padding: 5px 8px; }
+            .leg-row-transit { font-size: 10px !important; }
+            .leg-row-price { font-size: 11px !important; min-width: 72px; }
+            .cta { padding: 14px !important; margin-top: 6px !important; }
+            .cta h2 { font-size: 16px !important; margin-bottom: 8px !important; }
+            .cta p { font-size: 11px !important; }
+            .cta p[style] { margin-top: 8px !important; font-size: 11px !important; }
             .footer { font-size: 10px !important; padding: 8px !important; }
-            .quote-actions, .quote-screen-only { display: none; }
-            .section, .lane, .header, .route-info { break-inside: avoid; page-break-inside: avoid; }
+            .footer p { margin-bottom: 4px; }
+            .quote-toolbar { display: none !important; }
+            .section, .lane, .header, .route-info {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .header, .route-info, .cta, .chart-container {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
-        body.pdf-export { background: #fff; }
-        body.pdf-export .quote-screen-only { display: none !important; }
-
-        /* Compact layout used when capturing sections for PDF (html2canvas ignores @media print) */
-        .pdf-section-staging {
-            width: 700px;
-            background: #fff;
-            font-size: 13px;
-            line-height: 1.55;
-            color: #333;
-        }
-        .pdf-section-staging .header {
-            padding: 14px 16px;
-            margin-bottom: 0;
-            border-radius: 6px;
-            box-shadow: none;
-        }
-        .pdf-section-staging .company-info { margin-bottom: 12px; gap: 14px; }
-        .pdf-section-staging .company-left img,
-        .pdf-section-staging .company-left img[style] { height: 44px !important; }
-        .pdf-section-staging .quote-title { font-size: 19px !important; margin: 6px 0; }
-        .pdf-section-staging .quote-number { font-size: 12px; line-height: 1.5; }
-        .pdf-section-staging .route-info { padding: 12px; margin-top: 10px; border-radius: 6px; }
-        .pdf-section-staging .location { padding: 12px 14px; border-radius: 8px; }
-        .pdf-section-staging .location h3 { font-size: 13px !important; margin-bottom: 6px; letter-spacing: 0.8px; }
-        .pdf-section-staging .location p { font-size: 13px !important; margin-bottom: 5px; }
-        .pdf-section-staging .route-summary { font-size: 12px; margin-top: 10px; }
-        .pdf-section-staging .arrow { font-size: 18px; }
-        .pdf-section-staging .section,
-        .pdf-section-staging .summary-section {
-            padding: 14px;
-            margin-bottom: 0;
-            border-radius: 6px;
-            box-shadow: none;
-            border: 1px solid #e5ecf5;
-        }
-        .pdf-section-staging .summary-section { background: transparent; border: none; padding: 0; }
-        .pdf-section-staging .section-title {
-            font-size: 17px;
-            margin-bottom: 12px;
-            padding-bottom: 7px;
-        }
-        .pdf-section-staging .lane {
-            padding: 14px;
-            margin-bottom: 0;
-            border-radius: 6px;
-            box-shadow: none;
-        }
-        .pdf-section-staging .lane h3 { font-size: 14px; margin-bottom: 10px; }
-        .pdf-section-staging .lane-details,
-        .pdf-section-staging .lane-notes { margin-bottom: 10px; }
-        .pdf-section-staging .lane-details-text,
-        .pdf-section-staging .lane-notes-text,
-        .pdf-section-staging .quote-notes,
-        .pdf-section-staging .quote-notes-text { font-size: 12px; line-height: 1.55; }
-        .pdf-section-staging .leg-list { margin-top: 12px; }
-        .pdf-section-staging .leg { padding: 10px 12px; margin-bottom: 10px; border-radius: 6px; }
-        .pdf-section-staging .leg .right { min-width: 85px; font-size: 12px; }
-        .pdf-section-staging .leg .left div[style] { font-size: 12px !important; }
-        .pdf-section-staging td div[style] { font-size: 12px !important; }
-        .pdf-section-staging td div[style*="font-size:12px"] { font-size: 11px !important; }
-        .pdf-section-staging .pricing-table { margin-top: 12px; }
-        .pdf-section-staging .pricing-table th,
-        .pdf-section-staging .pricing-table td { padding: 9px 10px; font-size: 12px; }
-        .pdf-section-staging .chart-container { padding: 14px; margin: 0; border-radius: 6px; }
-        .pdf-section-staging .chart-header { font-size: 14px; margin-bottom: 10px; }
-        .pdf-section-staging .chart-pdf-image {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-height: none;
-            object-fit: contain;
-        }
-        .pdf-section-staging .cta {
-            padding: 24px;
-            margin-top: 0;
-            border-radius: 6px;
-        }
-        .pdf-section-staging .cta h2 { font-size: 19px; margin-bottom: 12px; }
-        .pdf-section-staging .cta p { font-size: 12px; margin: 0; }
-        .pdf-section-staging .cta p[style] { margin-top: 12px !important; font-size: 12px !important; }
-        .pdf-section-staging .footer { padding: 14px; font-size: 11px; line-height: 1.55; }
-        .pdf-section-staging .footer p { margin-bottom: 6px; }
     </style>
 </head>
 <body>
@@ -193,7 +223,7 @@
                     </div>
                 </div>
             </div>
- 
+
             <div class="route-info">
                 <div class="route-detail">
                     <div class="location">
@@ -207,11 +237,7 @@
                     </div>
                 </div>
                 <div class="route-summary">
-                    {% if quote.distance %}
-                        <small>Distance: {{ quote.distance }} miles | Transit Time: {{ quote.transit_time if quote.transit_time else 'N/A' }} | Pallet Count: {{ example_pallets }}</small>
-                    {% else %}
-                        <small>Distance: N/A | Transit Time: N/A | Pallet Count: {{ example_pallets }}</small>
-                    {% endif %}
+                    <small>Transit Time: {{ transit_time_display }} | Pallet Count: {{ example_pallets }}</small>
                 </div>
             </div>
         </div>
@@ -228,13 +254,29 @@
                     <p class="lane-details-text"><strong>Details:</strong> {{ lane.details if lane.details else lane.description }}</p>
                 </div>
                 <div class="leg-list">
-                    {% for leg in lane.legs %}
-                    <div class="leg"><div class="left"><div style="font-size:13px;color:#333;"><strong>Leg {{ loop.index }}:</strong> {{ leg.name }}</div>{% if leg.transit_days is defined and leg.transit_days != none %}<div style="font-size:12px;color:#666;">Transit: {{ leg.transit_days }} days</div>{% endif %}</div><div class="right">${{ "%.2f"|format(leg.costPerPallet) }}</div></div>
-                    {% endfor %}
-                    <div class="leg"><div class="left"><strong>Documentation & Handling Fees:</strong></div><div class="right">${{ "%.2f"|format(lane.otherFees) }}</div></div>
-                    {% set legs_total = lane.legs | sum(attribute='costPerPallet') %}
-                    {% set total_lane_cost = legs_total + lane.otherFees %}
-                    <div class="leg"><div class="left"><strong>Total Lane Cost:</strong></div><div class="right">${{ "%.2f"|format(total_lane_cost) }}</div></div>
+                    <div class="leg-list-box">
+                        {% for leg in lane.legs %}
+                        <div class="leg-row">
+                            <div class="leg-row-left">
+                                <div class="leg-row-name"><strong>Leg {{ loop.index }}:</strong> {{ leg.name }}</div>
+                                {% if leg.transit_days is not none %}
+                                <div class="leg-row-transit">Transit: {{ leg.transit_days }} days</div>
+                                {% endif %}
+                            </div>
+                            <div class="leg-row-price">${{ "%.2f"|format(leg.costPerPallet) }}</div>
+                        </div>
+                        {% endfor %}
+                        <div class="leg-row">
+                            <div class="leg-row-left"><strong>Documentation & Handling Fees:</strong></div>
+                            <div class="leg-row-price">${{ "%.2f"|format(lane.otherFees) }}</div>
+                        </div>
+                        {% set legs_total = lane.legs | sum(attribute='costPerPallet') %}
+                        {% set total_lane_cost = legs_total + lane.otherFees %}
+                        <div class="leg-row leg-row-total">
+                            <div class="leg-row-left"><strong>Total Lane Cost:</strong></div>
+                            <div class="leg-row-price">${{ "%.2f"|format(total_lane_cost) }}</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="lane-notes">
                     <p class="lane-notes-text"><strong>Notes:</strong> {{ lane.notes if lane.notes else 'No additional notes.' }}</p>
@@ -258,11 +300,11 @@
             <table class="pricing-table" id="breakdownTable">
                 <thead>
                     <tr>
-                            <th>Lane</th>
-                            <th>Legs</th>
-                            <th>Additional Extra Fees</th>
-                            <th>Total cost per pallet</th>
-                        </tr>
+                        <th class="col-lane">Lane</th>
+                        <th class="col-legs">Legs</th>
+                        <th class="col-fees">Additional Extra Fees</th>
+                        <th class="col-total">Total cost per pallet</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for lane in lanes %}
@@ -271,17 +313,20 @@
                     {% set pallets = example_pallets if example_pallets and example_pallets > 0 else 1 %}
                     {% set total_per_pallet = total_lane_cost / pallets %}
                     <tr>
-                        <td><strong>{{ lane.id }}</strong><div style="font-size:12px;color:#666">{{ lane.description }}</div></td>
+                        <td><strong>{{ lane.id }}</strong><div class="breakdown-lane-desc">{{ lane.description }}</div></td>
                         <td>
                             {% for leg in lane.legs %}
-                                <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><div>{{ leg.name }}</div><div style="font-weight:700;color:#1e3c72">${{ "%.2f"|format(leg.costPerPallet) }}</div></div>
-                                {% if leg.transit_days is defined and leg.transit_days != none %}
-                                    <div style="font-size:12px;color:#666;margin-bottom:8px;">Transit: {{ leg.transit_days }} days</div>
+                                <div class="breakdown-leg-row">
+                                    <div>{{ leg.name }}</div>
+                                    <div class="breakdown-leg-price">${{ "%.2f"|format(leg.costPerPallet) }}</div>
+                                </div>
+                                {% if leg.transit_days is not none %}
+                                    <div class="breakdown-transit">Transit: {{ leg.transit_days }} days</div>
                                 {% endif %}
                             {% endfor %}
                         </td>
-                        <td style="text-align:right;color:#1e3c72;">${{ "%.2f"|format(lane.otherFees) }}</td>
-                        <td style="text-align:right;"><strong>${{ "%.2f"|format(total_per_pallet) }}</strong></td>
+                        <td class="breakdown-fees">${{ "%.2f"|format(lane.otherFees) }}</td>
+                        <td class="breakdown-total"><strong>${{ "%.2f"|format(total_per_pallet) }}</strong></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -291,13 +336,10 @@
         <div class="section" id="section-chart">
             <div class="chart-container">
                 <div class="chart-header">Per-Pallet Cost Comparison (example {{ example_pallets }} pallets)</div>
-                <canvas id="priceChart" class="chart-canvas" width="800" height="300"></canvas>
+                <div class="chart-canvas-wrap">
+                    <canvas id="priceChart" class="chart-canvas" width="800" height="220"></canvas>
+                </div>
             </div>
-        </div>
-
-        <div class="quote-screen-only" style="display:flex; gap:12px; align-items:center; margin-bottom:14px;">
-            <button class="btn" onclick="window.print()">Print Quote</button>
-            <button class="btn" onclick="history.back()" style="background:#f0f4f8;color:#1e3c72;border:1px solid #d0d7e4;">Back to Builder</button>
         </div>
 
         <div class="cta">
@@ -313,15 +355,13 @@
         </div>
     </div>
 
-    <div class="quote-actions">
-        <button type="button" class="btn-pdf" id="downloadQuoteBtn" onclick="downloadQuote()">Download Quote</button>
+    <div class="quote-toolbar">
+        <button type="button" class="btn" onclick="window.print()">Print Quote</button>
+        <button type="button" class="btn btn-secondary" onclick="history.back()">Back to Builder</button>
     </div>
 
-    <script src="{{ url_for('static', filename='js/html2canvas.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/jspdf.umd.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
-        // Build labels and data server-side for Chart.js
         const chartLabels = [
             {% for lane in lanes %}
                 "{{ lane.id }}"{% if not loop.last %}, {% endif %}
@@ -334,16 +374,29 @@
             {% endfor %}
         ];
 
-        (function() {
-            const canvas = document.getElementById('priceChart');
-            if (!canvas) return;
+        const CHART_HEIGHT = 220;
 
-            // If a previous chart instance exists, destroy it first to avoid duplicates
+        function syncChartCanvasSize(canvas) {
+            const container = canvas.closest('.chart-container');
+            const horizontalPadding = 24;
+            const width = Math.max(320, Math.floor((container ? container.clientWidth : 800) - horizontalPadding));
+            canvas.width = width;
+            canvas.height = CHART_HEIGHT;
+            canvas.style.width = width + 'px';
+            canvas.style.height = CHART_HEIGHT + 'px';
+            return { width, height: CHART_HEIGHT };
+        }
+
+        function initPriceChart() {
+            const canvas = document.getElementById('priceChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
             if (window.priceChartInstance && typeof window.priceChartInstance.destroy === 'function') {
-                try { window.priceChartInstance.destroy(); } catch (e) { console.warn('Error destroying previous chart instance', e); }
+                try { window.priceChartInstance.destroy(); } catch (e) {}
             }
 
-            // Use a fixed-size chart (responsive:false) to avoid layout/resize loops that can cause the canvas to grow
+            syncChartCanvasSize(canvas);
+
             window.priceChartInstance = new Chart(canvas, {
                 type: 'bar',
                 data: {
@@ -354,24 +407,30 @@
                         backgroundColor: 'rgba(42, 82, 152, 0.95)',
                         borderColor: '#1e3c72',
                         borderWidth: 1,
-                        borderRadius: 8,
-                        maxBarThickness: 80
+                        borderRadius: 6,
+                        maxBarThickness: 52
                     }]
                 },
                 options: {
                     responsive: false,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: { left: 4, right: 20, top: 4, bottom: 2 }
+                    },
                     scales: {
                         x: {
+                            offset: true,
                             grid: { display: false },
-                            ticks: { color: '#1e3c72', font: { size: 12 } }
+                            ticks: { color: '#1e3c72', font: { size: 12 }, maxRotation: 0, autoSkip: false, padding: 2 }
                         },
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(0, 0, 0, 0.06)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.06)', drawTicks: false },
                             ticks: {
                                 color: '#334e7b',
                                 font: { size: 12 },
+                                padding: 2,
+                                maxTicksLimit: 6,
                                 callback: function(value) { return '$' + value; }
                             }
                         }
@@ -386,378 +445,9 @@
                     }
                 }
             });
-        })();
-
-        const PDF_CAPTURE_SCALE = 3;
-        const CHART_PDF_SCALE = 4;
-
-        function scaleFontSetting(font, scale) {
-            if (!font) return font;
-            if (typeof font === 'number') return Math.round(font * scale);
-            if (typeof font.size === 'number') {
-                return { ...font, size: Math.round(font.size * scale) };
-            }
-            return font;
         }
 
-        function prepareChartForPdfExport(chart, scale) {
-            const options = chart.options;
-            const backup = {
-                layout: options.layout ? JSON.parse(JSON.stringify(options.layout)) : null,
-                plugins: {},
-                scales: {},
-                datasets: chart.data.datasets.map((ds) => ({
-                    borderWidth: ds.borderWidth,
-                    pointRadius: ds.pointRadius,
-                    maxBarThickness: ds.maxBarThickness,
-                    borderRadius: ds.borderRadius,
-                })),
-            };
-
-            if (options.layout && options.layout.padding && typeof options.layout.padding === 'object') {
-                ['top', 'right', 'bottom', 'left'].forEach((side) => {
-                    if (typeof options.layout.padding[side] === 'number') {
-                        options.layout.padding[side] = Math.round(options.layout.padding[side] * scale);
-                    }
-                });
-            }
-
-            const legend = options.plugins && options.plugins.legend;
-            if (legend && legend.labels) {
-                backup.plugins.legend = {
-                    boxWidth: legend.labels.boxWidth,
-                    font: legend.labels.font ? { ...legend.labels.font } : undefined,
-                };
-                if (typeof legend.labels.boxWidth === 'number') {
-                    legend.labels.boxWidth = Math.round(legend.labels.boxWidth * scale);
-                }
-                legend.labels.font = scaleFontSetting(legend.labels.font, scale);
-            }
-
-            Object.entries(options.scales || {}).forEach(([axisId, axis]) => {
-                backup.scales[axisId] = {
-                    ticksFont: axis.ticks && axis.ticks.font ? { ...axis.ticks.font } : undefined,
-                    titleFont: axis.title && axis.title.font ? { ...axis.title.font } : undefined,
-                };
-                if (axis.ticks && axis.ticks.font) {
-                    axis.ticks.font = scaleFontSetting(axis.ticks.font, scale);
-                }
-                if (axis.title && axis.title.font) {
-                    axis.title.font = scaleFontSetting(axis.title.font, scale);
-                }
-            });
-
-            chart.data.datasets.forEach((dataset) => {
-                if (typeof dataset.borderWidth === 'number') dataset.borderWidth = Math.round(dataset.borderWidth * scale);
-                if (typeof dataset.pointRadius === 'number') dataset.pointRadius = Math.round(dataset.pointRadius * scale);
-                if (typeof dataset.maxBarThickness === 'number') dataset.maxBarThickness = Math.round(dataset.maxBarThickness * scale);
-                if (typeof dataset.borderRadius === 'number') dataset.borderRadius = Math.round(dataset.borderRadius * scale);
-            });
-
-            return backup;
-        }
-
-        function restoreChartAfterPdfExport(chart, backup) {
-            const options = chart.options;
-
-            if (backup.layout) {
-                options.layout = backup.layout;
-            }
-
-            const legend = options.plugins && options.plugins.legend;
-            if (legend && legend.labels && backup.plugins.legend) {
-                legend.labels.boxWidth = backup.plugins.legend.boxWidth;
-                legend.labels.font = backup.plugins.legend.font;
-            }
-
-            Object.entries(backup.scales).forEach(([axisId, axisBackup]) => {
-                const axis = options.scales[axisId];
-                if (!axis) return;
-                if (axis.ticks && axisBackup.ticksFont) axis.ticks.font = axisBackup.ticksFont;
-                if (axis.title && axisBackup.titleFont) axis.title.font = axisBackup.titleFont;
-            });
-
-            chart.data.datasets.forEach((dataset, index) => {
-                const dsBackup = backup.datasets[index];
-                if (!dsBackup) return;
-                dataset.borderWidth = dsBackup.borderWidth;
-                dataset.pointRadius = dsBackup.pointRadius;
-                dataset.maxBarThickness = dsBackup.maxBarThickness;
-                dataset.borderRadius = dsBackup.borderRadius;
-            });
-        }
-
-        async function exportChartForPdf(chart) {
-            if (!chart || !chart.canvas) return null;
-            const canvas = chart.canvas;
-            const originalWidth = canvas.width;
-            const originalHeight = canvas.height;
-            const backup = prepareChartForPdfExport(chart, CHART_PDF_SCALE);
-
-            chart.resize(originalWidth * CHART_PDF_SCALE, originalHeight * CHART_PDF_SCALE);
-            chart.update('none');
-            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-            const dataUrl = chart.toBase64Image('image/png', 1.0);
-
-            restoreChartAfterPdfExport(chart, backup);
-            chart.resize(originalWidth, originalHeight);
-            chart.update('none');
-
-            return dataUrl;
-        }
-
-        async function swapChartsForPdf() {
-            const replacements = [];
-            for (const canvas of document.querySelectorAll('canvas')) {
-                const chart = typeof Chart !== 'undefined' && Chart.getChart ? Chart.getChart(canvas) : null;
-                const dataUrl = chart ? await exportChartForPdf(chart) : canvas.toDataURL('image/png', 1.0);
-
-                const img = document.createElement('img');
-                img.src = dataUrl;
-                img.alt = 'Chart';
-                img.className = 'chart-pdf-image';
-                img.style.width = '100%';
-                img.style.height = 'auto';
-                img.style.display = 'block';
-                canvas.parentNode.insertBefore(img, canvas);
-                canvas.style.display = 'none';
-                replacements.push({ canvas, img });
-                if (!img.complete) {
-                    await new Promise((resolve) => {
-                        img.onload = resolve;
-                        img.onerror = resolve;
-                    });
-                }
-            }
-            return replacements;
-        }
-
-        function getJsPDFConstructor() {
-            if (window.jspdf && window.jspdf.jsPDF) {
-                return window.jspdf.jsPDF;
-            }
-            if (window.jsPDF) {
-                return window.jsPDF;
-            }
-            return null;
-        }
-
-        function fitCanvasToPage(canvas, contentWidth) {
-            const renderWidth = contentWidth;
-            const renderHeight = (canvas.height * renderWidth) / canvas.width;
-            return { renderWidth, renderHeight };
-        }
-
-        function collectPdfSections() {
-            const sections = [];
-            const header = document.querySelector('.header');
-            if (header) {
-                sections.push(header);
-            }
-
-            document.querySelectorAll('#section-lanes > .summary-section').forEach((section) => {
-                sections.push(section);
-            });
-
-            const notes = document.querySelector('#section-notes');
-            if (notes && notes.textContent.trim()) {
-                sections.push(notes);
-            }
-
-            ['#section-breakdown', '#section-chart', '.cta', '.footer'].forEach((selector) => {
-                const section = document.querySelector(selector);
-                if (section) {
-                    sections.push(section);
-                }
-            });
-
-            return sections;
-        }
-
-        async function captureSection(sectionElement, options = {}) {
-            const { excludeChart = false } = options;
-            const staging = document.createElement('div');
-            staging.className = 'pdf-section-staging';
-            staging.style.cssText = 'position:fixed;left:-10000px;top:0;width:700px;background:#fff;';
-            const clone = sectionElement.cloneNode(true);
-            if (excludeChart) {
-                clone.querySelectorAll('.chart-pdf-image, .chart-container canvas').forEach((el) => el.remove());
-            }
-            staging.appendChild(clone);
-            document.body.appendChild(staging);
-            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-            const canvas = await html2canvas(staging, {
-                scale: PDF_CAPTURE_SCALE,
-                useCORS: true,
-                logging: false,
-                scrollY: 0,
-                backgroundColor: '#ffffff',
-                width: staging.scrollWidth,
-                height: staging.scrollHeight,
-                windowWidth: staging.scrollWidth,
-                windowHeight: staging.scrollHeight,
-                imageTimeout: 0,
-            });
-
-            staging.remove();
-            return canvas;
-        }
-
-        function loadImageAsCanvas(src) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    const chartCanvas = document.createElement('canvas');
-                    chartCanvas.width = img.naturalWidth;
-                    chartCanvas.height = img.naturalHeight;
-                    chartCanvas.getContext('2d').drawImage(img, 0, 0);
-                    resolve(chartCanvas);
-                };
-                img.onerror = reject;
-                img.src = src;
-            });
-        }
-
-        function placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap) {
-            const fitted = fitCanvasToPage(canvas, contentWidth);
-            if (currentY + fitted.renderHeight > maxY && currentY > margin) {
-                pdf.addPage();
-                currentY = margin;
-            }
-            pdf.addImage(canvas, 'PNG', margin, currentY, fitted.renderWidth, fitted.renderHeight, undefined, 'NONE');
-            return currentY + fitted.renderHeight + sectionGap;
-        }
-
-        async function addSectionToPdf(pdf, section, margin, contentWidth, maxY, currentY, sectionGap) {
-            const chartImg = section.querySelector('img.chart-pdf-image');
-            if (chartImg && chartImg.src) {
-                const bodyCanvas = await captureSection(section, { excludeChart: true });
-                currentY = placeCanvasOnPdf(pdf, bodyCanvas, margin, contentWidth, maxY, currentY, sectionGap);
-                const chartCanvas = await loadImageAsCanvas(chartImg.src);
-                return placeCanvasOnPdf(pdf, chartCanvas, margin, contentWidth, maxY, currentY, sectionGap);
-            }
-
-            const canvas = await captureSection(section);
-            return placeCanvasOnPdf(pdf, canvas, margin, contentWidth, maxY, currentY, sectionGap);
-        }
-
-        async function buildQuotePdfBlob() {
-            const JsPDF = getJsPDFConstructor();
-            if (!JsPDF || typeof html2canvas !== 'function') {
-                throw new Error('PDF libraries are not available.');
-            }
-
-            const pdf = new JsPDF({ unit: 'in', format: 'letter', orientation: 'portrait' });
-            const margin = 0.45;
-            const sectionGap = 0.12;
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const contentWidth = pageWidth - (margin * 2);
-            const maxY = pageHeight - margin;
-
-            let currentY = margin;
-            const sections = collectPdfSections();
-
-            for (let index = 0; index < sections.length; index += 1) {
-                currentY = await addSectionToPdf(pdf, sections[index], margin, contentWidth, maxY, currentY, sectionGap);
-            }
-
-            return pdf.output('blob');
-        }
-
-        function restoreCharts(replacements) {
-            replacements.forEach(({ canvas, img }) => {
-                img.remove();
-                canvas.style.display = '';
-            });
-        }
-
-        function getPywebviewApi() {
-            if (window.pywebview && window.pywebview.api) {
-                return window.pywebview.api;
-            }
-            if (typeof pywebview !== 'undefined' && pywebview.api) {
-                return pywebview.api;
-            }
-            return null;
-        }
-
-        function blobToBase64(blob) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(String(reader.result).split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        }
-
-        function triggerBrowserDownload(blob, filename) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            URL.revokeObjectURL(url);
-        }
-
-        async function downloadQuote() {
-            const button = document.getElementById('downloadQuoteBtn');
-            const filename = `Freight-Quote-{{ quote.quote_number }}.pdf`;
-
-            if (!getJsPDFConstructor() || typeof html2canvas !== 'function') {
-                alert('PDF library failed to load. Please restart the app and try again.');
-                return;
-            }
-
-            button.disabled = true;
-            button.textContent = 'Preparing quote...';
-
-            window.scrollTo(0, 0);
-            document.body.classList.add('pdf-export');
-            const chartReplacements = await swapChartsForPdf();
-            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-            try {
-                const pdfBlob = await buildQuotePdfBlob();
-
-                const api = getPywebviewApi();
-                if (api && api.save_pdf_file) {
-                    const pdfBase64 = await blobToBase64(pdfBlob);
-                    const prepareResponse = await fetch('/quote/prepare-pdf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pdf_base64: pdfBase64 }),
-                    });
-                    const prepared = await prepareResponse.json();
-                    if (!prepared.success) {
-                        alert('Could not prepare the quote PDF. Please try again.');
-                        return;
-                    }
-
-                    const result = await api.save_pdf_file(prepared.token, filename);
-                    if (result && result.cancelled) {
-                        return;
-                    }
-                    if (result && !result.success) {
-                        alert(result.error || 'Could not save the quote.');
-                    }
-                } else {
-                    triggerBrowserDownload(pdfBlob, filename);
-                }
-            } catch (error) {
-                console.error(error);
-                alert('Could not generate the quote PDF. Please try again.');
-            } finally {
-                restoreCharts(chartReplacements);
-                document.body.classList.remove('pdf-export');
-                button.disabled = false;
-                button.textContent = 'Download Quote';
-            }
-        }
+        window.addEventListener('load', initPriceChart);
     </script>
 </body>
 </html>
