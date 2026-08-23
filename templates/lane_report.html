@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lane Variance - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = 'Lane Variance' %}
+        {% include 'partials/page_header.html' %}
+
+        <div class="page-body">
+            <h2 class="section-title">{{ mode }} {{ origin_zip }} → {{ dest_zip }}</h2>
+            <div class="form-section">
+                {% if not report or report.n == 0 %}
+                  <p class="message">No completed shipments logged for this lane.</p>
+                {% else %}
+                  <p class="stat-line">n = {{ report.n }} | On-time (≤ quoted): {{ report.on_time_pct }}%</p>
+                  {% if report.transit %}
+                    <p class="stat-line">Transit: MAD {{ report.transit.mad }} d, bias {{ report.transit.bias }} d, MAPE {{ report.transit.mape_pct }}%</p>
+                  {% endif %}
+                  {% if report.cost %}
+                    <p class="stat-line">Cost — MAD ${{ report.cost.mad }}, bias ${{ report.cost.bias }}, MAPE {{ report.cost.mape_pct }}%</p>
+                  {% endif %}
+                {% endif %}
+            </div>
+            <p class="quote-type-nav">
+                <a href="{{ url_for('admin.log_shipment') }}">Log a shipment</a>
+                · <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

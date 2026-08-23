@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Shipment Actuals - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = 'Log Shipment Actuals' %}
+        {% include 'partials/page_header.html' %}
+
+        <div class="page-body">
+            <p class="quote-type-nav">
+                <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+            <form method="post" class="form-section admin-stack">
+                <h2 class="section-title">Completed move</h2>
+                <label>Mode
+                    <select name="mode" required>
+                        <option>LTL</option>
+                        <option>FTL</option>
+                        <option>DRAY</option>
+                        <option>INTL</option>
+                    </select>
+                </label>
+                <label>Origin ZIP <input name="origin_zip" required></label>
+                <label>Dest ZIP <input name="dest_zip" required></label>
+                <label>Carrier <input name="carrier"></label>
+                <label>Pickup date <input type="date" name="pickup_date"></label>
+                <label>Delivery date <input type="date" name="delivery_date"></label>
+                <label>Actual transit (days) <input type="number" step="0.1" name="actual_transit_days" required></label>
+                <label>Actual cost <input type="number" step="0.01" name="actual_cost"></label>
+                <label>Quote # (optional) <input type="number" name="quote_id"></label>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

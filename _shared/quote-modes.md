@@ -7,8 +7,8 @@ Mode picker: `templates/mode_select.html`. Routes live in `app.py`. Company fiel
 | LTL — Tiered | live | `templates/ltl_quote_form.html` | `templates/ltl_quote_output.html` | `/ltl/tiered` |
 | LTL — Single Shipment | live | `templates/ltl_single_quote_form.html` | `templates/ltl_single_quote_output.html` | `/ltl/single` |
 | International | live | `templates/international_quote_form.html` | `templates/international_quote_output.html` | `/international` |
-| FTL | not built | — | `templates/coming_soon.html` | `/ftl` |
-| Dray | not built | — | `templates/coming_soon.html` | `/dray` |
+| FTL | live | `templates/ftl_quote_form.html` | `templates/ftl_quote_output.html` | `/ftl` |
+| Dray | live | `templates/dray_quote_form.html` | `templates/dray_quote_output.html` | `/dray` |
 
 `/ltl` redirects to `/ltl/tiered` for old bookmarks.
 

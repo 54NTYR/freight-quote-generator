@@ -1,6 +1,6 @@
 # Freight Quote Generator
 
-Desktop app for Jericho Freight quotes (LTL, International live; FTL and Dray not built). What leaves the workspace is a working app change, or a Windows installer.
+Desktop app for Jericho Freight quotes (LTL, International, FTL, and Dray live). What leaves the workspace is a working app change, or a Windows installer.
 
 Built on ICM: folders carry sequencing, hierarchy carries context, files carry state. Source code stays in place — these files are the catalog, not a second copy of the app.
 

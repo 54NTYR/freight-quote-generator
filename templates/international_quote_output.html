@@ -4,206 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>International Freight Quote - {{ quote.company_name }}</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #fff; }
-        .container { max-width: 940px; margin: 0 auto; padding: 16px; }
-        .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 14px 16px; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
-        .company-info { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .company-left { flex: 0 0 auto; display:flex; align-items:center; padding: 6px 0 0 18px; min-width: 160px; }
-        .company-left img { height: 68px; object-fit: contain; }
-        .company-center { flex: 1 1 auto; text-align: center; }
-        .company-right { flex: 0 0 auto; text-align: right; min-width: 160px; }
-        .quote-number { text-align: right; opacity: 0.95; line-height: 1.4; }
-        .route-info { background: rgba(255,255,255,0.14); padding: 10px; border-radius: 10px; margin-top: 10px; }
-        .route-detail { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .location { flex: 1; text-align: center; background: rgba(255,255,255,0.24); padding: 14px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); }
-        .location h3 { font-size: 18px; letter-spacing: 1.2px; margin-bottom: 6px; color: white; font-weight: 700; text-transform: uppercase; }
-        .location p { margin-bottom: 4px; color: white; font-weight: 400; line-height: 1.2; }
-        .leg-row-name,
-        .quote-number,
-        .location p,
-        .route-summary { font-size: 13px; font-family: inherit; }
-        .arrow { font-size: 22px; color: #ffd700; }
-        .route-summary { text-align: center; margin-top: 10px; color: rgba(255,255,255,0.92); }
-        .quote-title { font-size: 28px; font-weight: 500; text-align: center; margin: 6px 0; letter-spacing: 0.2px; }
-        .section { background: white; padding: 14px; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
-        .summary-section { background: transparent; padding: 0; margin-bottom: 14px; border-radius: 10px; box-shadow: none; }
-        .lane-details, .lane-notes { margin-bottom: 10px; }
-        .lane-details-text, .lane-notes-text { font-size: 14px; color: #334e7b; line-height: 1.45; white-space: pre-wrap; }
-        .quote-notes { margin-top: 0; font-size: 14px; line-height: 1.45; }
-        .quote-notes-text { white-space: pre-wrap; margin-top: 6px; }
-        .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 14px; padding-bottom: 7px; border-bottom: 3px solid #2a5298; }
-        .pricing-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .pricing-table th { background: #2a5298; color: white; padding: 9px 10px; text-align: left; font-weight: 600; font-size: 13px; line-height: 1.25; }
-        .pricing-table td { padding: 8px 10px; border-bottom: 1px solid #e0e0e0; vertical-align: top; font-size: 13px; line-height: 1.3; }
-        .pricing-table th.col-legs { text-align: center; }
-        .pricing-table th.col-fees,
-        .pricing-table th.col-total { text-align: right; }
-        .pricing-table tbody tr:last-child td { border-bottom: none; }
-        .breakdown-lane-desc { font-size: 12px; color: #666; line-height: 1.25; margin-top: 2px; }
-        .breakdown-leg-row { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 3px; line-height: 1.25; }
-        .breakdown-leg-price { color: #334e7b; white-space: nowrap; }
-        .breakdown-transit { font-size: 12px; color: #666; margin-bottom: 4px; line-height: 1.2; }
-        .breakdown-fees,
-        .breakdown-total { text-align: right; }
-        .chart-container {
-            position: relative;
-            margin: 0;
-            padding: 12px;
-            background: #eef4fb;
-            border-radius: 10px;
-        }
-        .chart-header { font-size: 17px; font-weight: 700; color: #1e3c72; margin-bottom: 8px; line-height: 1.2; }
-        .chart-canvas-wrap { width: 100%; }
-        .chart-canvas { display: block; max-width: 100%; }
-        #section-chart.section {
-            padding: 0;
-            background: transparent;
-            box-shadow: none;
-        }
-        .lane { margin-bottom: 14px; border-left: 4px solid #2a5298; padding: 14px; border-radius: 12px; background: white; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
-        .lane h3 { margin-bottom: 8px; font-size: 17px; color: #1b3f72; }
-        .leg-list { margin-top: 10px; }
-        .leg-list-box {
-            border: 1px solid #e5ecf5;
-            border-radius: 10px;
-            background: #fafbfd;
-            overflow: hidden;
-        }
-        .leg-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 8px 10px;
-            border-bottom: 1px solid #e5ecf5;
-        }
-        .leg-row:last-child { border-bottom: none; }
-        .leg-row-left { display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; }
-        .leg-row-name { color: #333; }
-        .leg-row-transit { font-size: 12px; color: #666; }
-        .leg-row-price {
-            min-width: 95px;
-            text-align: right;
-            font-size: 14px;
-            color: #334e7b;
-            font-weight: 400;
-        }
-        .leg-row-total .leg-row-price {
-            font-weight: 700;
-            color: #1e3c72;
-        }
-        .btn {
-            padding: 10px 18px;
-            border-radius: 6px;
-            background: #ffd700;
-            color: #1e3c72;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .btn-secondary {
-            background: #f0f4f8;
-            color: #1e3c72;
-            border: 1px solid #d0d7e4;
-        }
-        .quote-toolbar {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: center;
-            max-width: 940px;
-            margin: 16px auto 24px;
-            padding: 0 16px;
-        }
-        .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 28px; border-radius: 10px; text-align: center; margin-top: 10px; }
-        .cta h2 { margin-bottom: 12px; font-size: 24px; }
-        .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
-        @page { size: A4 portrait; margin: 12mm; }
-        @media print {
-            html, body {
-                margin: 0;
-                padding: 0;
-                background: #fff;
-                font-size: 11px;
-                line-height: 1.35;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .container { max-width: 100%; margin: 0; padding: 0 4px 4px; }
-            .header {
-                box-shadow: 0 3px 8px rgba(0,0,0,0.06);
-                margin-bottom: 10px;
-                margin-top: 0;
-                border-radius: 6px;
-                padding: 8px 10px;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            .company-info { margin-bottom: 8px; gap: 10px; align-items: center; }
-            .company-left { padding: 0 0 0 12px !important; min-width: 0 !important; }
-            .company-info img { height: 28px !important; }
-            .company-left img,
-            .company-left img[style] { height: 28px !important; }
-            .company-center { font-size: 11px !important; }
-            .quote-title { font-size: 19px !important; margin: 4px 0 !important; line-height: 1.2 !important; }
-            .route-info { margin-top: 0; padding: 8px; }
-            .route-detail { gap: 8px; align-items: center; }
-            .location { padding: 8px; }
-            .location h3 { font-size: 13px !important; margin-bottom: 4px !important; letter-spacing: 0.8px !important; }
-            .leg-row-name,
-            .quote-number,
-            .location p,
-            .route-summary { font-size: 11px !important; }
-            .location p { margin-bottom: 0 !important; line-height: 1.2 !important; }
-            .route-summary { margin-top: 8px !important; }
-            .arrow { font-size: 18px !important; }
-            .section { margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
-            .section-title { margin-bottom: 8px; padding-bottom: 5px; font-size: 16px !important; }
-            .summary-section { margin-bottom: 6px; }
-            #section-breakdown,
-            #section-chart { padding: 6px 8px !important; margin-bottom: 4px !important; }
-            #section-breakdown .section-title,
-            #section-chart .chart-header { margin-bottom: 6px !important; padding-bottom: 4px !important; }
-            .pricing-table { margin-top: 4px; }
-            .pricing-table th,
-            .pricing-table td {
-                padding: 4px 8px;
-                font-size: 11px;
-                line-height: 1.25;
-            }
-            .breakdown-lane-desc { font-size: 11px !important; }
-            .breakdown-leg-row { margin-bottom: 2px; }
-            .breakdown-transit { font-size: 11px !important; margin-bottom: 2px !important; }
-            .chart-container { padding: 8px !important; margin-bottom: 0 !important; }
-            .chart-header { font-size: 13px !important; margin-bottom: 4px !important; }
-            #section-chart { break-inside: avoid; page-break-inside: avoid; }
-            .lane { margin-bottom: 6px; padding: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-            .lane h3 { font-size: 13px !important; margin-bottom: 6px !important; }
-            .lane-details, .lane-notes { margin-bottom: 6px; }
-            .lane-details-text, .lane-notes-text, .quote-notes, .quote-notes-text { font-size: 11px !important; line-height: 1.35; }
-            .leg-list { margin-top: 8px; }
-            .leg-row { padding: 5px 8px; }
-            .leg-row-transit { font-size: 10px !important; }
-            .leg-row-price { font-size: 11px !important; min-width: 72px; }
-            .cta { padding: 14px !important; margin-top: 6px !important; }
-            .cta h2 { font-size: 16px !important; margin-bottom: 8px !important; }
-            .cta p { font-size: 11px !important; }
-            .cta p[style] { margin-top: 8px !important; font-size: 11px !important; }
-            .footer { font-size: 10px !important; padding: 8px !important; }
-            .footer p { margin-bottom: 4px; }
-            .quote-toolbar { display: none !important; }
-            .section, .lane, .header, .route-info {
-                break-inside: avoid;
-                page-break-inside: avoid;
-            }
-            .header, .route-info, .cta, .chart-container {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quote.css') }}">
 </head>
 <body>
     <div class="container">
@@ -242,12 +43,9 @@
             </div>
         </div>
 
-        <div id="section-lanes">
-        {% for lane in lanes %}
-        <div class="section summary-section">
-            {% if loop.first %}
+        <div class="section" id="section-lanes">
             <h2 class="section-title">Summary: Proposed Lanes</h2>
-            {% endif %}
+            {% for lane in lanes %}
             <div class="lane" id="{{ lane.id|replace(' ', '_') }}">
                 <h3>{{ lane.id }} — {{ lane.description }}</h3>
                 <div class="lane-details">
@@ -282,21 +80,20 @@
                     <p class="lane-notes-text"><strong>Notes:</strong> {{ lane.notes if lane.notes else 'No additional notes.' }}</p>
                 </div>
             </div>
-        </div>
-        {% endfor %}
+            {% endfor %}
         </div>
 
+        {% if quote.quote_notes %}
         <div class="section" id="section-notes">
-            {% if quote.quote_notes %}
-                <div class="quote-notes">
-                    <strong>Notes:</strong>
-                    <div class="quote-notes-text">{{ quote.quote_notes }}</div>
-                </div>
-            {% endif %}
+            <div class="quote-notes">
+                <strong>Notes:</strong>
+                <div class="quote-notes-text">{{ quote.quote_notes }}</div>
+            </div>
         </div>
+        {% endif %}
 
         <div class="section" id="section-breakdown">
-            <h2 class="section-title">Cost Breakdowns (per pallet)</h2>
+            <h2 class="section-title">Cost Breakdowns (For {{ example_pallets }} pallets)</h2>
             <table class="pricing-table" id="breakdownTable">
                 <thead>
                     <tr>
@@ -335,22 +132,39 @@
 
         <div class="section" id="section-chart">
             <div class="chart-container">
-                <div class="chart-header">Per-Pallet Cost Comparison (example {{ example_pallets }} pallets)</div>
+                <div class="chart-header">Per-Pallet Cost Comparison (For {{ example_pallets }} pallets)</div>
                 <div class="chart-canvas-wrap">
                     <canvas id="priceChart" class="chart-canvas" width="800" height="220"></canvas>
                 </div>
             </div>
         </div>
 
+        {% if container_stats %}
+        <div class="section intl-card" id="section-equipment">
+          <h3>Equipment Utilization — {{ container_stats.container }}</h3>
+          {% if container_stats.cube_util_pct is defined %}
+          <p>Cube: <strong>{{ container_stats.cube_util_pct }}%</strong>
+             {% if container_stats.over_floor %} — <span class="prov-est">{{ pallets }} pallets exceed {{ container_stats.floor_positions }} floor positions; stackable cargo required.</span>{% endif %}</p>
+          {% elif container_stats.over_floor %}
+          <p><span class="prov-est">{{ pallets }} pallets exceed {{ container_stats.floor_positions }} floor positions; stackable cargo required.</span></p>
+          {% endif %}
+          {% if container_stats.weight_util_pct is defined %}
+          <p>Payload: <strong>{{ container_stats.weight_util_pct }}%</strong> of equipment limit.</p>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% include '_intl_analytics.html' %}
+
         <div class="cta">
             <h2>Ready to Optimize Your Freight Costs?</h2>
             <p>Let Jericho Freight transform your supply chain efficiency. Our team is ready to customize a solution that fits your needs.</p>
-            <p style="margin-top:20px;font-size:14px;">📞 Call us: {{ quote.phone }} | 📧 Email: {{ quote.email }} | 🌐 Visit: {{ quote.website }}</p>
+            <p class="cta-contact">📞 {{ quote.phone }} | 📧 {{ quote.email }} | 🌐 {{ quote.website }}</p>
         </div>
 
         <div class="footer">
             <p><strong>{{ quote.company_name }}</strong> - Your Trusted Partner in Logistics Excellence</p>
-            <p>This quote is valid for 30 days from the issue date. Prices subject to fuel surcharge adjustments.</p>
+            <p>This quote is valid for {{ validity_days }} days from the issue date. Ocean spot rates and FX exposure can move quickly.</p>
             <p>© {{ current_year }} {{ quote.company_name }}. All rights reserved. | DOT: {{ quote.dot_number }} | MC: {{ quote.mc_number }}</p>
         </div>
     </div>

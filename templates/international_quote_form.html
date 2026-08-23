@@ -5,31 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>International Freight Quote - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
-    <style>
-        .form-section { margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 12px; border-left: 4px solid #2a5298; }
-        .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 12px; font-weight: bold; }
-        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { margin-bottom: 6px; font-weight: 600; color: #2a5298; font-size: 14px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
-        .lane { margin-bottom: 12px; border: 1px solid #e6e9ee; padding:12px; border-radius:8px; background:#fff; }
-        .lane-title { display:flex; justify-content:space-between; align-items:center; }
-        .legs { margin-top:8px; }
-        .leg { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-        .leg input[type=text] { flex: 2; }
-        .leg input[type=number] { flex: 1; }
-        .small-note { margin-top: 8px; color: #555; font-size: 13px; }
-        .controls { margin-top: 10px; display:flex; gap:8px; }
-        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight:700; cursor:pointer; }
-        .btn-add { background:#ffd700; color:#1e3c72; border: none; }
-        .btn-primary { background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%); color: white; padding:12px 22px; border-radius: 50px; border:none; }
-        .btn-secondary { background:#f0f4f8; border:2px solid #2a5298; color:#2a5298; padding:10px 16px; border-radius:8px; }
-        .route-info { background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; margin-top:12px; text-align:center; }
-        .route-detail { display:flex; justify-content:center; align-items:center; gap:20px; }
-        .location { flex:1; text-align:center; }
-        .arrow { font-size: 30px; color: #ffd700; }
-        .metric { font-size:13px; color:#666; margin-top:8px; }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -37,6 +12,9 @@
         {% include 'partials/page_header.html' %}
 
         <div class="page-body">
+            <p class="quote-type-nav">
+                <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
             <div class="form-section">
                 <div class="form-row">
                     <div class="form-group">
@@ -52,8 +30,11 @@
                         <input id="destination_text" value="Cartagena, Colombia">
                     </div>
                     <div class="form-group">
-                        <label for="example_pallets">Example Pallet Count</label>
-                        <input id="example_pallets" type="number" value="10" min="1">
+                        <label for="example_pallets">Pallet Count</label>
+                        <input id="example_pallets" type="number" name="pallets" value="10" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Route miles (optional override) <input id="manual_miles" type="number" name="manual_miles"></label>
                     </div>
                     <div class="form-group">
                         <label for="valid_until">Valid Until</label>
@@ -68,6 +49,8 @@
                     </div>
             </div>
 
+            {% include '_intl_form_fields.html' %}
+
             <div id="lanes_container">
                 <!-- lanes will be added here -->
             </div>
@@ -76,9 +59,9 @@
                 <button type="button" class="btn btn-add" id="add_lane_btn">+ Add Lane</button>
             </div>
 
-            <div style="text-align:right; margin-top:16px;">
+            <div class="form-actions">
                 <button type="button" class="btn btn-primary" id="generate_btn">Generate International Quote</button>
-                <a href="/" class="btn btn-secondary" style="margin-left:8px;">Cancel</a>
+                <a href="/" class="btn btn-secondary">Cancel</a>
             </div>
         </div>
     </div>
@@ -89,7 +72,7 @@
                 <strong class="lane-label">Lane</strong>
                 <div>
                     <button type="button" class="btn btn-add add-leg-btn">+ Leg</button>
-                    <button type="button" class="btn btn-add remove-lane-btn" style="background:#ff6b6b;color:#fff;margin-left:8px;">Remove Lane</button>
+                    <button type="button" class="btn btn-danger remove-lane-btn">Remove Lane</button>
                 </div>
             </div>
             <div class="form-row">
@@ -98,8 +81,8 @@
                     <input class="lane-description" type="text" placeholder="e.g., Jerome → Oakland → CTG">
                 </div>
                 <div class="form-group">
-                    <label>Additional Extra Fees (per pallet)</label>
-                    <input class="lane-extra-fees" type="number" step="0.01" value="0">
+                    <label>Additional fees</label>
+                    <input class="lane-extra-fees" type="number" step="0.01" placeholder="Additional fees">
                 </div>
             </div>
             <div class="form-row">
@@ -134,7 +117,22 @@
         const laneTemplate = document.getElementById('lane_template');
         const legTemplate = document.getElementById('leg_template');
 
-        function addLane(description='', extra=0, legs=[], details='', notes='') {
+        function emptyIfZero(value) {
+            if (value === 0 || value === '0' || value === '0.0' || value === '0.00' || value == null || value === '') {
+                return '';
+            }
+            return value;
+        }
+
+        function bindEmptyPriceField(input) {
+            if (!input) return;
+            input.value = emptyIfZero(input.value);
+            input.addEventListener('focus', function () {
+                this.value = emptyIfZero(this.value);
+            });
+        }
+
+        function addLane(description='', extra='', legs=[], details='', notes='') {
             const node = laneTemplate.content.cloneNode(true);
             const laneEl = node.querySelector('.lane');
             const descInput = laneEl.querySelector('.lane-description');
@@ -143,7 +141,8 @@
             const notesInput = laneEl.querySelector('.lane-notes');
             const legsEl = laneEl.querySelector('.legs');
             descInput.value = description;
-            extraInput.value = extra;
+            extraInput.value = emptyIfZero(extra);
+            bindEmptyPriceField(extraInput);
             detailsInput.value = details;
             notesInput.value = notes;
 
@@ -161,7 +160,7 @@
             refreshLegPlaceholders();
         }
 
-        function addLeg(legsEl, name='', cost=0, transit='') {
+        function addLeg(legsEl, name='', cost='', transit='') {
             const node = legTemplate.content.cloneNode(true);
             const legEl = node.querySelector('.leg');
             const nameInput = legEl.querySelector('.leg-name');
@@ -169,7 +168,8 @@
             const transitInput = legEl.querySelector('.leg-transit');
             const removeBtn = legEl.querySelector('.remove-leg-btn');
             nameInput.value = name;
-            costInput.value = cost;
+            costInput.value = emptyIfZero(cost);
+            bindEmptyPriceField(costInput);
             transitInput.value = transit;
             removeBtn.addEventListener('click', () => { legEl.remove(); refreshLegPlaceholders(); saveDraft(); });
             legsEl.appendChild(legEl);
@@ -194,6 +194,89 @@
 
         document.getElementById('add_lane_btn').addEventListener('click', (e)=>{ e.preventDefault(); addLane(); saveDraft(); });
 
+        function namedField(name) {
+            const el = document.querySelector('[name="' + name + '"]');
+            return el ? el.value : '';
+        }
+
+        function namedChecked(id) {
+            const el = document.getElementById(id);
+            return !!(el && el.checked);
+        }
+
+        const INCO_LEGS = {
+            EXW: {importer: ['L','P1','O','P2','D'], exporter: []},
+            FCA: {importer: ['P1','O','P2','D'], exporter: ['L']},
+            FAS: {importer: ['P1','O','P2','D'], exporter: ['L']},
+            FOB: {importer: ['O','P2','D'], exporter: ['L','P1']},
+            CFR: {importer: ['P2','D'], exporter: ['L','P1','O']},
+            CIF: {importer: ['P2','D'], exporter: ['L','P1','O']},
+            CPT: {importer: ['P2','D'], exporter: ['L','P1','O']},
+            CIP: {importer: ['P2','D'], exporter: ['L','P1','O']},
+            DAP: {importer: [], exporter: ['L','P1','O','P2','D']},
+            DPU: {importer: [], exporter: ['L','P1','O','P2','D']},
+            DDP: {importer: [], exporter: ['L','P1','O','P2','D']}
+        };
+        const DUTY_PAYER = {
+            EXW: 'buyer', FCA: 'buyer', FAS: 'buyer', FOB: 'buyer',
+            CFR: 'buyer', CIF: 'buyer', CPT: 'buyer', CIP: 'buyer',
+            DAP: 'buyer', DPU: 'buyer', DDP: 'seller'
+        };
+
+        function syncKnownPanels() {
+            const incotermsOn = namedChecked('incoterms_known');
+            const landedOn = namedChecked('landed_known');
+            const transitOn = namedChecked('transit_known');
+            const incotermsFields = document.getElementById('incoterms_fields');
+            const landedFields = document.getElementById('landed_fields');
+            const transitFields = document.getElementById('transit_fields');
+            if (incotermsFields) incotermsFields.hidden = !incotermsOn;
+            if (landedFields) landedFields.hidden = !landedOn;
+            if (transitFields) transitFields.hidden = !transitOn;
+            filterLandedFields();
+        }
+
+        function filterLandedFields() {
+            const landedOn = namedChecked('landed_known');
+            if (!landedOn) return;
+            const known = namedChecked('incoterms_known');
+            const incoterm = namedField('incoterm');
+            const role = namedField('trade_role') || 'importer';
+            const map = known && incoterm ? INCO_LEGS[incoterm] : null;
+            const legs = map ? map[role] : ['L','P1','O','P2','D'];
+            const na = document.getElementById('landed_na');
+            const emptyExporter = role === 'exporter' && Array.isArray(legs) && legs.length === 0;
+            const payer = (known && incoterm && DUTY_PAYER[incoterm]) || 'buyer';
+            const showDuty = !emptyExporter && (
+                (payer === 'buyer' && role === 'importer') ||
+                (payer === 'seller' && role === 'exporter')
+            );
+            if (na) na.hidden = !emptyExporter;
+            document.querySelectorAll('#landed_fields label').forEach(function (el) {
+                if (emptyExporter) {
+                    el.hidden = true;
+                    return;
+                }
+                const code = el.getAttribute('data-leg');
+                if (!code) {
+                    el.hidden = false;
+                    return;
+                }
+                if (code === 'duty') {
+                    el.hidden = !showDuty;
+                    return;
+                }
+                el.hidden = Array.isArray(legs) && legs.indexOf(code) === -1;
+            });
+        }
+
+        ['incoterms_known','landed_known','transit_known','incoterm','trade_role'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('change', function () { syncKnownPanels(); saveDraft(); });
+        });
+        syncKnownPanels();
+
         // Draft persistence: save to localStorage
         function saveDraft(){
             const draft = {
@@ -203,6 +286,28 @@
                 example_pallets: parseInt(document.getElementById('example_pallets').value) || 1,
                 valid_until: document.getElementById('valid_until') ? document.getElementById('valid_until').value : '',
                 quote_notes: document.getElementById('quote_notes') ? document.getElementById('quote_notes').value : '',
+                incoterms_known: namedChecked('incoterms_known'),
+                landed_known: namedChecked('landed_known'),
+                transit_known: namedChecked('transit_known'),
+                incoterm: namedField('incoterm'),
+                trade_role: namedField('trade_role'),
+                ocean_freight: namedField('ocean_freight'),
+                dest_inland: namedField('dest_inland'),
+                goods_value_fob: namedField('goods_value_fob'),
+                duty_rate_pct: namedField('duty_rate_pct'),
+                vat_rate_pct: namedField('vat_rate_pct'),
+                duty_basis: namedField('duty_basis'),
+                marine_insurance: namedField('marine_insurance'),
+                origin_inland: namedField('origin_inland'),
+                origin_port: namedField('origin_port'),
+                dest_port: namedField('dest_port'),
+                transit_L: namedField('transit_L'),
+                transit_P1: namedField('transit_P1'),
+                transit_O: namedField('transit_O'),
+                transit_P2: namedField('transit_P2'),
+                transit_D: namedField('transit_D'),
+                container: namedField('container'),
+                total_weight_kg: namedField('total_weight_kg'),
                 lanes: Array.from(document.querySelectorAll('.lane')).map(laneEl => ({
                     description: laneEl.querySelector('.lane-description').value,
                     otherFees: parseFloat(laneEl.querySelector('.lane-extra-fees').value) || 0,
@@ -229,6 +334,19 @@
                 document.getElementById('example_pallets').value = draft.example_pallets || 1;
                 if (document.getElementById('valid_until')) document.getElementById('valid_until').value = draft.valid_until || '';
             if (document.getElementById('quote_notes')) document.getElementById('quote_notes').value = draft.quote_notes || '';
+            const oceanEl = document.querySelector('[name="ocean_freight"]');
+            if (oceanEl && draft.ocean_freight != null) oceanEl.value = draft.ocean_freight;
+            const destEl = document.querySelector('[name="dest_inland"]');
+            if (destEl && draft.dest_inland != null) destEl.value = draft.dest_inland;
+            ['incoterms_known','landed_known','transit_known'].forEach(function (id) {
+                const box = document.getElementById(id);
+                if (box) box.checked = !!draft[id];
+            });
+            ['incoterm','trade_role','goods_value_fob','duty_rate_pct','vat_rate_pct','duty_basis','marine_insurance','origin_inland','origin_port','dest_port','transit_L','transit_P1','transit_O','transit_P2','transit_D','container','total_weight_kg'].forEach(function (name) {
+                const field = document.querySelector('[name="' + name + '"]');
+                if (field && draft[name] != null) field.value = draft[name];
+            });
+            syncKnownPanels();
             // clear existing lanes
             lanesContainer.innerHTML = '';
             (draft.lanes || []).forEach(l => addLane(l.description, l.otherFees, l.legs.map(x=>({name:x.name,cost:x.costPerPallet,transit:x.transit_days})), l.details || '', l.notes || ''));
@@ -239,10 +357,10 @@
         // start with draft or one lane
         if (!loadDraft()) addLane();
 
-        // set default valid_until to 30 days from now if empty
+        // set default valid_until to 15 days from now if empty
         const validInput = document.getElementById('valid_until');
         if (validInput && !validInput.value){
-        const d = new Date(); d.setDate(d.getDate() + 30);
+        const d = new Date(); d.setDate(d.getDate() + 15);
         validInput.value = d.toISOString().slice(0,10);
         }
 
@@ -276,7 +394,39 @@
                 return { description: desc, otherFees: extra, details: details, notes: notes, legs };
             });
 
-            const payload = { quote_name: quote, origin_text: origin, destination_text: destination, example_pallets, valid_until, quote_notes: document.getElementById('quote_notes').value, lanes };
+            const payload = {
+                quote_name: quote,
+                origin_text: origin,
+                destination_text: destination,
+                example_pallets,
+                valid_until,
+                quote_notes: document.getElementById('quote_notes').value,
+                manual_miles: document.getElementById('manual_miles') ? document.getElementById('manual_miles').value : '',
+                incoterms_known: namedChecked('incoterms_known'),
+                landed_known: namedChecked('landed_known'),
+                transit_known: namedChecked('transit_known'),
+                incoterm: namedChecked('incoterms_known') ? namedField('incoterm') : '',
+                trade_role: namedField('trade_role'),
+                goods_value_fob: namedField('goods_value_fob'),
+                duty_rate_pct: namedField('duty_rate_pct'),
+                vat_rate_pct: namedField('vat_rate_pct'),
+                duty_basis: namedField('duty_basis'),
+                marine_insurance: namedField('marine_insurance'),
+                origin_inland: namedField('origin_inland'),
+                origin_port: namedField('origin_port'),
+                ocean_freight: namedField('ocean_freight'),
+                dest_port: namedField('dest_port'),
+                dest_inland: namedField('dest_inland'),
+                transit_L: namedField('transit_L'),
+                transit_P1: namedField('transit_P1'),
+                transit_O: namedField('transit_O'),
+                transit_P2: namedField('transit_P2'),
+                transit_D: namedField('transit_D'),
+                container: namedField('container'),
+                pallets: example_pallets,
+                total_weight_kg: namedField('total_weight_kg'),
+                lanes
+            };
             // Post via regular form submission so browser history/back preserves draft page; include payload as hidden input
             const form = document.createElement('form');
             form.method = 'POST';

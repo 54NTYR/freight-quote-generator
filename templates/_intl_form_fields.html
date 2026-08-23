@@ -1,0 +1,72 @@
+<fieldset>
+  <legend>Equipment</legend>
+  <label>Equipment
+    <select name="container">
+      <option value="20FT">20' (TEU)</option>
+      <option value="40FT" selected>40' (FEU)</option>
+      <option value="40HC">40' High Cube</option>
+      <option value="53VAN">53' Dry Van</option>
+      <option value="53REEFER">53' Reefer</option>
+      <option value="48FLAT">48' Flatbed</option>
+      <option value="53FLAT">53' Flatbed</option>
+    </select></label>
+  <label>Total weight (kg) <input type="number" step="1" name="total_weight_kg"></label>
+</fieldset>
+
+<fieldset>
+  <legend>Incoterms 2020</legend>
+  <label class="checkbox-row">
+    <input type="checkbox" name="incoterms_known" id="incoterms_known">
+    Incoterms 2020 known?
+  </label>
+  <div id="incoterms_fields" class="reveal-panel" hidden>
+    <label>Incoterm 2020
+      <select name="incoterm" id="incoterm">
+        <option value="">Select Incoterm</option>
+        {% for code in ['EXW','FCA','FAS','FOB','CFR','CIF','CPT','CIP','DAP','DPU','DDP'] %}
+        <option>{{ code }}</option>{% endfor %}
+      </select></label>
+    <label>Customer role
+      <select name="trade_role" id="trade_role">
+        <option value="importer">importer (buyer)</option>
+        <option value="exporter">exporter (seller)</option>
+      </select></label>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Landed Costs</legend>
+  <label class="checkbox-row">
+    <input type="checkbox" name="landed_known" id="landed_known">
+    Full landed costs known?
+  </label>
+  <div id="landed_fields" class="reveal-panel" hidden>
+    <p id="landed_na" class="landed-na" hidden>Landed cost does not apply for this Incoterm and customer role.</p>
+    <label>Goods Value <input type="number" step="0.01" name="goods_value_fob"></label>
+    <label data-leg="duty">Duty rate (%) <input type="number" step="0.1" name="duty_rate_pct"></label>
+    <label data-leg="duty">VAT/GST rate (%) <input type="number" step="0.1" name="vat_rate_pct"></label>
+    <label data-leg="duty">Dutiable basis
+      <select name="duty_basis"><option>CIF</option><option>FOB</option></select></label>
+    <label data-leg="O">Marine insurance ($) <input type="number" step="0.01" name="marine_insurance"></label>
+    <label data-leg="L">Origin inland ($) <input type="number" step="0.01" name="origin_inland"></label>
+    <label data-leg="P1">Origin port ($) <input type="number" step="0.01" name="origin_port"></label>
+    <label data-leg="O">Ocean freight ($) <input type="number" step="0.01" name="ocean_freight"></label>
+    <label data-leg="P2">Dest port/customs ($) <input type="number" step="0.01" name="dest_port"></label>
+    <label data-leg="D">Destination inland &amp; handling ($) <input type="number" step="0.01" name="dest_inland"></label>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Transit Times</legend>
+  <label class="checkbox-row">
+    <input type="checkbox" name="transit_known" id="transit_known">
+    Transit times known?
+  </label>
+  <div id="transit_fields" class="reveal-panel" hidden>
+    <label>Origin inland trucking (days) <input type="number" step="0.1" min="0" name="transit_L"></label>
+    <label>Origin port / terminal dwell (days) <input type="number" step="0.1" min="0" name="transit_P1"></label>
+    <label>Ocean transit (days) <input type="number" step="0.1" min="0" name="transit_O"></label>
+    <label>Destination customs &amp; port (days) <input type="number" step="0.1" min="0" name="transit_P2"></label>
+    <label>Destination inland delivery (days) <input type="number" step="0.1" min="0" name="transit_D"></label>
+  </div>
+</fieldset>

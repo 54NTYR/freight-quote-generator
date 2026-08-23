@@ -4,215 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LTL Freight Quote - {{ quote.company_name }}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #fff; }
-    .container { max-width: 940px; margin: 0 auto; padding: 16px; }
-    .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 14px 16px; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
-    .company-info { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .company-left { flex: 0 0 auto; display: flex; align-items: center; padding: 6px 0 0 18px; min-width: 160px; }
-    .company-left img { height: 68px; object-fit: contain; }
-    .company-center { flex: 1 1 auto; text-align: center; }
-    .company-right { flex: 0 0 auto; text-align: right; min-width: 160px; }
-    .quote-number { text-align: right; opacity: 0.95; font-size: 12px; line-height: 1.4; }
-    .route-info { background: rgba(255,255,255,0.14); padding: 10px; border-radius: 10px; margin-top: 10px; }
-    .route-detail { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .location { flex: 1; text-align: center; background: rgba(255,255,255,0.24); padding: 14px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); }
-    .location h3 { font-size: 18px; letter-spacing: 1.2px; margin-bottom: 6px; color: white; font-weight: 700; text-transform: uppercase; }
-    .location p { font-size: 14px; margin-bottom: 4px; color: white; font-weight: 400; line-height: 1.2; }
-    .arrow { font-size: 22px; color: #ffd700; }
-    .route-summary { text-align: center; margin-top: 10px; color: rgba(255,255,255,0.92); font-size: 13px; }
-    .quote-title { font-size: 28px; font-weight: 500; text-align: center; margin: 6px 0; letter-spacing: 0.2px; }
-    .section { background: white; padding: 14px; margin-bottom: 14px; border-radius: 10px; box-shadow: 0 10px 24px rgba(0,0,0,0.10); }
-    .section-title { color: #1e3c72; font-size: 20px; margin-bottom: 14px; padding-bottom: 7px; border-bottom: 3px solid #2a5298; }
-    .pricing-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-    .pricing-table th { background: #2a5298; color: white; padding: 11px 12px; text-align: left; font-weight: 600; }
-    .pricing-table td { padding: 11px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
-    .pricing-table tbody tr:last-child td { border-bottom: none; }
-    .highlight { background: #ffd700; color: #1e3c72; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-    .chart-container { position: relative; margin: 0; padding: 12px; background: #eef4fb; border-radius: 10px; }
-    .chart-canvas { width: 100%; height: 260px; }
-    .optimization-alert {
-      background: #fff8e6;
-      border: 2px solid #ffd700;
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 14px;
-      font-size: 13px;
-      line-height: 1.55;
-      color: #1e3c72;
-    }
-    .optimization-alert h3 {
-      font-size: 15px;
-      margin-bottom: 10px;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-    }
-    .optimization-alert p { margin-bottom: 8px; }
-    .optimization-alert .action-line { font-weight: 700; margin-top: 8px; }
-    .scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-    .scenario-box { background: #f0f4f8; padding: 12px; border-left: 4px solid #2a5298; border-radius: 5px; }
-    .scenario-title { color: #2a5298; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
-    .scenario-box p { font-size: 12px; line-height: 1.45; margin-bottom: 6px; }
-    .scenario-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-    .scenario-metric { background: white; border-radius: 6px; padding: 8px; text-align: center; border: 1px solid #e5ecf5; }
-    .scenario-metric-value { font-size: 16px; font-weight: 700; color: #2a5298; }
-    .scenario-metric-label { font-size: 10px; color: #666; text-transform: uppercase; margin-top: 2px; }
-    .analytics-subsection { margin-top: 14px; }
-    .analytics-subsection:first-child { margin-top: 0; }
-    .analytics-subsection h3 { color: #1e3c72; font-size: 15px; margin-bottom: 8px; }
-    .transit-timeline {
-      background: #f8fbff;
-      border: 1px solid #dbe7f5;
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 8px;
-    }
-    .transit-bar-wrap { position: relative; height: 28px; background: #e8eef7; border-radius: 999px; margin: 10px 0 8px; overflow: hidden; }
-    .transit-bar-range {
-      position: absolute;
-      top: 0;
-      height: 100%;
-      background: linear-gradient(90deg, #2a5298 0%, #4facfe 100%);
-      border-radius: 999px;
-    }
-    .transit-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #334e7b; }
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .kpi-block {
-      background: #f8fbff;
-      border: 1px solid #dbe7f5;
-      border-radius: 8px;
-      padding: 12px 10px;
-      text-align: center;
-    }
-    .kpi-block .kpi-value { font-size: 20px; font-weight: 700; color: #2a5298; line-height: 1.2; }
-    .kpi-block .kpi-title { font-size: 11px; font-weight: 700; color: #1e3c72; margin-bottom: 6px; text-transform: uppercase; }
-    .kpi-block .kpi-note { font-size: 10px; color: #666; margin-top: 6px; line-height: 1.35; }
-    .eoq-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
-    .eoq-table th, .eoq-table td { border: 1px solid #e0e0e0; padding: 8px 10px; text-align: center; }
-    .eoq-table th { background: #2a5298; color: white; font-weight: 600; }
-    .eoq-table td:first-child, .eoq-table th:first-child { text-align: left; }
-    .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 10px; text-align: center; margin-top: 14px; }
-    .cta h2 { margin-bottom: 20px; font-size: 28px; }
-    .footer { text-align: center; padding: 30px; color: #666; font-size: 14px; }
-    .btn {
-      padding: 10px 18px;
-      border-radius: 6px;
-      background: #ffd700;
-      color: #1e3c72;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn-secondary {
-      background: #f0f4f8;
-      color: #1e3c72;
-      border: 1px solid #d0d7e4;
-    }
-    .quote-toolbar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      justify-content: center;
-      max-width: 940px;
-      margin: 16px auto 24px;
-      padding: 0 16px;
-    }
-    @page { size: A4 portrait; margin: 12mm; }
-    @media print {
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #fff;
-        font-size: 11px;
-        line-height: 1.35;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      .container { max-width: 100%; margin: 0; padding: 0 4px 4px; }
-      .header {
-        box-shadow: 0 3px 8px rgba(0,0,0,0.06);
-        margin-bottom: 10px;
-        margin-top: 0;
-        border-radius: 6px;
-        padding: 8px 10px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      .company-info {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
-        margin-bottom: 8px;
-        gap: 10px;
-      }
-      .company-left { padding: 0 0 0 12px !important; min-width: 0 !important; flex: 0 0 auto !important; }
-      .company-info img,
-      .company-left img,
-      .company-left img[style] { height: 28px !important; }
-      .company-center { flex: 1 1 auto !important; min-width: 0 !important; font-size: 11px !important; }
-      .company-right { flex: 0 0 auto !important; min-width: 0 !important; }
-      .quote-title { font-size: 19px !important; margin: 4px 0 !important; line-height: 1.2 !important; }
-      .quote-number,
-      .location p,
-      .route-summary { font-size: 11px !important; }
-      .route-info { margin-top: 0; padding: 8px; break-inside: avoid; page-break-inside: avoid; }
-      .route-detail { gap: 8px; align-items: center; }
-      .location { padding: 8px; }
-      .location h3 { font-size: 13px !important; margin-bottom: 4px !important; letter-spacing: 0.8px !important; }
-      .location p { margin-bottom: 0 !important; line-height: 1.2 !important; }
-      .route-summary { margin-top: 8px !important; }
-      .arrow { font-size: 18px !important; }
-      .section { margin-bottom: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 8px; }
-      .section-title { margin-bottom: 8px; padding-bottom: 5px; font-size: 16px !important; }
-      .chart-container { padding: 8px !important; }
-      .chart-canvas { height: 220px !important; }
-      .kpi-row {
-        display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 6px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .kpi-block { padding: 8px 4px; break-inside: avoid; page-break-inside: avoid; }
-      .kpi-block .kpi-value { font-size: 14px !important; }
-      .kpi-block .kpi-title { font-size: 9px !important; margin-bottom: 4px !important; }
-      .kpi-block .kpi-note { font-size: 8px !important; margin-top: 4px !important; }
-      .scenario-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 8px;
-      }
-      .scenario-box { padding: 8px; }
-      .scenario-title { font-size: 11px !important; }
-      .scenario-box p { font-size: 10px !important; margin-bottom: 4px !important; }
-      .scenario-metric { padding: 6px; }
-      .scenario-metric-value { font-size: 13px !important; }
-      .scenario-metric-label { font-size: 9px !important; }
-      .optimization-alert { padding: 10px; font-size: 11px; }
-      .cta {
-        padding: 14px !important;
-        margin-top: 6px !important;
-        break-inside: avoid;
-        page-break-inside: avoid;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      .cta h2 { font-size: 16px !important; margin-bottom: 8px !important; }
-      .cta p { font-size: 11px !important; }
-      .cta p[style] { margin-top: 8px !important; font-size: 11px !important; }
-      .footer { font-size: 10px !important; padding: 8px !important; break-inside: avoid; page-break-inside: avoid; }
-      .quote-toolbar { display: none !important; }
-      #section-shipping-recommendations { break-inside: avoid; page-break-inside: avoid; }
-      .header, .route-info { break-inside: avoid; page-break-inside: avoid; }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/quote.css') }}">
 </head>
 <body>
   <div class="container">
@@ -247,9 +39,13 @@
         </div>
         <div class="route-summary">
           <small>
-            Distance: {% if quote.distance >= 0 %}{{ quote.distance }} miles{% else %}N/A{% endif %}
-            | 90% Delivery Window: {{ transit_prediction.display_window }}
+            Distance: {% if quote.distance is not none %}{{ quote.distance }} miles{% else %}N/A{% endif %}
+            {% if prediction %}
+            | {{ prediction.confidence_pct }}% Delivery Window: {{ transit_prediction.display_window }}
             | Lane Reliability: {{ transit_prediction.reliability_rating }}
+            {% else %}
+            | Transit: {{ stats.mu }} days (estimate)
+            {% endif %}
           </small>
         </div>
       </div>
@@ -342,8 +138,10 @@
         <div class="transit-timeline">
           <div class="transit-meta">
             <span><strong>Lane Reliability Index:</strong> {{ transit_prediction.reliability_rating }} (CV = {{ transit_prediction.coefficient_of_variation if transit_prediction.coefficient_of_variation is not none else 'N/A' }})</span>
-            <span><strong>Historical Mean:</strong> {{ transit_prediction.mean_days }} days (n = {{ transit_prediction.sample_size }})</span>
+            <span><strong>Historical Mean:</strong> {{ stats.mu }} days (n = {{ stats.n }})</span>
           </div>
+          {% include '_provenance.html' %}
+          {% if prediction %}
           {% set span = transit_prediction.upper_interval_days - transit_prediction.lower_interval_days %}
           {% set bar_left = ((transit_prediction.lower_interval_days - 1) / 10 * 100) if transit_prediction.lower_interval_days <= 10 else 0 %}
           {% set bar_width = (span / 10 * 100) if span > 0 else 20 %}
@@ -351,7 +149,8 @@
           <div class="transit-bar-wrap">
             <div class="transit-bar-range" style="left: {{ bar_left }}%; width: {{ bar_width if bar_width < max_width else max_width }}%;"></div>
           </div>
-          <p><strong>90% Delivery Prediction Interval:</strong> Expected Delivery Window: {{ transit_prediction.lower_interval_days }} to {{ transit_prediction.upper_interval_days }} Business Days</p>
+          <p><strong>{{ prediction.confidence_pct }}% Delivery Prediction Interval:</strong> Expected Delivery Window: {{ transit_prediction.lower_interval_days }} to {{ transit_prediction.upper_interval_days }} Business Days</p>
+          {% endif %}
         </div>
       </div>
 
@@ -431,7 +230,7 @@
     <div class="cta">
       <h2>Ready to Optimize Your Freight Costs?</h2>
       <p>Let Jericho Freight transform your supply chain efficiency. Our team is ready to customize a solution that fits your needs.</p>
-      <p style="margin-top:20px;font-size:14px;">📞 Call us: {{ quote.phone }} | 📧 Email: {{ quote.email }} | 🌐 Visit: {{ quote.website }}</p>
+      <p class="cta-contact">📞 {{ quote.phone }} | 📧 {{ quote.email }} | 🌐 {{ quote.website }}</p>
     </div>
 
     <div class="footer">

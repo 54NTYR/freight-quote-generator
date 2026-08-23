@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTL Quote - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = 'FTL Quote Builder' %}
+        {% include 'partials/page_header.html' %}
+
+        <div class="page-body">
+            <p class="quote-type-nav">
+                <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+
+            <form id="quoteForm" method="POST" action="{{ url_for('ftl_quote') }}">
+                <div class="form-section">
+                    <h2 class="section-title">Route / Lane</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="origin_city">Origin City</label>
+                            <input type="text" id="origin_city" name="origin_city" placeholder="e.g., Cheyenne">
+                        </div>
+                        <div class="form-group">
+                            <label for="origin_zip">Origin ZIP Code</label>
+                            <input type="text" id="origin_zip" name="origin_zip" required placeholder="e.g., 82001">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dest_city">Destination City</label>
+                            <input type="text" id="dest_city" name="dest_city" placeholder="e.g., Denver">
+                        </div>
+                        <div class="form-group">
+                            <label for="dest_zip">Destination ZIP Code</label>
+                            <input type="text" id="dest_zip" name="dest_zip" required placeholder="e.g., 80202">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="valid_until">Valid Until</label>
+                            <input type="date" id="valid_until" name="valid_until">
+                        </div>
+                    </div>
+                    <input type="hidden" id="measured_miles" name="measured_miles" value="">
+                    <button type="button" class="btn btn-secondary" id="calc_distance_btn">Calculate Distance</button>
+                    <div id="distance-info" class="distance-info"></div>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label for="quote_notes">Notes (will appear on quote)</label>
+                        <textarea id="quote_notes" name="quote_notes" rows="3" placeholder="Optional notes to include on the quote"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Equipment &amp; Load</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="equipment">Equipment</label>
+                            <select id="equipment" name="equipment">
+                                <option value="R">(R) Reefer</option>
+                                <option value="V" selected>(V) Van</option>
+                                <option value="SB">(SB) Boxtruck</option>
+                                <option value="F">(F) Flatbed</option>
+                                <option value="SD">(SD) Stepdeck</option>
+                                <option value="HS">(HS) Hotshot</option>
+                                <option value="RGN">(RGN) Removable Gooseneck</option>
+                                <option value="LB">(LB) Low-boy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pallets">Pallet Count</label>
+                            <input type="number" id="pallets" name="pallets" min="1" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="weight_lb">Total weight (lb)</label>
+                            <input type="number" id="weight_lb" name="weight_lb" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="checkbox-row">
+                                <input type="checkbox" name="team" id="team">
+                                Team drivers
+                            </label>
+                        </div>
+                    </div>
+                    <div id="reefer_fields" class="reveal-panel" hidden>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="temp_setpoint_f">Reefer setpoint (°F)</label>
+                                <input type="number" id="temp_setpoint_f" name="temp_setpoint_f" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-row">
+                                    <input type="checkbox" name="continuous_run" id="continuous_run">
+                                    Continuous run
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="checkbox-row">
+                                    <input type="checkbox" name="precool" id="precool">
+                                    Pre-cool
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="flatbed_fields" class="reveal-panel" hidden>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tarps">Tarps</label>
+                                <input type="number" id="tarps" name="tarps" min="0" step="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">All-In Pricing Ledger</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="linehaul_flat">Flat linehaul ($)</label>
+                            <input type="number" id="linehaul_flat" name="linehaul_flat" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="rpm">Rate per mile ($)</label>
+                            <input type="number" id="rpm" name="rpm" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="fsc_pct">Fuel surcharge (%)</label>
+                            <input type="number" id="fsc_pct" name="fsc_pct" min="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="detention_hours">Detention hours</label>
+                            <input type="number" id="detention_hours" name="detention_hours" min="0" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="detention_rate">Detention $/hr</label>
+                            <input type="number" id="detention_rate" name="detention_rate" value="75" min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="misc_accessorial">Other accessorials ($)</label>
+                            <input type="number" id="misc_accessorial" name="misc_accessorial" min="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">LTL Comparison</h2>
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="ltl_compare" id="ltl_compare">
+                        LTL Comparison?
+                    </label>
+                    <div id="ltl_compare_fields" class="reveal-panel" hidden>
+                        {% for i in [1, 2, 3] %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="cmp_label_{{ i }}">Option {{ i }} label</label>
+                                <input type="text" id="cmp_label_{{ i }}" name="cmp_label_{{ i }}" placeholder="e.g., Tier 3">
+                            </div>
+                            <div class="form-group">
+                                <label for="cmp_pallets_{{ i }}">Pallets max</label>
+                                <input type="number" id="cmp_pallets_{{ i }}" name="cmp_pallets_{{ i }}" min="1" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="cmp_total_{{ i }}">LTL total ($)</label>
+                                <input type="number" id="cmp_total_{{ i }}" name="cmp_total_{{ i }}" min="0" step="0.01">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Generate FTL Quote</button>
+                    <a href="{{ url_for('home') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const OPEN_DECK = {F: true, SD: true, HS: true, RGN: true, LB: true};
+        const linehaulInput = document.getElementById('linehaul_flat');
+        const rpmInput = document.getElementById('rpm');
+        const measuredInput = document.getElementById('measured_miles');
+        let lastPriceEdit = null;
+
+        function measuredMiles() {
+            const raw = parseFloat(measuredInput.value);
+            return raw > 0 ? raw : 0;
+        }
+
+        function syncEquipmentPanels() {
+            const equipment = document.getElementById('equipment').value;
+            document.getElementById('reefer_fields').hidden = equipment !== 'R';
+            document.getElementById('flatbed_fields').hidden = !OPEN_DECK[equipment];
+        }
+        document.getElementById('equipment').addEventListener('change', syncEquipmentPanels);
+        syncEquipmentPanels();
+
+        document.getElementById('ltl_compare').addEventListener('change', function () {
+            document.getElementById('ltl_compare_fields').hidden = !this.checked;
+        });
+
+        function syncPricingFrom(source) {
+            const miles = measuredMiles();
+            if (!miles) return;
+            if (source === 'linehaul') {
+                const flat = parseFloat(linehaulInput.value);
+                if (!Number.isFinite(flat)) return;
+                rpmInput.value = (flat / miles).toFixed(2);
+            } else if (source === 'rpm') {
+                const rpm = parseFloat(rpmInput.value);
+                if (!Number.isFinite(rpm)) return;
+                linehaulInput.value = (rpm * miles).toFixed(2);
+            }
+        }
+
+        linehaulInput.addEventListener('input', function () {
+            lastPriceEdit = 'linehaul';
+            syncPricingFrom('linehaul');
+        });
+        rpmInput.addEventListener('input', function () {
+            lastPriceEdit = 'rpm';
+            syncPricingFrom('rpm');
+        });
+
+        const validInput = document.getElementById('valid_until');
+        if (validInput && !validInput.value) {
+            const d = new Date();
+            d.setDate(d.getDate() + 7);
+            validInput.value = d.toISOString().slice(0, 10);
+        }
+
+        async function refreshDistance() {
+            const origin = document.getElementById('origin_zip').value.trim();
+            const destination = document.getElementById('dest_zip').value.trim();
+            const resultEl = document.getElementById('distance-info');
+            if (!origin || !destination) {
+                measuredInput.value = '';
+                return false;
+            }
+            resultEl.textContent = 'Calculating distance...';
+            resultEl.style.display = 'block';
+            try {
+                const response = await fetch('/calculate_distance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origin_zip: origin, destination_zip: destination })
+                });
+                const data = await response.json();
+                if (data.success && data.miles) {
+                    measuredInput.value = data.miles;
+                    resultEl.textContent = data.display_distance
+                        ? 'Distance: ' + data.display_distance
+                        : 'Distance: ' + data.miles + ' miles';
+                    if (lastPriceEdit) syncPricingFrom(lastPriceEdit);
+                    return true;
+                }
+                measuredInput.value = '';
+                if (data.error === 'missing_api_key') {
+                    resultEl.textContent = 'Add your Google Maps API key to config.json to calculate distance.';
+                } else {
+                    resultEl.textContent = data.message || 'Could not calculate distance for those ZIP codes.';
+                }
+            } catch (error) {
+                measuredInput.value = '';
+                resultEl.textContent = 'Could not calculate distance right now. Please try again.';
+            }
+            return false;
+        }
+
+        document.getElementById('calc_distance_btn').addEventListener('click', function () {
+            refreshDistance();
+        });
+        ['origin_zip', 'dest_zip'].forEach(function (id) {
+            document.getElementById(id).addEventListener('blur', refreshDistance);
+        });
+    </script>
+</body>
+</html>

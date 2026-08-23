@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTL Quote - {{ quote.company_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quote.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="company-info">
+                <div class="company-left" style="display:flex;align-items:center;gap:12px;">
+                    <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" alt="Jericho Freight" style="height:68px;object-fit:contain;">
+                </div>
+                <div class="company-center">
+                    <div class="quote-title">{{ quote.title if quote.title else 'FTL Quote' }}</div>
+                </div>
+                <div class="company-right">
+                    <div class="quote-number">
+                        <div>Quote #: {{ quote.quote_number }}</div>
+                        <div>Date: {{ quote.current_date }}</div>
+                        <div>Valid Until: {{ quote.valid_until }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="route-info">
+                <div class="route-detail">
+                    <div class="location">
+                        <h3>ORIGIN</h3>
+                        <p>{% if quote.origin_city %}{{ quote.origin_city }}, {% endif %}{{ quote.origin_zip }}</p>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="location">
+                        <h3>DESTINATION</h3>
+                        <p>{% if quote.destination_city %}{{ quote.destination_city }}, {% endif %}{{ quote.destination_zip }}</p>
+                    </div>
+                </div>
+                <div class="route-summary">
+                    <small>
+                        Distance: {{ miles if miles else 'N/A' }}{% if miles %} miles{% endif %}
+                        {% if transit %}
+                        | {{ transit.confidence_pct }}% window: {{ transit.low }}–{{ transit.high }} days
+                        {% elif stats %}
+                        | Transit: {{ stats.mu }} days (estimate)
+                        {% endif %}
+                        | Equipment: {{ equipment_label }}
+                        {% if pallets %}| Pallets: {{ pallets|int }}{% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="section-ledger">
+            <h2 class="section-title">Guaranteed All-In Freight Ledger</h2>
+            <table class="pricing-table ledger-table">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th>Quoted All-In Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for label, amt in cost.lines %}
+                    <tr{% if loop.last %} class="ledger-total"{% endif %}>
+                        <td><strong>{{ label }}</strong></td>
+                        <td class="breakdown-total">{% if loop.last %}<span class="highlight">${{ '{:,.2f}'.format(amt) }}</span>{% else %}${{ '{:,.2f}'.format(amt) }}{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section" id="section-equipment">
+            <h2 class="section-title">Equipment Utilization - {{ equipment_label }}</h2>
+            <div class="kpi-row">
+                <div class="kpi-block">
+                    <div class="kpi-title">Pallet Positions</div>
+                    <div class="kpi-value">{{ pallets|int if pallets else '—' }} / {{ util.positions }}</div>
+                    <div class="kpi-note">{% if util.position_util_pct is defined %}{{ util.position_util_pct }}% of floor{% else %}Enter pallet count{% endif %}</div>
+                </div>
+                <div class="kpi-block">
+                    <div class="kpi-title">Payload</div>
+                    <div class="kpi-value">{% if util.weight_util_pct is defined %}{{ util.weight_util_pct }}%{% else %}—{% endif %}</div>
+                    <div class="kpi-note">of {{ '{:,}'.format(util.payload_lb) }} lb limit</div>
+                </div>
+                {% if cost_per_mile %}
+                <div class="kpi-block">
+                    <div class="kpi-title">Cost Per Mile</div>
+                    <div class="kpi-value">${{ cost_per_mile }}</div>
+                    <div class="kpi-note">All-in / route miles</div>
+                </div>
+                {% endif %}
+                {% if cost_per_position %}
+                <div class="kpi-block">
+                    <div class="kpi-title">Cost Per Position</div>
+                    <div class="kpi-value">${{ '{:,.2f}'.format(cost_per_position) }}</div>
+                    <div class="kpi-note">All-in / pallets</div>
+                </div>
+                {% endif %}
+            </div>
+            {% if util.over_positions %}
+            <div class="optimization-alert util-alert">
+                <p class="action-line">{{ pallets|int }} pallets exceed {{ util.positions }} positions. Split the load or request a volume quote.</p>
+            </div>
+            {% endif %}
+            {% if util.over_weight %}
+            <div class="optimization-alert util-alert">
+                <p class="action-line">Weight exceeds the {{ '{:,}'.format(util.payload_lb) }} lb equipment limit. Reduce or split.</p>
+            </div>
+            {% elif util.weight_util_pct is defined and util.weight_util_pct < 60 %}
+            <p class="prov-est">Under 60% utilized. Ask about partial or volume options before defaulting to FTL.</p>
+            {% endif %}
+        </div>
+
+        {% if transit %}
+        <div class="section" id="section-transit">
+            <h2 class="section-title">{{ transit.confidence_pct }}% Delivery Window - Direct, No Terminals</h2>
+            <div class="transit-timeline">
+                <div class="transit-meta">
+                    <span><strong>Expected:</strong> {{ transit.mean_days }} days</span>
+                    <span><strong>Window:</strong> {{ transit.low }}–{{ transit.high }} days</span>
+                    <span><strong>Drive days:</strong> {{ transit.drive_days }}{{ ' (team)' if transit.team }}</span>
+                    <span><strong>σ:</strong> {{ transit.sigma_days }} d · buffer {{ transit.buffer_days }} d</span>
+                </div>
+                {% include '_provenance.html' %}
+                <div class="legbar-row">
+                    <div class="legbar-meta">
+                        <span class="legbar-name">Expected transit</span>
+                        <span class="legbar-days">{{ transit.mean_days }} d</span>
+                    </div>
+                    <div class="legbar-track">
+                        <div class="legbar-fill" style="width:{{ ((transit.mean_days / (transit.high if transit.high else 1)) * 100) | round }}%"></div>
+                    </div>
+                </div>
+                {% if prediction %}
+                <p>History-backed interval: <strong>{{ prediction.low }}–{{ prediction.high }} days</strong>.</p>
+                {% endif %}
+                <p class="prov-est">One driver, one touch, zero hub sorting. Tighter variance than a comparable LTL move.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if xover %}
+        <div class="section" id="section-mode-compare">
+            <h2 class="section-title">Mode Comparison - FTL vs LTL</h2>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Mode</th>
+                        <th>Pallets</th>
+                        <th class="col-total">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in xover.rows %}
+                    <tr>
+                        <td><strong>{{ r.mode }}</strong></td>
+                        <td>{{ r.pallets if r.pallets else '—' }}</td>
+                        <td class="breakdown-total">${{ '{:,.2f}'.format(r.total) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if xover.ftl_wins %}
+            <p class="prov" style="margin-top:12px;">FTL is cheapest by <strong>${{ '{:,.2f}'.format(xover.savings) }}</strong> at this volume.</p>
+            {% else %}
+            <div class="optimization-alert">
+                <p>{{ xover.cheapest }} is cheaper by ${{ '{:,.2f}'.format(-xover.savings) }}. FTL still wins on speed and single-touch handling at this volume.</p>
+            </div>
+            {% endif %}
+            {% if xover.breakeven_pallets %}
+            <p class="prov-est">At this LTL rate, FTL breaks even around ~{{ xover.breakeven_pallets }} pallets.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if co2 %}
+        <div class="section" id="section-footprint">
+            <h2 class="section-title">Estimated Footprint</h2>
+            <div class="kpi-row">
+                <div class="kpi-block">
+                    <div class="kpi-title">CO₂</div>
+                    <div class="kpi-value">{{ co2 }} kg</div>
+                    <div class="kpi-note">Ton-mile basis, EPA factor</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if quote.quote_notes %}
+        <div class="section" id="section-notes">
+            <div class="quote-notes">
+                <strong>Notes:</strong>
+                <div class="quote-notes-text">{{ quote.quote_notes }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="cta">
+            <h2>Ready to Optimize Your Freight Costs?</h2>
+            <p>Let Jericho Freight transform your supply chain efficiency. Our team is ready to customize a solution that fits your needs.</p>
+            <p class="cta-contact">📞 {{ quote.phone }} | 📧 {{ quote.email }} | 🌐 {{ quote.website }}</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>{{ quote.company_name }}</strong> - Your Trusted Partner in Logistics Excellence</p>
+            <p>This quote is valid for {{ validity_days }} days from the issue date. Ocean spot rates and FX exposure can move quickly.</p>
+            <p>© {{ current_year }} {{ quote.company_name }}. All rights reserved. | DOT: {{ quote.dot_number }} | MC: {{ quote.mc_number }}</p>
+        </div>
+    </div>
+
+    <div class="quote-toolbar">
+        <button type="button" class="btn" onclick="window.print()">Print Quote</button>
+        <button type="button" class="btn btn-secondary" onclick="history.back()">Back to Builder</button>
+    </div>
+</body>
+</html>

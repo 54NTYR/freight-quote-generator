@@ -36,6 +36,18 @@ def ensure_config_file() -> str:
     return path
 
 
+def load_config() -> dict:
+    path = config_file_path()
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
 def load_google_maps_api_key() -> str | None:
     env_key = (os.getenv("GOOGLE_MAPS_API_KEY") or "").strip()
     if env_key:

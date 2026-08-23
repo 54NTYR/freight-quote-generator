@@ -5,212 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freight Quote Generator - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
-    <style>
-
-        .form-section {
-            margin-bottom: 40px;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid #2a5298;
-        }
-
-        .section-title {
-            color: #1e3c72;
-            font-size: 20px;
-            margin-bottom: 12px;
-            font-weight: bold;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2a5298;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #2a5298;
-            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
-        }
-
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .pricing-tier {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #e0e0e0;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .pricing-tier:hover {
-            border-color: #2a5298;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.1);
-        }
-
-        .tier-label {
-            font-weight: bold;
-            color: #1e3c72;
-            margin-bottom: 8px;
-        }
-
-        .tier-range {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .distance-info {
-            background: #e8f4f8;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            text-align: left;
-            display: none;
-        }
-
-        .btn {
-            padding: 15px 35px;
-            border: none;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            margin: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #2a5298;
-            border: 2px solid #2a5298;
-        }
-
-        .btn-secondary:hover {
-            background: #2a5298;
-            color: white;
-        }
-
-        .form-actions {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
-        }
-
-        .template-section {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .template-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .analysis-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-        }
-
-        .analysis-card {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .analysis-card h3 {
-            color: #1e3c72;
-            font-size: 15px;
-            margin-bottom: 12px;
-        }
-
-        .field-hint {
-            display: block;
-            margin-top: 4px;
-            font-size: 12px;
-            color: #666;
-            font-weight: 400;
-        }
-
-        .subsection-note {
-            margin-bottom: 16px;
-            color: #555;
-            font-size: 14px;
-            line-height: 1.45;
-        }
-
-        .error {
-            color: #dc3545;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        .success {
-            color: #28a745;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            
-            .pricing-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -218,10 +12,10 @@
         {% include 'partials/page_header.html' %}
 
         <div class="page-body">
-            <p class="quote-type-nav" style="margin-bottom:20px;font-size:14px;color:#666;">
+            <p class="quote-type-nav">
                 Need one fixed shipment instead?
-                <a href="{{ url_for('ltl_single_quote') }}" style="color:#2a5298;font-weight:600;text-decoration:none;">Open Single Shipment Quote</a>
-                · <a href="{{ url_for('home') }}" style="color:#2a5298;font-weight:600;text-decoration:none;">Back to modes</a>
+                <a href="{{ url_for('ltl_single_quote') }}">Open Single Shipment Quote</a>
+                · <a href="{{ url_for('home') }}">Back to modes</a>
             </p>
             <form id="quoteForm" method="POST" action="{{ url_for('ltl_tiered_quote') }}">
                 
@@ -374,6 +168,18 @@
                         </div>
                     </div>
 
+                    <div class="analysis-card" style="margin-bottom: 20px;">
+                        <h3>Optional overrides</h3>
+                        <div class="analysis-grid">
+                            <div class="form-group">
+                                <label>Cargo value per pallet ($, optional) <input type="number" step="0.01" name="cargo_value_per_pallet"></label>
+                            </div>
+                            <div class="form-group">
+                                <label>Route miles (optional override) <input type="number" name="manual_miles"></label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="analysis-grid">
                         <div class="analysis-card">
                             <h3>Scenario 1</h3>
@@ -450,8 +256,8 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">🚀 Generate Professional Quote</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
+                    <button type="submit" class="btn btn-primary">Generate Professional Quote</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
                 </div>
             </form>
         </div>
@@ -587,7 +393,7 @@
 
             // Show loading state
             const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.innerHTML = '🔄 Generating Quote...';
+            submitBtn.textContent = 'Generating Quote...';
             submitBtn.disabled = true;
         });
 

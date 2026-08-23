@@ -1,0 +1,46 @@
+{% set _leg_names = {'L': 'Origin inland', 'P1': 'Origin port', 'O': 'Ocean', 'P2': 'Dest port/customs', 'D': 'Dest inland'} %}
+
+{% if show_incoterms and incoterm and terms %}
+<div class="section intl-card" id="section-trade-terms">
+  <h3>Trade Terms — Incoterms® 2020</h3>
+  <p><strong>{{ incoterm }}</strong> — risk transfers at: {{ terms.risk }}.
+     Main carriage paid by: <strong>{{ terms.main_payer }}</strong>.
+     Duty/taxes paid by: <strong>{{ terms.duty_payer }}</strong>.</p>
+  {% set role_legs = terms['importer_legs'] if trade_role == 'importer' else terms['exporter_legs'] %}
+  {% if role_legs %}
+  <p>Legs quoted for the {{ trade_role }}:
+     {% for code in role_legs %}{{ _leg_names.get(code, code) }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% else %}
+  <p class="prov-est">Under {{ incoterm }}, the {{ trade_role }} books no legs with us — all legs fall to the counterparty.</p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if waterfall %}
+<div class="section intl-card" id="section-waterfall">
+  <h3>Landed Cost Waterfall</h3>
+  {% for label, amt in waterfall %}<div class="wf-row"><span>{{ label }}</span><span>${{ '{:,.2f}'.format(amt) }}</span></div>{% endfor %}
+  <div class="wf-row wf-total"><span>LANDED TOTAL</span><span>${{ '{:,.2f}'.format(waterfall_totals.landed_total) }}</span></div>
+  <p class="prov-est">Duty & taxes payable by: {{ waterfall_totals.duty_payer }}. Rates are broker estimates — confirm with customs broker at booking.</p>
+</div>
+{% endif %}
+
+{% if transit %}
+<div class="section intl-card" id="section-transit">
+  <h3>Transit Plan by Leg — {{ transit.confidence_pct }}% window: {{ transit.low }}–{{ transit.high }} days</h3>
+  {% set _mean = transit.mean_days if transit.mean_days else 1 %}
+  {% for leg in transit.legs %}
+  <div class="legbar-row">
+    <div class="legbar-meta">
+      <span class="legbar-name">{{ leg.label }}</span>
+      <span class="legbar-days">{{ leg.days }} d (σ {{ leg.sigma }})</span>
+    </div>
+    <div class="legbar-track">
+      <div class="legbar-fill" style="width:{{ ((leg.days / _mean) * 100) | round }}%"></div>
+    </div>
+  </div>
+  {% endfor %}
+  <p>Expected total: <strong>{{ transit.mean_days }} days</strong> (σ {{ transit.sigma_days }} d).
+     {{ transit.buffer_hint }}</p>
+</div>
+{% endif %}

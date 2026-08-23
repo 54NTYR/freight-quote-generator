@@ -5,134 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Quote Mode - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
-    <style>
-        .mode-select-container {
-            overflow: visible;
-        }
-
-        .mode-select-body {
-            overflow: visible;
-        }
-
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            overflow: visible;
-        }
-
-        .mode-button {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            padding: 22px 16px;
-            min-height: 64px;
-            border-radius: 12px;
-            background: #2a5298;
-            color: white;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: 700;
-            text-align: center;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
-            transition: transform 0.2s, background 0.2s;
-            border: none;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        .mode-button:hover,
-        .mode-button:focus-visible {
-            transform: translateY(-3px);
-            background: #1e3c72;
-        }
-
-        .mode-dropdown {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .mode-dropdown.is-open {
-            z-index: 200;
-        }
-
-        .mode-dropdown-trigger {
-            gap: 8px;
-            min-height: 64px;
-            border-radius: 12px;
-            font-family: inherit;
-            letter-spacing: 0;
-            line-height: 1.2;
-        }
-
-        .mode-dropdown-trigger span:first-child {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .mode-dropdown-caret {
-            font-size: 16px;
-            line-height: 1;
-            opacity: 0.9;
-        }
-
-        .mode-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            margin-top: 0;
-            padding-top: 8px;
-            background: transparent;
-            z-index: 201;
-        }
-
-        .mode-dropdown-menu-inner {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
-            overflow: hidden;
-            border: 1px solid #d8e2f0;
-        }
-
-        .mode-dropdown.is-open .mode-dropdown-menu,
-        .mode-dropdown:hover .mode-dropdown-menu {
-            display: block;
-        }
-
-        .mode-dropdown-link {
-            display: block;
-            padding: 14px 16px;
-            color: #1e3c72;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 600;
-            border-bottom: 1px solid #e8eef5;
-            transition: background 0.15s;
-        }
-
-        .mode-dropdown-link:last-child {
-            border-bottom: none;
-        }
-
-        .mode-dropdown-link:hover,
-        .mode-dropdown-link:focus-visible {
-            background: #eef4fb;
-            outline: none;
-        }
-
-        .mode-dropdown-link small {
-            display: block;
-            margin-top: 4px;
-            font-size: 12px;
-            font-weight: 400;
-            color: #667;
-        }
-    </style>
 </head>
 <body>
     <div class="container mode-select-container">
@@ -140,6 +12,7 @@
 
         <div class="page-body mode-select-body">
             <h2 class="section-title">Select Transportation Mode</h2>
+            <p class="page-lede">Pick a live quote type to start.</p>
             <div class="button-grid">
                 <div class="mode-dropdown" id="ltlDropdown">
                     <button
@@ -166,9 +39,9 @@
                         </div>
                     </div>
                 </div>
-                <a class="mode-button" href="/ftl">FTL</a>
-                <a class="mode-button" href="/dray">DRAY</a>
-                <a class="mode-button" href="/international">INTERNATIONAL</a>
+                <a class="mode-button" href="/international">International</a>
+                <a class="mode-button" href="{{ url_for('ftl_quote') }}">FTL</a>
+                <a class="mode-button" href="{{ url_for('dray_quote') }}">DRAY</a>
             </div>
         </div>
     </div>

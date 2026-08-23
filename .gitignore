@@ -9,6 +9,7 @@ __pycache__/
 build/codesign.pfx
 build/signing.local.json
 .env
+data/*.db
 config.json
 quote_counter.json
 tmp_*.html
