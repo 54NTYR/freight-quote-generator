@@ -17,19 +17,7 @@
             </p>
 
             <form id="quoteForm" method="POST" action="{{ url_for('dray_quote') }}">
-                <div class="form-section">
-                    <h2 class="section-title">Customer</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="customer_name">Customer name</label>
-                            <input type="text" id="customer_name" name="customer_name" placeholder="e.g., Acme Foods">
-                        </div>
-                        <div class="form-group">
-                            <label for="contact_email">Contact email</label>
-                            <input type="email" id="contact_email" name="contact_email" placeholder="e.g., receiving@acme.com">
-                        </div>
-                    </div>
-                </div>
+                {% include 'partials/customer_optin.html' %}
 
                 <div class="form-section">
                     <h2 class="section-title">Route / Lane</h2>
@@ -42,21 +30,39 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="terminal">Terminal</label>
-                            <input type="text" id="terminal" name="terminal" placeholder="e.g., Maher, APMT">
-                        </div>
-                        <div class="form-group">
                             <label for="container">Container</label>
                             <select id="container" name="container">
-                                <option value="20FT">20' (TEU)</option>
-                                <option value="40FT" selected>40' (FEU)</option>
-                                <option value="40HC">40' High Cube</option>
+                                {% for size in containers %}
+                                <option value="{{ size|e }}"{% if size == "40' ST" %} selected{% endif %}>{{ size }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ssl">SSL</label>
+                            <select id="ssl" name="ssl">
+                                {% for line in ssl_lines %}
+                                <option value="{{ line }}">{{ line }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="origin_city">Origin City</label>
+                            <label for="origin_terminal">Origin terminal</label>
+                            <input type="text" id="origin_terminal" name="origin_terminal" placeholder="e.g., Maher, APMT">
+                        </div>
+                        <div class="form-group">
+                            <label for="facility_name" id="facility_label">Receiver</label>
+                            <input type="text" id="facility_name" name="facility_name" placeholder="Facility name">
+                        </div>
+                        <div class="form-group">
+                            <label for="return_terminal">Return terminal</label>
+                            <input type="text" id="return_terminal" name="return_terminal" placeholder="Same as origin if blank">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="origin_city">Origin city</label>
                             <input type="text" id="origin_city" name="origin_city" placeholder="e.g., Newark">
                         </div>
                         <div class="form-group">
@@ -66,129 +72,136 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="dest_city">Destination City</label>
+                            <label for="dest_city">Facility city</label>
                             <input type="text" id="dest_city" name="dest_city" placeholder="e.g., Allentown">
                         </div>
                         <div class="form-group">
-                            <label for="dest_zip">Destination ZIP Code</label>
-                            <input type="text" id="dest_zip" name="dest_zip" required placeholder="e.g., 18101">
+                            <label for="dest_zip">Facility ZIP</label>
+                            <input type="text" id="dest_zip" name="dest_zip" placeholder="e.g., 18101">
+                        </div>
+                        <div class="form-group">
+                            <label for="load_weight_lbs">Load weight (lbs)</label>
+                            <input type="number" id="load_weight_lbs" name="load_weight_lbs" min="0" step="1" placeholder="e.g., 42000">
+                            <p id="overweight_warning" class="field-warning" hidden>
+                                This load is overweight. It is suggested that you mark Overweight in Accessorials below.
+                            </p>
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="container_value">Container value ($)</label>
-                            <input type="number" id="container_value" name="container_value" min="0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="pallets">Pallet count (optional, for CO₂)</label>
-                            <input type="number" id="pallets" name="pallets" min="1" step="1">
-                        </div>
                         <div class="form-group">
                             <label for="valid_until">Valid Until</label>
                             <input type="date" id="valid_until" name="valid_until">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="quote_notes">Notes (will appear on quote)</label>
-                        <textarea id="quote_notes" name="quote_notes" rows="3" placeholder="Optional notes to include on the quote"></textarea>
-                    </div>
                 </div>
 
                 <div class="form-section">
-                    <h2 class="section-title">Free Time &amp; Penalties</h2>
+                    <h2 class="section-title">Accessorials</h2>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="arrival_date">Container available date</label>
-                            <input type="date" id="arrival_date" name="arrival_date" required>
+                            <label for="reefer">Reefer</label>
+                            <select id="reefer" name="reefer">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="cutoff_date">Rail/vessel cutoff</label>
-                            <input type="date" id="cutoff_date" name="cutoff_date">
+                            <label for="hazmat">Hazmat</label>
+                            <select id="hazmat" name="hazmat">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="pickup_date">Planned pickup</label>
-                            <input type="date" id="pickup_date" name="pickup_date">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="free_days">Free days</label>
-                            <input type="number" id="free_days" name="free_days" value="5" min="0" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="return_days">Return window (days)</label>
-                            <input type="number" id="return_days" name="return_days" value="3" min="0" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="congestion">Terminal congestion</label>
-                            <select id="congestion" name="congestion">
-                                <option value="none">None</option>
-                                <option value="mild">Mild</option>
-                                <option value="heavy">Heavy</option>
+                            <label for="overweight">Overweight</label>
+                            <select id="overweight" name="overweight">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="demurrage_rate">Demurrage $/day</label>
-                            <input type="number" id="demurrage_rate" name="demurrage_rate" min="0" step="0.01">
+                            <label for="triaxle">Tri-axle</label>
+                            <select id="triaxle" name="triaxle">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="per_diem_rate">Per-diem $/day</label>
-                            <input type="number" id="per_diem_rate" name="per_diem_rate" min="0" step="0.01">
+                            <label for="chassis_split">Chassis split</label>
+                            <select id="chassis_split" name="chassis_split">
+                                <option value="0" selected>0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="chassis_rate">Chassis $/day</label>
-                            <input type="number" id="chassis_rate" name="chassis_rate" value="35" min="0" step="0.01">
+                            <label for="chassis_days">Chassis days</label>
+                            <input type="number" id="chassis_days" name="chassis_days" min="2" step="1" value="2">
+                            <span class="field-hint">2-day minimum.</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="layover">Layover</label>
+                            <select id="layover" name="layover">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="stop_off">Stop-off</label>
+                            <select id="stop_off" name="stop_off">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="prepull">Prepull</label>
+                            <select id="prepull" name="prepull">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="residential">Residential</label>
+                            <select id="residential" name="residential">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section">
-                    <h2 class="section-title">All-In Pricing Ledger</h2>
+                    <h2 class="section-title">Pricing</h2>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="loaded_miles">Loaded miles</label>
-                            <input type="number" id="loaded_miles" name="loaded_miles" required min="0" step="1">
+                            <label for="linehaul">Line haul ($)</label>
+                            <input type="number" id="linehaul" name="linehaul" required min="0" step="0.01">
                         </div>
                         <div class="form-group">
-                            <label for="empty_miles">Empty return miles</label>
-                            <input type="number" id="empty_miles" name="empty_miles" value="0" min="0" step="1">
+                            <label for="fsc_mode">Fuel surcharge</label>
+                            <select id="fsc_mode" name="fsc_mode">
+                                <option value="amount">Fixed amount ($)</option>
+                                <option value="percent">Percentage (%)</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="linehaul_flat">Flat linehaul ($)</label>
-                            <input type="number" id="linehaul_flat" name="linehaul_flat" min="0" step="0.01">
-                            <span class="field-hint">Leave blank to use loaded and empty $/mi.</span>
+                            <label for="fsc_value" id="fsc_value_label">Amount ($)</label>
+                            <input type="number" id="fsc_value" name="fsc_value" required min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="tolls">Tolls ($)</label>
+                            <input type="number" id="tolls" name="tolls" min="0" step="0.01" placeholder="Omit if none">
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="rpm_loaded">$/mi loaded</label>
-                            <input type="number" id="rpm_loaded" name="rpm_loaded" value="3.00" min="0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="rpm_empty">$/mi empty</label>
-                            <input type="number" id="rpm_empty" name="rpm_empty" min="0" step="0.01">
-                            <span class="field-hint">Blank uses 85% of loaded rate.</span>
-                        </div>
-                        <div class="form-group">
-                            <label for="fsc_pct">Fuel surcharge (%)</label>
-                            <input type="number" id="fsc_pct" name="fsc_pct" min="0" step="0.1">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="chassis_days">Chassis days</label>
-                            <input type="number" id="chassis_days" name="chassis_days" min="0" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="prepull_cost">Prepull / early-pull cost ($)</label>
-                            <input type="number" id="prepull_cost" name="prepull_cost" min="0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="accessorials">Other accessorials ($)</label>
-                            <input type="number" id="accessorials" name="accessorials" min="0" step="0.01">
-                        </div>
+                    <div class="form-group">
+                        <label for="quote_notes">Notes (will appear on quote)</label>
+                        <textarea id="quote_notes" name="quote_notes" rows="3" placeholder="Optional notes to include on the quote"></textarea>
                     </div>
                 </div>
 
@@ -207,6 +220,38 @@
             d.setDate(d.getDate() + 7);
             validInput.value = d.toISOString().slice(0, 10);
         }
+        const direction = document.getElementById('direction');
+        const facilityLabel = document.getElementById('facility_label');
+        function syncFacilityLabel() {
+            if (!facilityLabel || !direction) return;
+            facilityLabel.textContent = direction.value === 'export' ? 'Shipper' : 'Receiver';
+        }
+        if (direction) direction.addEventListener('change', syncFacilityLabel);
+        syncFacilityLabel();
+
+        const owLimit = {{ overweight_lbs_threshold|default(44000) }};
+        const loadWeight = document.getElementById('load_weight_lbs');
+        const overweightSelect = document.getElementById('overweight');
+        const owWarning = document.getElementById('overweight_warning');
+        function syncOverweightWarning() {
+            if (!loadWeight || !overweightSelect || !owWarning) return;
+            const weight = parseFloat(loadWeight.value);
+            const overLimit = Number.isFinite(weight) && weight > owLimit;
+            const marked = overweightSelect.value === 'yes';
+            owWarning.hidden = !(overLimit && !marked);
+        }
+        if (loadWeight) loadWeight.addEventListener('input', syncOverweightWarning);
+        if (overweightSelect) overweightSelect.addEventListener('change', syncOverweightWarning);
+        syncOverweightWarning();
+
+        const fscMode = document.getElementById('fsc_mode');
+        const fscLabel = document.getElementById('fsc_value_label');
+        function syncFscLabel() {
+            if (!fscMode || !fscLabel) return;
+            fscLabel.textContent = fscMode.value === 'percent' ? 'Percentage (%)' : 'Amount ($)';
+        }
+        if (fscMode) fscMode.addEventListener('change', syncFscLabel);
+        syncFscLabel();
     </script>
 </body>
 </html>

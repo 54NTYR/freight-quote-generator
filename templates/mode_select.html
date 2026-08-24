@@ -8,12 +8,34 @@
 </head>
 <body>
     <div class="container mode-select-container">
-        {% include 'partials/page_header.html' %}
+        <div class="header mode-select-header">
+            <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" class="logo-img" alt="Jericho Freight">
+            <div class="mode-dropdown header-settings" id="settingsDropdown">
+                <button
+                    type="button"
+                    class="settings-cog"
+                    id="settingsTrigger"
+                    aria-label="Settings"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    aria-controls="settingsMenu"
+                >
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                        <path fill="currentColor" d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.07 7.07 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.5.42l-.36 2.54c-.6.24-1.15.55-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.8 8.48a.5.5 0 0 0 .12.64L4.95 10.7c-.04.31-.06.63-.06.94s.02.63.06.94L2.92 14.16a.5.5 0 0 0-.12.64l1.92 3.32c.14.24.42.34.66.22l2.39-.96c.48.39 1.03.7 1.63.94l.36 2.54c.05.24.26.42.5.42h3.8c.24 0 .45-.18.5-.42l.36-2.54c.6-.24 1.15-.55 1.63-.94l2.39.96c.24.12.52.02.66-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/>
+                    </svg>
+                </button>
+                <div class="mode-dropdown-menu" id="settingsMenu" role="menu">
+                    <div class="mode-dropdown-menu-inner">
+                        <a class="mode-dropdown-link" href="{{ url_for('rep_setup') }}" role="menuitem">Change User</a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="page-body mode-select-body">
             <h2 class="section-title">Select Transportation Mode</h2>
-            <p class="page-lede">Pick a live quote type to start.</p>
             <div class="button-grid">
+                <a class="mode-button" href="{{ url_for('ftl_quote') }}">FTL</a>
                 <div class="mode-dropdown" id="ltlDropdown">
                     <button
                         type="button"
@@ -39,42 +61,39 @@
                         </div>
                     </div>
                 </div>
-                <a class="mode-button" href="/international">International</a>
-                <a class="mode-button" href="{{ url_for('ftl_quote') }}">FTL</a>
                 <a class="mode-button" href="{{ url_for('dray_quote') }}">DRAY</a>
+                <a class="mode-button" href="/international">International</a>
             </div>
         </div>
     </div>
 
     <script>
         (function () {
-            const dropdown = document.getElementById('ltlDropdown');
-            const trigger = document.getElementById('ltlDropdownTrigger');
-            if (!dropdown || !trigger) return;
-
-            function setOpen(isOpen) {
-                dropdown.classList.toggle('is-open', isOpen);
-                trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            function wireDropdown(rootId, triggerId) {
+                const dropdown = document.getElementById(rootId);
+                const trigger = document.getElementById(triggerId);
+                if (!dropdown || !trigger) return;
+                function setOpen(isOpen) {
+                    dropdown.classList.toggle('is-open', isOpen);
+                    trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                }
+                trigger.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setOpen(!dropdown.classList.contains('is-open'));
+                });
+                document.addEventListener('click', function (event) {
+                    if (!dropdown.contains(event.target)) setOpen(false);
+                });
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        setOpen(false);
+                        trigger.focus();
+                    }
+                });
             }
-
-            trigger.addEventListener('click', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                setOpen(!dropdown.classList.contains('is-open'));
-            });
-
-            document.addEventListener('click', function (event) {
-                if (!dropdown.contains(event.target)) {
-                    setOpen(false);
-                }
-            });
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape') {
-                    setOpen(false);
-                    trigger.focus();
-                }
-            });
+            wireDropdown('ltlDropdown', 'ltlDropdownTrigger');
+            wireDropdown('settingsDropdown', 'settingsTrigger');
         })();
     </script>
 </body>

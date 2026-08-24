@@ -208,6 +208,19 @@ fieldset textarea:focus {
     align-items: center;
     gap: 8px;
     margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--jf-navy);
+    cursor: pointer;
+}
+
+.customer-fields {
+    margin-top: 8px;
+}
+
+.form-error {
+    color: #b42318;
+    font-size: 14px;
+    margin-bottom: 16px;
 }
 
 .checkbox-row label {
@@ -244,6 +257,18 @@ fieldset .checkbox-row input[type="checkbox"] {
     font-size: 12px;
     color: var(--jf-muted);
     font-weight: 400;
+}
+
+.field-warning {
+    display: block;
+    margin-top: 8px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #8a4b08;
+    background: #fff6e5;
+    border: 1px solid #f0d9a8;
+    border-radius: var(--jf-radius-inner);
 }
 
 .fee-inline {
@@ -549,6 +574,48 @@ legend {
     overflow: visible;
 }
 
+.mode-select-header {
+    position: relative;
+}
+
+.mode-select-header .header-settings {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    z-index: 210;
+    display: block;
+    min-width: 0;
+}
+
+.mode-select-header .header-settings .mode-dropdown-menu {
+    left: auto;
+    right: 0;
+    min-width: 196px;
+}
+
+.settings-cog {
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--jf-navy);
+    border: 1px solid var(--jf-hairline);
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.settings-cog:hover,
+.header-settings.is-open .settings-cog,
+.header-settings:hover .settings-cog {
+    background: var(--jf-navy);
+    color: #fff;
+    border-color: var(--jf-navy);
+}
+
 .button-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -689,7 +756,7 @@ legend {
 
 @media (min-width: 860px) {
     .button-grid {
-        grid-template-columns: 1.3fr 1.2fr 1fr 1fr;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 

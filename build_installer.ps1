@@ -7,17 +7,46 @@ Set-Location $ProjectRoot
 
 Write-Host "==> Setting up build environment..." -ForegroundColor Cyan
 
-if (-not (Test-Path ".venv")) {
-    python -m venv .venv
+$VenvDir = Join-Path $ProjectRoot ".venv"
+$VenvPython = Join-Path $VenvDir "Scripts\python.exe"
+$VenvCfg = Join-Path $VenvDir "pyvenv.cfg"
+$venvStale = $false
+if (Test-Path $VenvCfg) {
+    $cfg = Get-Content $VenvCfg -Raw
+    $rootNeedle = $ProjectRoot.TrimEnd("\")
+    if ($cfg -match "(?im)^command\s*=\s*(.+)$") {
+        $createdFrom = $Matches[1].Trim()
+        if ($createdFrom -notlike "*$rootNeedle*") {
+            $venvStale = $true
+            Write-Host "    Recreating .venv (it was created at another path; pip/pyinstaller launchers are stale)." -ForegroundColor Yellow
+        }
+    }
+}
+if ($venvStale -or -not (Test-Path $VenvPython)) {
+    if (Test-Path $VenvDir) {
+        try {
+            Remove-Item -Recurse -Force $VenvDir -ErrorAction Stop
+        } catch {
+            Write-Host "    Could not replace .venv (a process still has it open). Continuing with python -m pip / PyInstaller." -ForegroundColor Yellow
+        }
+    }
+    if (-not (Test-Path $VenvPython)) {
+        python -m venv $VenvDir
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $VenvPython)) {
+            throw "Failed to create virtualenv at $VenvDir"
+        }
+    }
 }
 
-& ".venv\Scripts\Activate.ps1"
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-pip install -r requirements-build.txt
+& $VenvPython -m pip install --upgrade pip
+if ($LASTEXITCODE -ne 0) { throw "pip upgrade failed." }
+& $VenvPython -m pip install -r requirements.txt
+if ($LASTEXITCODE -ne 0) { throw "pip install requirements.txt failed." }
+& $VenvPython -m pip install -r requirements-build.txt
+if ($LASTEXITCODE -ne 0) { throw "pip install requirements-build.txt failed." }
 
 Write-Host "==> Creating Windows app icon..." -ForegroundColor Cyan
-python scripts/create_app_icon.py
+& $VenvPython scripts/create_app_icon.py
 if ($LASTEXITCODE -ne 0) {
     throw "App icon generation failed."
 }
@@ -31,7 +60,7 @@ if (-not (Test-Path $iconPath)) {
     throw "Missing build\app-icon.ico"
 }
 
-pyinstaller --noconfirm freight_quote_generator.spec
+& $VenvPython -m PyInstaller --noconfirm freight_quote_generator.spec
 
 if ($LASTEXITCODE -ne 0) {
     throw "PyInstaller build failed."

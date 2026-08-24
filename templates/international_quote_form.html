@@ -16,14 +16,20 @@
                 <a href="{{ url_for('home') }}">Back to modes</a>
             </p>
             <div class="form-section">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="customer_name">Customer name</label>
-                        <input id="customer_name" placeholder="e.g., Acme Foods">
-                    </div>
-                    <div class="form-group">
-                        <label for="contact_email">Contact email</label>
-                        <input id="contact_email" type="email" placeholder="e.g., receiving@acme.com">
+                <label class="checkbox-row" for="include_customer">
+                    <input type="checkbox" id="include_customer" value="on">
+                    Include customer on quote
+                </label>
+                <div id="customer_fields" class="customer-fields" hidden>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customer_name">Customer name</label>
+                            <input id="customer_name" placeholder="e.g., Acme Foods">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact_email">Contact email</label>
+                            <input id="contact_email" type="email" placeholder="e.g., receiving@acme.com">
+                        </div>
                     </div>
                 </div>
                 <div class="form-row">
@@ -290,6 +296,7 @@
         // Draft persistence: save to localStorage
         function saveDraft(){
             const draft = {
+                include_customer: document.getElementById('include_customer') ? document.getElementById('include_customer').checked : false,
                 customer_name: document.getElementById('customer_name') ? document.getElementById('customer_name').value : '',
                 contact_email: document.getElementById('contact_email') ? document.getElementById('contact_email').value : '',
                 quote_name: document.getElementById('quote_name').value,
@@ -340,6 +347,11 @@
             if (!raw) return false;
             try{
                 const draft = JSON.parse(raw);
+                const includeBox = document.getElementById('include_customer');
+                if (includeBox) {
+                    includeBox.checked = !!draft.include_customer;
+                    includeBox.dispatchEvent(new Event('change'));
+                }
                 if (document.getElementById('customer_name')) document.getElementById('customer_name').value = draft.customer_name || '';
                 if (document.getElementById('contact_email')) document.getElementById('contact_email').value = draft.contact_email || '';
                 document.getElementById('quote_name').value = draft.quote_name || '';
@@ -386,6 +398,13 @@
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', saveDraft);
         });
+        const includeCustomer = document.getElementById('include_customer');
+        const customerFields = document.getElementById('customer_fields');
+        if (includeCustomer && customerFields) {
+            function syncCustomer() { customerFields.hidden = !includeCustomer.checked; }
+            includeCustomer.addEventListener('change', function () { syncCustomer(); saveDraft(); });
+            syncCustomer();
+        }
 
         // clear draft when user clicks the cancel/main menu link
         const cancelLink = document.querySelector('a[href="/"]');
@@ -413,6 +432,7 @@
             });
 
             const payload = {
+                include_customer: document.getElementById('include_customer') ? document.getElementById('include_customer').checked : false,
                 customer_name: document.getElementById('customer_name') ? document.getElementById('customer_name').value : '',
                 contact_email: document.getElementById('contact_email') ? document.getElementById('contact_email').value : '',
                 quote_name: quote,

@@ -1,0 +1,28 @@
+<div class="form-section">
+    <label class="checkbox-row" for="include_customer">
+        <input type="checkbox" id="include_customer" name="include_customer" value="on">
+        Include customer on quote
+    </label>
+    <div id="customer_fields" class="customer-fields" hidden>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="customer_name">Customer name</label>
+                <input type="text" id="customer_name" name="customer_name" placeholder="e.g., Acme Foods">
+            </div>
+            <div class="form-group">
+                <label for="contact_email">Contact email</label>
+                <input type="email" id="contact_email" name="contact_email" placeholder="e.g., receiving@acme.com">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var box = document.getElementById('include_customer');
+    var fields = document.getElementById('customer_fields');
+    if (!box || !fields) return;
+    function sync() { fields.hidden = !box.checked; }
+    box.addEventListener('change', sync);
+    sync();
+})();
+</script>

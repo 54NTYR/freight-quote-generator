@@ -8,24 +8,9 @@
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <div class="company-info">
-        <div class="company-left" style="display:flex;align-items:center;gap:12px;">
-          <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" alt="Jericho Freight" style="height:68px;object-fit:contain;">
-        </div>
-        <div class="company-center">
-          <div class="quote-title">LTL Freight Quote</div>
-        </div>
-        <div class="company-right">
-          <div class="quote-number">
-            <div>Quote #: {{ quote.quote_number }}</div>
-            <div>Date: {{ quote.current_date }}</div>
-            <div>Valid Until: {{ quote.valid_until }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="route-info">
+    {% from 'partials/quote_header.html' import quote_shell with context %}
+    {% call quote_shell() %}
+    <div class="route-info">
         <div class="route-detail">
           <div class="location">
             <h3>ORIGIN</h3>
@@ -48,8 +33,8 @@
             {% endif %}
           </small>
         </div>
-      </div>
     </div>
+    {% endcall %}
 
     <div class="section" id="section-pricing">
       <h2 class="section-title">Volume-Based Pricing Structure</h2>

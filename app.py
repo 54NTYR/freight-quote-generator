@@ -18,7 +18,15 @@ import dray as dray_mod
 import ftl as ftl_mod
 import intl as intl_mod
 from admin_routes import admin_bp
-from config import COMPANY_INFO, ensure_config_file, load_config, load_google_maps_api_key
+from config import (
+    COMPANY_INFO,
+    ensure_config_file,
+    load_config,
+    load_google_maps_api_key,
+    load_rep,
+    rep_configured,
+    save_rep,
+)
 from crm_bridge import on_quote_issued
 from lane_stats import prediction_interval_days, resolve_lane_stats
 from paths import data_path, resource_dir
@@ -41,6 +49,56 @@ app = Flask(
 )
 app.register_blueprint(admin_bp)
 init_db()
+
+DRAY_SSL_LINES = [
+    "No Info", "Maersk", "Sealand", "Hapag-Lloyd", "Hamburg Sud", "Cosco",
+    "CMA", "ONE", "MSC", "Evergreen", "ZIM", "HMM", "King Ocean",
+]
+DRAY_CONTAINERS = [
+    "20' ST", "20' RF", "40' ST", "40' HC", "40' RF", "40' OT", "40' FR",
+    '53" DV', '53" RF',
+]
+CHASSIS_DAY_RATE = 50.0
+CHASSIS_MIN_DAYS = 2
+TRIAXLE_DAY_RATE = 100.0
+CHASSIS_SPLIT_FEE = 150.0
+REEFER_FEE = 150.0
+HAZMAT_FEE = 150.0
+OW_FEE = 150.0
+LAYOVER_FEE = 300.0
+STOP_OFF_FEE = 125.0
+PREPULL_FEE = 150.0
+RESIDENTIAL_FEE = 100.0
+OVERWEIGHT_LBS_THRESHOLD = 44000
+
+
+@app.context_processor
+def inject_letterhead():
+    return {"letterhead": COMPANY_INFO, "rep": load_rep()}
+
+
+@app.before_request
+def require_quoting_rep():
+    if request.endpoint in (None, "static", "rep_setup"):
+        return None
+    if request.path.startswith("/static"):
+        return None
+    if not rep_configured():
+        return redirect(url_for("rep_setup"))
+    return None
+
+
+@app.route("/settings/rep", methods=["GET", "POST"])
+def rep_setup():
+    if request.method == "POST":
+        name = (request.form.get("rep_name") or "").strip()
+        email = (request.form.get("rep_email") or "").strip()
+        if name and email:
+            save_rep(name, email)
+            return redirect(url_for("home"))
+        return render_template("rep_setup.html", error="Both fields are required.",
+                               rep_name=name, rep_email=email), 400
+    return render_template("rep_setup.html", **load_rep())
 
 
 def _normalize_zip(zip_code: str) -> str:
@@ -439,6 +497,15 @@ def _form_dest_zip(form):
     return form.get("destination_zip") or form.get("dest_zip", "")
 
 
+def _customer_ctx(source):
+    include = _truthy_flag(source, "include_customer")
+    name = (source.get("customer_name") or "").strip()
+    email = (source.get("contact_email") or "").strip()
+    if not include:
+        return {"include_customer": False, "customer_name": "", "contact_email": ""}
+    return {"include_customer": True, "customer_name": name, "contact_email": email}
+
+
 def _ltl_lane_stats_and_prediction(form, fallback_mu):
     stats = resolve_lane_stats(
         "LTL",
@@ -548,6 +615,23 @@ def _optional_form_float(form, key):
 
 
 _pf = _optional_form_float
+
+
+def _format_fsc_pct(pct) -> str:
+    value = round(float(pct or 0), 1)
+    if abs(value - round(value)) < 0.05:
+        return str(int(round(value)))
+    return f"{value:.1f}"
+
+
+def _format_thru_date(valid_until: str) -> str:
+    raw = (valid_until or "").strip()
+    for fmt, slen in (("%Y-%m-%d", 10), ("%m/%d/%Y", 10), ("%m/%d/%y", 8)):
+        try:
+            return datetime.strptime(raw[:slen], fmt).strftime("%m/%d/%y")
+        except ValueError:
+            continue
+    return raw
 
 
 def _truthy_flag(data, key):
@@ -1054,6 +1138,8 @@ def ltl_tiered_quote():
         "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
         "valid_until": valid_until_date.strftime("%B %d, %Y").replace(" 0", " "),
         **COMPANY_INFO,
+        **_customer_ctx(request.form),
+        **load_rep(),
     }
 
     quoted_cost = round(
@@ -1071,12 +1157,11 @@ def ltl_tiered_quote():
         quoted_cost=quoted_cost,
         payload=quote,
     )
-    form = request.form
-    on_quote_issued(customer_name=form.get("customer_name", ""),
-                    contact_email=form.get("contact_email", ""),
+    on_quote_issued(customer_name=quote.get("customer_name", ""),
+                    contact_email=quote.get("contact_email", ""),
                     quote_number=quote_generator.quote_number, mode="LTL",
-                    total=quoted_cost, origin_zip=form.get("origin_zip", ""),
-                    dest_zip=_form_dest_zip(form), transit_days=_stats["mu"])
+                    total=quoted_cost, origin_zip=request.form.get("origin_zip", ""),
+                    dest_zip=_form_dest_zip(request.form), transit_days=_stats["mu"])
 
     return render_template(
         "ltl_quote_output.html",
@@ -1145,6 +1230,8 @@ def ltl_single_quote():
         "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
         "valid_until": valid_until_date.strftime("%B %d, %Y").replace(" 0", " "),
         **COMPANY_INFO,
+        **_customer_ctx(request.form),
+        **load_rep(),
     }
 
     init_db()
@@ -1157,12 +1244,11 @@ def ltl_single_quote():
         quoted_cost=payload["total_cost"],
         payload=quote,
     )
-    form = request.form
-    on_quote_issued(customer_name=form.get("customer_name", ""),
-                    contact_email=form.get("contact_email", ""),
+    on_quote_issued(customer_name=quote.get("customer_name", ""),
+                    contact_email=quote.get("contact_email", ""),
                     quote_number=quote_generator.quote_number, mode="LTL",
-                    total=payload["total_cost"], origin_zip=form.get("origin_zip", ""),
-                    dest_zip=_form_dest_zip(form), transit_days=_stats["mu"])
+                    total=payload["total_cost"], origin_zip=request.form.get("origin_zip", ""),
+                    dest_zip=_form_dest_zip(request.form), transit_days=_stats["mu"])
 
     return render_template(
         "ltl_single_quote_output.html",
@@ -1235,6 +1321,8 @@ def ftl_quote():
         "quote_notes": form.get("quote_notes", ""),
         "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
         "valid_until": valid_until,
+        **_customer_ctx(form),
+        **load_rep(),
     }
     ctx = dict(
         quote=quote,
@@ -1256,8 +1344,8 @@ def ftl_quote():
     save_quote(quote_number, "FTL", origin_zip, dest_zip,
                quoted_transit_days=(transit or {}).get("mean_days"),
                quoted_cost=cost["total"], payload={**quote, "miles": miles, "cost": cost})
-    on_quote_issued(customer_name=form.get("customer_name", ""),
-                    contact_email=form.get("contact_email", ""),
+    on_quote_issued(customer_name=quote.get("customer_name", ""),
+                    contact_email=quote.get("contact_email", ""),
                     quote_number=quote_number, mode="FTL",
                     total=cost["total"], origin_zip=form.get("origin_zip", ""),
                     dest_zip=form.get("dest_zip", ""),
@@ -1269,7 +1357,12 @@ def ftl_quote():
 def dray_quote():
     init_db()
     if request.method == "GET":
-        return render_template("dray_quote_form.html")
+        return render_template(
+            "dray_quote_form.html",
+            ssl_lines=DRAY_SSL_LINES,
+            containers=DRAY_CONTAINERS,
+            overweight_lbs_threshold=int(OVERWEIGHT_LBS_THRESHOLD),
+        )
 
     form = request.form
     origin_zip = form.get("origin_zip", "")
@@ -1278,42 +1371,87 @@ def dray_quote():
         form.get("origin_city", ""), origin_zip,
         form.get("dest_city", ""), dest_zip,
     )
-    exposure = dray_mod.demurrage_exposure(
-        form.get("arrival_date"), form.get("pickup_date"),
-        free_days=_pf(form, "free_days") or 5,
-        demurrage_rate=_pf(form, "demurrage_rate") or 0,
-        per_diem_rate=_pf(form, "per_diem_rate") or 0,
-        chassis_rate=_pf(form, "chassis_rate") or 35.0)
-    delay = dray_mod.delay_vs_prepull(
-        _pf(form, "container_value"), _pf(form, "demurrage_rate") or 0,
-        per_diem_rate=_pf(form, "per_diem_rate") or 0,
-        chassis_rate=_pf(form, "chassis_rate") or 35.0,
-        prepull_cost=_pf(form, "prepull_cost") or 0)
-    turn = dray_mod.turn_economics(
-        _pf(form, "loaded_miles"), _pf(form, "empty_miles") or 0,
-        _pf(form, "rpm_loaded") or 3.0, rpm_empty=_pf(form, "rpm_empty"),
-        fsc_pct=_pf(form, "fsc_pct"), chassis_days=_pf(form, "chassis_days") or 0,
-        chassis_rate=_pf(form, "chassis_rate") or 35.0,
-        linehaul_flat=_pf(form, "linehaul_flat"),
-        accessorials=_pf(form, "accessorials") or 0)
-    tline = dray_mod.timeline(form.get("arrival_date"),
-                              free_days=_pf(form, "free_days") or 5,
-                              cutoff_date=form.get("cutoff_date"),
-                              pickup_date=form.get("pickup_date"),
-                              return_days=_pf(form, "return_days") or 3,
-                              congestion=form.get("congestion", "none"))
-    twindow = dray_mod.transit_window(conf=CONF_LEVEL)
-    stats = resolve_lane_stats("DRAY", origin_zip, dest_zip,
-                               fallback_mu=1, fallback_sigma=dray_mod.SIGMA_DAYS)
-    prediction = ac.prediction_interval_days(
-        stats["mu"], stats["sigma"], stats["n"], stats["provenance"], conf=CONF_LEVEL)
-    miles = (_pf(form, "loaded_miles") or 0) + (_pf(form, "empty_miles") or 0)
-    co2 = ac.estimate_co2_kg(miles, pallet_count=_pf(form, "pallets"))
     quote_number = quote_generator.quote_number
     valid_until = form.get("valid_until")
     if not valid_until:
         valid_until = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
     validity_days = _quote_validity_days(valid_until)
+    linehaul = _pf(form, "linehaul")
+    if linehaul is None:
+        turn = dray_mod.turn_economics(
+            _pf(form, "loaded_miles"), _pf(form, "empty_miles") or 0,
+            _pf(form, "rpm_loaded") or 3.0, rpm_empty=_pf(form, "rpm_empty"),
+            fsc_pct=_pf(form, "fsc_pct"), chassis_days=0, chassis_rate=0,
+            linehaul_flat=_pf(form, "linehaul_flat"),
+            accessorials=0)
+        linehaul = round(float(turn.get("linehaul") or 0), 2)
+        fsc_computed = round(float(turn.get("fsc") or 0), 2)
+    else:
+        linehaul = round(linehaul, 2)
+        fsc_computed = None
+    fsc_mode = (form.get("fsc_mode") or "amount").strip().lower()
+    fsc_value = _pf(form, "fsc_value")
+    if fsc_value is None:
+        fsc_value = _pf(form, "fsc")
+    if fsc_mode.startswith("percent"):
+        fsc_pct = fsc_value or 0.0
+        fsc = round(linehaul * fsc_pct / 100.0, 2)
+    else:
+        if fsc_value is not None:
+            fsc = round(fsc_value, 2)
+        else:
+            fsc = fsc_computed or 0.0
+        fsc_pct = (100.0 * fsc / linehaul) if linehaul else 0.0
+    fsc_line = f"FSC ({_format_fsc_pct(fsc_pct)}% thru {_format_thru_date(valid_until)})"
+    direction = form.get("direction", "import")
+    container = form.get("container") or DRAY_CONTAINERS[2]
+    ssl_line = form.get("ssl") or "No Info"
+    reefer_on = _truthy_flag(form, "reefer")
+    hazmat_on = _truthy_flag(form, "hazmat")
+    triaxle_on = _truthy_flag(form, "triaxle")
+    layover_on = _truthy_flag(form, "layover")
+    stop_off_on = _truthy_flag(form, "stop_off")
+    prepull_on = _truthy_flag(form, "prepull")
+    residential_on = _truthy_flag(form, "residential")
+    is_overweight = _truthy_flag(form, "overweight")
+    load_weight_lbs = _pf(form, "load_weight_lbs")
+    try:
+        chassis_split_count = int(float(form.get("chassis_split") or 0))
+    except (TypeError, ValueError):
+        chassis_split_count = 0
+    chassis_split_count = max(0, min(2, chassis_split_count))
+    chassis_days = max(int(_pf(form, "chassis_days") or CHASSIS_MIN_DAYS), CHASSIS_MIN_DAYS)
+    chassis_rate = TRIAXLE_DAY_RATE if (is_overweight or triaxle_on) else CHASSIS_DAY_RATE
+    chassis_rental = round(chassis_rate * chassis_days, 2)
+    chassis_split = round(CHASSIS_SPLIT_FEE * chassis_split_count, 2)
+    chassis_subtotal = round(chassis_rental + chassis_split, 2)
+    tolls = _pf(form, "tolls") or 0
+    extra_acc = _pf(form, "accessorials") or 0
+    acc_lines = []
+    if tolls:
+        acc_lines.append({"label": "Tolls", "amount": round(tolls, 2)})
+    if reefer_on:
+        acc_lines.append({"label": "Reefer", "amount": REEFER_FEE})
+    if is_overweight:
+        acc_lines.append({"label": "OW", "amount": OW_FEE})
+    if hazmat_on:
+        acc_lines.append({"label": "Hazmat", "amount": HAZMAT_FEE})
+    if layover_on:
+        acc_lines.append({"label": "Layover", "amount": LAYOVER_FEE})
+    if stop_off_on:
+        acc_lines.append({"label": "Stop-off", "amount": STOP_OFF_FEE})
+    if prepull_on:
+        acc_lines.append({"label": "Pre-Pull", "amount": PREPULL_FEE})
+    if residential_on:
+        acc_lines.append({"label": "Residential", "amount": RESIDENTIAL_FEE})
+    if extra_acc:
+        acc_lines.append({"label": "Other", "amount": round(extra_acc, 2)})
+    acc_total = round(sum(row["amount"] for row in acc_lines), 2)
+    quoted_total = round(linehaul + fsc + acc_total + chassis_subtotal, 2)
+    facility_role = "Receiver" if direction == "import" else "Shipper"
+    origin_terminal = (form.get("origin_terminal") or form.get("terminal") or "").strip()
+    return_terminal = (form.get("return_terminal") or origin_terminal).strip()
+    facility_name = (form.get("facility_name") or "").strip()
     quote = {
         "quote_number": quote_number,
         **COMPANY_INFO,
@@ -1325,38 +1463,52 @@ def dray_quote():
         "quote_notes": form.get("quote_notes", ""),
         "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
         "valid_until": valid_until,
+        **_customer_ctx(form),
+        **load_rep(),
     }
-    prepull_cost = _pf(form, "prepull_cost") or 0
     ctx = dict(
         quote=quote,
-        origin_zip=origin_zip,
-        dest_zip=dest_zip,
-        direction=form.get("direction", "import"),
-        terminal=form.get("terminal"),
-        container=form.get("container", "40FT"),
-        loaded_miles=_pf(form, "loaded_miles"),
-        empty_miles=_pf(form, "empty_miles") or 0,
-        accessorials=_pf(form, "accessorials") or 0,
-        prepull_cost=prepull_cost,
-        exposure=exposure,
-        delay=delay,
-        turn=turn,
-        tline=tline,
-        twindow=twindow,
-        stats=stats,
-        prediction=prediction,
-        co2=co2,
+        direction=direction,
+        container=container,
+        ssl_line=ssl_line,
+        reefer_on=reefer_on,
+        hazmat_on=hazmat_on,
+        triaxle_on=triaxle_on,
+        load_weight_lbs=load_weight_lbs,
+        is_overweight=is_overweight,
+        origin_terminal=origin_terminal,
+        return_terminal=return_terminal,
+        facility_name=facility_name,
+        facility_role=facility_role,
+        linehaul=linehaul,
+        fsc=fsc,
+        fsc_line=fsc_line,
+        acc_lines=acc_lines,
+        acc_total=acc_total,
+        chassis_split_count=chassis_split_count,
+        chassis_split=chassis_split,
+        chassis_days=chassis_days,
+        chassis_rate=chassis_rate,
+        chassis_rental=chassis_rental,
+        chassis_label="Triaxle chassis" if (is_overweight or triaxle_on) else "Standard chassis",
+        chassis_min_days=CHASSIS_MIN_DAYS,
+        quoted_total=quoted_total,
+        total_label=(
+            "Total (LH+FSC+Acc+Chassis)"
+            if (acc_lines or chassis_split_count)
+            else "Total (LH+FSC+Chassis)"
+        ),
         current_year=datetime.now().year,
         validity_days=validity_days,
     )
     save_quote(quote_number, "DRAY", origin_zip, dest_zip,
                quoted_transit_days=1,
-               quoted_cost=turn["total"], payload={**quote, "turn": turn, "exposure": exposure})
-    on_quote_issued(customer_name=form.get("customer_name", ""),
-                    contact_email=form.get("contact_email", ""),
+               quoted_cost=quoted_total, payload={**quote, "quoted_total": quoted_total})
+    on_quote_issued(customer_name=quote.get("customer_name", ""),
+                    contact_email=quote.get("contact_email", ""),
                     quote_number=quote_number, mode="DRAY",
-                    total=turn["total"], origin_zip=form.get("origin_zip", ""),
-                    dest_zip=form.get("dest_zip", ""), transit_days=1)
+                    total=quoted_total, origin_zip=origin_zip,
+                    dest_zip=dest_zip, transit_days=1)
     return render_template("dray_quote_output.html", **ctx)
 
 
@@ -1445,6 +1597,8 @@ def international_quote():
         "valid_until": valid_until,
         "transit_time_display": transit_time_display,
         "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
+        **_customer_ctx(data),
+        **load_rep(),
     }
 
     example_n = parsed["example_pallets"] if parsed["example_pallets"] else 1
@@ -1470,8 +1624,8 @@ def international_quote():
                 "waterfall_totals": wf_totals,
             },
         )
-        on_quote_issued(customer_name=data.get("customer_name", ""),
-                        contact_email=data.get("contact_email", ""),
+        on_quote_issued(customer_name=quote.get("customer_name", ""),
+                        contact_email=quote.get("contact_email", ""),
                         quote_number=qg.quote_number, mode="INTL",
                         total=quoted_cost, origin_zip=parsed["origin_text"],
                         dest_zip=parsed["destination_text"],

@@ -53,6 +53,14 @@ body {
 }
 
 .company-left img { height: 68px; object-fit: contain; }
+
+.logo-compact {
+    height: 88px;
+    width: auto;
+    max-width: 220px;
+    object-fit: contain;
+    background: transparent;
+}
 .company-center { flex: 1 1 auto; text-align: center; }
 .company-right { flex: 0 0 auto; text-align: right; min-width: 160px; }
 
@@ -64,47 +72,166 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
+.quote-letterhead .company-info {
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.quote-letterhead-copy {
+    text-align: center;
+    opacity: 0.95;
+    font-size: 12px;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+}
+
+.customer-band {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 12px;
+    background: var(--jf-pearl);
+    border: 1px solid var(--jf-hairline);
+    border-radius: 14px;
+    padding: 10px 16px;
+    margin: 0 0 14px;
+    color: var(--jf-ink);
+    text-align: center;
+}
+
+.customer-band-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--jf-navy);
+}
+
+.customer-band-body {
+    font-size: 14px;
+}
+
+.lane-city {
+    font-size: 11px;
+    opacity: 0.85;
+    margin-top: 0 !important;
+    font-weight: 400 !important;
+    min-height: 1.15em;
+    line-height: 1.15;
+}
+
+.dray-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.dray-split .section-title {
+    margin-bottom: 10px;
+}
+
+.dray-split .pricing-table {
+    margin-top: 0;
+}
+
+.dray-split .pricing-table td {
+    text-align: left;
+}
+
+.dray-split .pricing-table td.breakdown-total {
+    text-align: right;
+}
+
+.ledger-total td {
+    border-top: 2px solid var(--jf-navy);
+    font-weight: 600;
+}
+
+.accessorials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px 18px;
+}
+
+.accessorial-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--jf-hairline);
+    font-size: 12px;
+    text-align: left;
+}
+
+.accessorial-item span:first-child {
+    color: var(--jf-navy);
+    font-weight: 600;
+}
+
+.accessorial-item span:last-child {
+    color: var(--jf-muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+    .dray-split,
+    .accessorials-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .route-info {
     background: rgba(255, 255, 255, 0.12);
-    padding: 10px;
+    padding: 8px;
     border-radius: 14px;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .route-detail {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 10px;
+    align-items: stretch;
+    gap: 8px;
 }
 
 .location {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     text-align: center;
     background: rgba(255, 255, 255, 0.16);
-    padding: 14px 12px;
-    border-radius: 12px;
+    padding: 7px 10px;
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .location h3 {
-    font-size: 18px;
-    letter-spacing: 1.2px;
-    margin-bottom: 6px;
+    font-size: 14px;
+    letter-spacing: 0.8px;
+    margin-bottom: 2px;
     color: #fff;
     font-weight: 600;
     text-transform: uppercase;
+    line-height: 1.2;
 }
 
 .location p {
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-size: 13px;
+    margin-bottom: 0;
     color: #fff;
     font-weight: 400;
     line-height: 1.2;
 }
 
-.arrow { font-size: 22px; color: var(--jf-gold); }
+.arrow {
+    flex: 0 0 auto;
+    align-self: center;
+    font-size: 22px;
+    color: var(--jf-gold);
+}
 
 .route-summary {
     text-align: center;
@@ -145,6 +272,7 @@ body {
     border-bottom: 1px solid var(--jf-hairline);
     font-weight: 600;
     letter-spacing: -0.3px;
+    text-align: center;
 }
 
 .pricing-table {
@@ -690,26 +818,63 @@ body {
         gap: 10px;
     }
 
-    .company-left { padding: 0 0 0 12px !important; min-width: 0 !important; flex: 0 0 auto !important; }
+    .company-left { padding: 0 0 0 8px !important; min-width: 0 !important; flex: 0 0 auto !important; }
     .company-info img,
     .company-left img,
-    .company-left img[style] { height: 28px !important; }
+    .company-left img[style] { height: 28px !important; background: none !important; padding: 0 !important; }
+    .quote-letterhead .company-left img.logo-compact {
+        height: 72px !important;
+        width: auto !important;
+        max-width: 200px !important;
+        max-height: 72px !important;
+        background: none !important;
+        padding: 0 !important;
+    }
     .company-center { flex: 1 1 auto !important; min-width: 0 !important; font-size: 11px !important; }
     .company-right { flex: 0 0 auto !important; min-width: 0 !important; }
 
     .quote-title { font-size: 19px !important; margin: 4px 0 !important; line-height: 1.2 !important; }
     .quote-number,
+    .quote-letterhead-copy,
     .location p,
     .route-summary,
     .leg-row-name { font-size: 11px !important; }
 
-    .route-info { margin-top: 0; padding: 8px; break-inside: avoid; page-break-inside: avoid; }
-    .route-detail { gap: 8px; align-items: center; }
-    .location { padding: 8px; }
-    .location h3 { font-size: 13px !important; margin-bottom: 4px !important; letter-spacing: 0.8px !important; }
-    .location p { margin-bottom: 0 !important; line-height: 1.2 !important; }
-    .route-summary { margin-top: 8px !important; }
-    .arrow { font-size: 18px !important; }
+    .customer-band {
+        display: flex !important;
+        justify-content: center;
+        margin-bottom: 8px;
+        padding: 6px 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .customer-band-label { font-size: 9px !important; }
+    .customer-band-body { font-size: 11px !important; }
+
+    .section-title { text-align: center; }
+
+    .dray-split {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .accessorials-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 2px 10px;
+    }
+    .accessorial-item { font-size: 9px !important; padding: 3px 0; }
+
+    .route-info { margin-top: 0; padding: 6px; break-inside: avoid; page-break-inside: avoid; }
+    .route-detail { gap: 6px; align-items: stretch; }
+    .location { padding: 5px 8px; flex: 1 1 0; }
+    .location h3 { font-size: 12px !important; margin-bottom: 1px !important; letter-spacing: 0.6px !important; line-height: 1.15 !important; }
+    .location p { margin-bottom: 0 !important; line-height: 1.15 !important; font-size: 11px !important; }
+    .lane-city { margin-top: 0 !important; font-size: 10px !important; }
+    .route-summary { margin-top: 6px !important; }
+    .arrow { font-size: 14px !important; }
 
     .section {
         margin-bottom: 6px;
@@ -807,7 +972,7 @@ body {
     .legbar-track { height: 8px; }
     #section-shipping-recommendations { break-inside: avoid; page-break-inside: avoid; }
 
-    .section:not(#section-lanes), .header, .route-info {
+    .section:not(#section-lanes), .header, .route-info, .customer-band {
         break-inside: avoid;
         page-break-inside: avoid;
     }

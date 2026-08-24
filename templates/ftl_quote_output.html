@@ -8,24 +8,9 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="company-info">
-                <div class="company-left" style="display:flex;align-items:center;gap:12px;">
-                    <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" alt="Jericho Freight" style="height:68px;object-fit:contain;">
-                </div>
-                <div class="company-center">
-                    <div class="quote-title">{{ quote.title if quote.title else 'FTL Quote' }}</div>
-                </div>
-                <div class="company-right">
-                    <div class="quote-number">
-                        <div>Quote #: {{ quote.quote_number }}</div>
-                        <div>Date: {{ quote.current_date }}</div>
-                        <div>Valid Until: {{ quote.valid_until }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="route-info">
+        {% from 'partials/quote_header.html' import quote_shell with context %}
+        {% call quote_shell() %}
+        <div class="route-info">
                 <div class="route-detail">
                     <div class="location">
                         <h3>ORIGIN</h3>
@@ -49,8 +34,8 @@
                         {% if pallets %}| Pallets: {{ pallets|int }}{% endif %}
                     </small>
                 </div>
-            </div>
         </div>
+        {% endcall %}
 
         <div class="section" id="section-ledger">
             <h2 class="section-title">Guaranteed All-In Freight Ledger</h2>

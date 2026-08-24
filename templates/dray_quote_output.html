@@ -8,163 +8,136 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="company-info">
-                <div class="company-left" style="display:flex;align-items:center;gap:12px;">
-                    <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" alt="Jericho Freight" style="height:68px;object-fit:contain;">
+        {% from 'partials/quote_header.html' import quote_shell with context %}
+        {% set terminal_city = quote.origin_city or quote.origin_zip %}
+        {% set facility_city = quote.destination_city or quote.destination_zip %}
+        {% call quote_shell() %}
+        <div class="route-info">
+            <div class="route-detail">
+                <div class="location">
+                    <h3>Terminal</h3>
+                    <p>{{ origin_terminal or 'Origin terminal' }}</p>
+                    <p class="lane-city">{% if terminal_city %}{{ terminal_city }}{% else %}&nbsp;{% endif %}</p>
                 </div>
-                <div class="company-center">
-                    <div class="quote-title">{{ quote.title if quote.title else 'Drayage Quote' }}</div>
+                <div class="arrow">→</div>
+                <div class="location">
+                    <h3>{{ facility_role }}</h3>
+                    <p>{{ facility_name or facility_role }}</p>
+                    <p class="lane-city">{% if facility_city %}{{ facility_city }}{% else %}&nbsp;{% endif %}</p>
                 </div>
-                <div class="company-right">
-                    <div class="quote-number">
-                        <div>Quote #: {{ quote.quote_number }}</div>
-                        <div>Date: {{ quote.current_date }}</div>
-                        <div>Valid Until: {{ quote.valid_until }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="route-info">
-                <div class="route-detail">
-                    <div class="location">
-                        <h3>ORIGIN</h3>
-                        <p>{% if quote.origin_city %}{{ quote.origin_city }}, {% endif %}{{ quote.origin_zip }}</p>
-                    </div>
-                    <div class="arrow">→</div>
-                    <div class="location">
-                        <h3>DESTINATION</h3>
-                        <p>{% if quote.destination_city %}{{ quote.destination_city }}, {% endif %}{{ quote.destination_zip }}</p>
-                    </div>
-                </div>
-                <div class="route-summary">
-                    <small>
-                        {{ direction|capitalize }} · {{ terminal if terminal else 'Terminal' }} · {{ container }}
-                        {% if loaded_miles is not none %}| {{ loaded_miles }} mi loaded{% endif %}
-                        {% if empty_miles %} / {{ empty_miles }} mi return{% endif %}
-                        {% if twindow %}| {{ twindow.confidence_pct }}% window: {{ twindow.low if twindow.low > 0 else 0 }}–{{ twindow.high }} days{% endif %}
-                    </small>
+                <div class="arrow">→</div>
+                <div class="location">
+                    <h3>Return</h3>
+                    <p>{{ return_terminal or origin_terminal or 'Return terminal' }}</p>
+                    <p class="lane-city">{% if terminal_city %}{{ terminal_city }}{% else %}&nbsp;{% endif %}</p>
                 </div>
             </div>
         </div>
+        {% endcall %}
 
-        {% if tline %}
-        <div class="section" id="section-timeline">
-            <h2 class="section-title">Free-Time Countdown &amp; Timeline</h2>
-            <table class="pricing-table">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for e in tline.events %}
-                    <tr>
-                        <td><strong>{{ e.label }}</strong></td>
-                        <td>{{ e.date }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% if exposure.days_late is not none and exposure.days_late > 0 %}
-            <div class="optimization-alert util-alert">
-                <p class="action-line">Pickup {{ exposure.days_late }} day(s) past LFD {{ exposure.lfd }}. Demurrage ${{ '{:,.2f}'.format(exposure.demurrage) }}, per-diem ${{ '{:,.2f}'.format(exposure.per_diem) }}, chassis ${{ '{:,.2f}'.format(exposure.chassis_cost) }}.</p>
+        <div class="section dray-split" id="section-details">
+            <div class="dray-col">
+                <h2 class="section-title">Quote Details</h2>
+                <table class="pricing-table ledger-table">
+                    <tbody>
+                        <tr>
+                            <td>Shipment</td>
+                            <td class="breakdown-total">{{ direction|capitalize }} · {{ container }}</td>
+                        </tr>
+                        <tr>
+                            <td>SSL</td>
+                            <td class="breakdown-total">{{ ssl_line }}</td>
+                        </tr>
+                        {% if load_weight_lbs %}
+                        <tr>
+                            <td>Weight</td>
+                            <td class="breakdown-total">{{ load_weight_lbs|int }} lbs</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td>Reefer</td>
+                            <td class="breakdown-total">{{ 'Yes' if reefer_on else 'No' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Hazmat</td>
+                            <td class="breakdown-total">{{ 'Yes' if hazmat_on else 'No' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Overweight</td>
+                            <td class="breakdown-total">{{ 'Yes' if is_overweight else 'No' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Tri-axle</td>
+                            <td class="breakdown-total">{{ 'Yes' if triaxle_on else 'No' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            {% elif exposure.lfd %}
-            <p class="prov" style="margin-top:12px;">Pick on or before <strong>{{ tline.recommended_pickup }}</strong> to stay inside free time{% if tline.buffer_days %} ({{ tline.buffer_days }}-day congestion buffer){% endif %}.</p>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        {% if delay %}
-        <div class="section" id="section-breakeven">
-            <h2 class="section-title">Delay vs. Early Pull - Breakeven</h2>
-            <div class="kpi-row">
-                <div class="kpi-block">
-                    <div class="kpi-title">Cargo Holding</div>
-                    <div class="kpi-value">${{ '{:,.2f}'.format(delay.hold_daily) }}</div>
-                    <div class="kpi-note">per day</div>
-                </div>
-                <div class="kpi-block">
-                    <div class="kpi-title">Yard Cost</div>
-                    <div class="kpi-value">${{ '{:,.2f}'.format(delay.daily_delay_cost) }}/day</div>
-                    <div class="kpi-note">per day in yard</div>
-                </div>
-                {% if delay.prepull_justified_days is defined %}
-                <div class="kpi-block">
-                    <div class="kpi-title">Prepull Beats</div>
-                    <div class="kpi-value">{{ delay.prepull_justified_days }} days</div>
-                    <div class="kpi-note">${{ '{:,.2f}'.format(prepull_cost) }} early-pull cost</div>
-                </div>
-                {% endif %}
-            </div>
-            {% if delay.prepull_justified_days is defined %}
-            <p class="prov" style="margin-top:12px;">Paying <strong>${{ '{:,.2f}'.format(prepull_cost) }}</strong> to pull early beats {{ delay.prepull_justified_days }} days of yard time.</p>
-            {% endif %}
-            {% if delay.inventory_vs_demurrage %}
-            <p class="prov-est">{{ delay.inventory_vs_demurrage }}.</p>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        <div class="section" id="section-ledger">
-            <h2 class="section-title">Guaranteed All-In Freight Ledger</h2>
-            <table class="pricing-table ledger-table">
-                <thead>
-                    <tr>
-                        <th>Item Description</th>
-                        <th>Quoted All-In Cost</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td><strong>Linehaul</strong></td><td class="breakdown-total">${{ '{:,.2f}'.format(turn.linehaul) }}</td></tr>
-                    <tr><td><strong>Fuel surcharge</strong></td><td class="breakdown-total">${{ '{:,.2f}'.format(turn.fsc) }}</td></tr>
-                    <tr><td><strong>Chassis</strong></td><td class="breakdown-total">${{ '{:,.2f}'.format(turn.chassis) }}</td></tr>
-                    {% if accessorials %}
-                    <tr><td><strong>Accessorials</strong></td><td class="breakdown-total">${{ '{:,.2f}'.format(accessorials) }}</td></tr>
-                    {% endif %}
-                    <tr>
-                        <td><strong>All-in per turn</strong></td>
-                        <td class="breakdown-total"><span class="highlight">${{ '{:,.2f}'.format(turn.total) }}</span></td>
-                    </tr>
-                </tbody>
-            </table>
-            {% if turn.deadhead_pct is not none %}
-            <p class="prov-est" style="margin-top:12px;">Deadhead: {{ turn.deadhead_pct }}% of turn miles{% if turn.margin_pct is defined %} · margin {{ turn.margin_pct }}%{% endif %}.</p>
-            {% endif %}
-        </div>
-
-        {% if twindow %}
-        <div class="section" id="section-transit">
-            <h2 class="section-title">{{ twindow.confidence_pct }}% Pickup Window</h2>
-            <div class="transit-timeline">
-                <div class="transit-meta">
-                    <span><strong>Expected:</strong> {{ twindow.mean_days }} day(s)</span>
-                    <span><strong>Window:</strong> {{ twindow.low if twindow.low > 0 else 0 }}–{{ twindow.high }} days</span>
-                    <span><strong>σ:</strong> {{ twindow.sigma_days }} d</span>
-                </div>
-                {% include '_provenance.html' %}
-                {% if prediction %}
-                <p>History-backed interval: <strong>{{ prediction.low }}–{{ prediction.high }} days</strong>.</p>
-                {% endif %}
-                <p class="prov-est">Window covers appointments, congestion, and chassis availability.</p>
+            <div class="dray-col">
+                <h2 class="section-title">Pricing Details</h2>
+                <table class="pricing-table ledger-table">
+                    <tbody>
+                        <tr>
+                            <td>Line Haul</td>
+                            <td class="breakdown-total">${{ '{:,.2f}'.format(linehaul) }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ fsc_line }}</td>
+                            <td class="breakdown-total">${{ '{:,.2f}'.format(fsc) }}</td>
+                        </tr>
+                        {% for row in acc_lines %}
+                        <tr>
+                            <td>{{ row.label }}</td>
+                            <td class="breakdown-total">${{ '{:,.2f}'.format(row.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr>
+                            <td>{{ chassis_label }} (${{ chassis_rate|int }}/day, {{ chassis_min_days }}-day min)</td>
+                            <td class="breakdown-total">${{ '{:,.2f}'.format(chassis_rental) }}</td>
+                        </tr>
+                        {% if chassis_split_count %}
+                        <tr>
+                            <td>Chassis Split{% if chassis_split_count > 1 %} ({{ chassis_split_count }}){% endif %}</td>
+                            <td class="breakdown-total">${{ '{:,.2f}'.format(chassis_split) }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr class="ledger-total">
+                            <td><strong>{{ total_label }}</strong></td>
+                            <td class="breakdown-total"><span class="highlight">${{ '{:,.2f}'.format(quoted_total) }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        {% endif %}
 
-        {% if co2 %}
-        <div class="section" id="section-footprint">
-            <h2 class="section-title">Estimated Footprint</h2>
-            <div class="kpi-row">
-                <div class="kpi-block">
-                    <div class="kpi-title">CO₂</div>
-                    <div class="kpi-value">{{ co2 }} kg</div>
-                    <div class="kpi-note">Per turn, EPA ton-mile factor</div>
-                </div>
+        <div class="section" id="section-accessorials">
+            <h2 class="section-title">Accessorials</h2>
+            <div class="accessorials-grid">
+                <div class="accessorial-item"><span>Chassis</span><span>$50/day, 2-day min</span></div>
+                <div class="accessorial-item"><span>Triaxle</span><span>$100/day</span></div>
+                <div class="accessorial-item"><span>Chassis Split</span><span>$150</span></div>
+                <div class="accessorial-item"><span>Detention</span><span>$100/hr, 2 hrs free</span></div>
+                <div class="accessorial-item"><span>OW</span><span>$150</span></div>
+                <div class="accessorial-item"><span>OW Permit</span><span>$100</span></div>
+                <div class="accessorial-item"><span>Scale</span><span>$80</span></div>
+                <div class="accessorial-item"><span>Layover</span><span>$300</span></div>
+                <div class="accessorial-item"><span>Pre-Pull</span><span>$150</span></div>
+                <div class="accessorial-item"><span>Yard Storage</span><span>$60/Night</span></div>
+                <div class="accessorial-item"><span>Stop-off</span><span>$125</span></div>
+                <div class="accessorial-item"><span>Residential</span><span>$100</span></div>
+                <div class="accessorial-item"><span>Bonded</span><span>$150</span></div>
+                <div class="accessorial-item"><span>Reefer</span><span>$150</span></div>
+                <div class="accessorial-item"><span>Hazmat</span><span>$150</span></div>
+                <div class="accessorial-item"><span>Tanker</span><span>$150</span></div>
+                <div class="accessorial-item"><span>Redelivery</span><span>$150</span></div>
+                <div class="accessorial-item"><span>TONU</span><span>$250</span></div>
+                <div class="accessorial-item"><span>Drop&amp;Pick</span><span>80% of LH+FSC</span></div>
+                <div class="accessorial-item"><span>Ramp/Port Lift</span><span>$100-250</span></div>
+                <div class="accessorial-item"><span>Congestion</span><span>$50-300</span></div>
+                <div class="accessorial-item"><span>OverDims</span><span>As quoted</span></div>
+                <div class="accessorial-item"><span>Gates/PierPass/CTF</span><span>$30-160</span></div>
             </div>
         </div>
-        {% endif %}
 
         {% if quote.quote_notes %}
         <div class="section" id="section-notes">
