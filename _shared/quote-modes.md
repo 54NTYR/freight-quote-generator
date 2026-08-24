@@ -42,6 +42,4 @@ LTL on `mode_select.html` opens a hover menu: **Single Shipment Quote** or **Tie
 - JSON payload of lanes → legs (`parse_international_payload` in `app.py`)
 - Per-pallet cost = (sum of leg costs + `otherFees`) / example pallet count
 
-## Turning coming-soon into live
-
-Copy the LTL or International pair (whichever is closer), add a real route, and stop rendering `coming_soon.html` for that path. Spec that in `01_spec` before editing.
+All five modes are live. Spec a new mode in `01_spec` before adding a route.

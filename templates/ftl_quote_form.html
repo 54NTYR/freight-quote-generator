@@ -45,7 +45,7 @@
                             <input type="date" id="valid_until" name="valid_until">
                         </div>
                     </div>
-                    <input type="hidden" id="measured_miles" name="measured_miles" value="">
+                    <input type="hidden" id="manual_miles" name="manual_miles" value="">
                     <button type="button" class="btn btn-secondary" id="calc_distance_btn">Calculate Distance</button>
                     <div id="distance-info" class="distance-info"></div>
                     <div class="form-group" style="margin-top:16px;">
@@ -187,7 +187,7 @@
         const OPEN_DECK = {F: true, SD: true, HS: true, RGN: true, LB: true};
         const linehaulInput = document.getElementById('linehaul_flat');
         const rpmInput = document.getElementById('rpm');
-        const measuredInput = document.getElementById('measured_miles');
+        const measuredInput = document.getElementById('manual_miles');
         let lastPriceEdit = null;
 
         function measuredMiles() {

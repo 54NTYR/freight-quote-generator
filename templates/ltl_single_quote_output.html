@@ -91,7 +91,7 @@
       <h3>⚠️ Proactive Reclassification Insurance Notice</h3>
       <p><strong>Calculated Freight Density:</strong> {{ analytics.calculated_density }} lbs/cu ft | <strong>Estimated NMFC Class:</strong> {{ analytics.nmfc_class }}</p>
       <p>Carriers heavily audit single-shipment footprints. Based on your inputted dimensions, if your cargo overhangs the standard 48"x48" pallet boundary by even 2 inches, your freight class shifts to Class {{ analytics.higher_nmfc_class }}, triggering an automatic ${{ "%.2f"|format(analytics.penalty_fee) }} post-delivery correction fee from the terminal network.</p>
-      <p class="action-line">👉 Broker Action Taken: Our team has pre-vetted this profile with the local hub dispatcher to lock in this specific class rate, preventing post-delivery invoice discrepancies.</p>
+      <p class="action-line">👉 Action Taken: Our team has pre-vetted this profile with the local hub dispatcher to lock in this specific class rate, preventing post-delivery invoice discrepancies.</p>
     </div>
     {% endif %}
 

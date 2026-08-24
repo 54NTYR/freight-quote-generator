@@ -140,8 +140,9 @@
                                 <span class="field-hint">Historical average for this lane. Leave default to use distance estimate.</span>
                             </div>
                             <div class="form-group">
-                                <label for="transit_std_dev">Std Dev (s)</label>
-                                <input type="number" id="transit_std_dev" name="transit_std_dev" value="0.5" min="0" step="0.1" required>
+                                <label for="transit_std_dev">Estimate σ (days)</label>
+                                <input type="number" id="transit_std_dev" name="transit_std_dev" min="0" step="0.1" required>
+                                <span class="field-hint">Required. Used when this lane has no completed-move history.</span>
                             </div>
                             <div class="form-group">
                                 <label for="transit_sample_size">Sample Size (n)</label>
@@ -270,7 +271,6 @@
             max_chart_pallets: 14,
             max_trailer_pallets: 26,
             transit_mean_days: 3,
-            transit_std_dev: 0.5,
             transit_sample_size: 12,
             carbon_baseline_trips: 2,
             carbon_optimized_trips: 1,

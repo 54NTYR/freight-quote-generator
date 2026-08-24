@@ -557,11 +557,11 @@ def _truthy_flag(data, key):
 
 
 def _quote_distance(form, origin_zip, dest_zip, maps_miles):
+    """Maps miles, else operator manual_miles. Great-circle stays in
+    resolve_road_miles for callers that already have coordinates."""
     return ac.resolve_road_miles(
         maps_miles=maps_miles,
         manual_miles=form.get("manual_miles") if form is not None else None,
-        origin_coords=None,
-        dest_coords=None,
     )
 
 
@@ -765,7 +765,7 @@ def parse_single_ltl_form(form):
     }
 
 
-def calculate_single_ltl_analytics(payload, miles, sample_size=12):
+def calculate_single_ltl_analytics(payload, miles, sample_size):
     pallet_count = payload["pallet_count"]
     length = payload["pallet_length"]
     width = payload["pallet_width"]
@@ -1181,14 +1181,7 @@ def ftl_quote():
         form.get("dest_city", ""), dest_zip,
     )
     maps_result = quote_generator.calculate_distance(origin_zip, dest_zip)
-    miles = ac.resolve_road_miles(
-        maps_miles=maps_result,
-        manual_miles=None,
-        origin_coords=None,
-        dest_coords=None,
-    )
-    if not miles:
-        miles = _pf(form, "measured_miles")
+    miles = _quote_distance(form, origin_zip, dest_zip, maps_result)
     cost = ftl_mod.assemble_cost(
         equipment, miles, _pf(form, "linehaul_flat"), rpm=_pf(form, "rpm") or ftl_mod.DEFAULT_RPM,
         fsc_pct=_pf(form, "fsc_pct"), continuous_run=bool(form.get("continuous_run")),

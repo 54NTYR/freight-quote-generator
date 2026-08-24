@@ -17,7 +17,7 @@ Do NOT load: `stages/02_implement`, `stages/03_ship`, installer scripts, PDF JS 
 
 1. Copy `_templates/change-spec.md` to `output/change-spec.md`.
 2. Fill Kind, Mode, Intent, Files, Out of scope, and the implement-time human check.
-3. Name exact repo paths. If adding FTL or Dray, say which live mode to copy and that `coming_soon.html` must stop being that route's body.
+3. Name exact repo paths. If adding a mode, say which live mode to copy.
 4. Stop. Do not edit Python, HTML, or CSS in this stage.
 
 ## Outputs

@@ -21,7 +21,7 @@
   <h3>Landed Cost Waterfall</h3>
   {% for label, amt in waterfall %}<div class="wf-row"><span>{{ label }}</span><span>${{ '{:,.2f}'.format(amt) }}</span></div>{% endfor %}
   <div class="wf-row wf-total"><span>LANDED TOTAL</span><span>${{ '{:,.2f}'.format(waterfall_totals.landed_total) }}</span></div>
-  <p class="prov-est">Duty & taxes payable by: {{ waterfall_totals.duty_payer }}. Rates are broker estimates — confirm with customs broker at booking.</p>
+  <p class="prov-est">Duty & taxes payable by: {{ waterfall_totals.duty_payer }}. Rates are estimates — confirm with customs broker at booking.</p>
 </div>
 {% endif %}
 
