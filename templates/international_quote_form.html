@@ -18,6 +18,16 @@
             <div class="form-section">
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="customer_name">Customer name</label>
+                        <input id="customer_name" placeholder="e.g., Acme Foods">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact_email">Contact email</label>
+                        <input id="contact_email" type="email" placeholder="e.g., receiving@acme.com">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label for="quote_name">Quote Title</label>
                         <input id="quote_name" value="Cartagena International Quote">
                     </div>
@@ -280,6 +290,8 @@
         // Draft persistence: save to localStorage
         function saveDraft(){
             const draft = {
+                customer_name: document.getElementById('customer_name') ? document.getElementById('customer_name').value : '',
+                contact_email: document.getElementById('contact_email') ? document.getElementById('contact_email').value : '',
                 quote_name: document.getElementById('quote_name').value,
                 origin_text: document.getElementById('origin_text').value,
                 destination_text: document.getElementById('destination_text').value,
@@ -328,6 +340,8 @@
             if (!raw) return false;
             try{
                 const draft = JSON.parse(raw);
+                if (document.getElementById('customer_name')) document.getElementById('customer_name').value = draft.customer_name || '';
+                if (document.getElementById('contact_email')) document.getElementById('contact_email').value = draft.contact_email || '';
                 document.getElementById('quote_name').value = draft.quote_name || '';
                 document.getElementById('origin_text').value = draft.origin_text || '';
                 document.getElementById('destination_text').value = draft.destination_text || '';
@@ -368,6 +382,10 @@
         const notesEl = document.getElementById('quote_notes');
         if (notesEl) notesEl.addEventListener('input', saveDraft);
         if (validInput) validInput.addEventListener('change', saveDraft);
+        ['customer_name', 'contact_email'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', saveDraft);
+        });
 
         // clear draft when user clicks the cancel/main menu link
         const cancelLink = document.querySelector('a[href="/"]');
@@ -395,6 +413,8 @@
             });
 
             const payload = {
+                customer_name: document.getElementById('customer_name') ? document.getElementById('customer_name').value : '',
+                contact_email: document.getElementById('contact_email') ? document.getElementById('contact_email').value : '',
                 quote_name: quote,
                 origin_text: origin,
                 destination_text: destination,

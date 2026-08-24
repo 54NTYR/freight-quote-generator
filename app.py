@@ -19,6 +19,7 @@ import ftl as ftl_mod
 import intl as intl_mod
 from admin_routes import admin_bp
 from config import COMPANY_INFO, ensure_config_file, load_config, load_google_maps_api_key
+from crm_bridge import on_quote_issued
 from lane_stats import prediction_interval_days, resolve_lane_stats
 from paths import data_path, resource_dir
 from storage import init_db, save_quote
@@ -1070,6 +1071,12 @@ def ltl_tiered_quote():
         quoted_cost=quoted_cost,
         payload=quote,
     )
+    form = request.form
+    on_quote_issued(customer_name=form.get("customer_name", ""),
+                    contact_email=form.get("contact_email", ""),
+                    quote_number=quote_generator.quote_number, mode="LTL",
+                    total=quoted_cost, origin_zip=form.get("origin_zip", ""),
+                    dest_zip=_form_dest_zip(form), transit_days=_stats["mu"])
 
     return render_template(
         "ltl_quote_output.html",
@@ -1150,6 +1157,12 @@ def ltl_single_quote():
         quoted_cost=payload["total_cost"],
         payload=quote,
     )
+    form = request.form
+    on_quote_issued(customer_name=form.get("customer_name", ""),
+                    contact_email=form.get("contact_email", ""),
+                    quote_number=quote_generator.quote_number, mode="LTL",
+                    total=payload["total_cost"], origin_zip=form.get("origin_zip", ""),
+                    dest_zip=_form_dest_zip(form), transit_days=_stats["mu"])
 
     return render_template(
         "ltl_single_quote_output.html",
@@ -1243,6 +1256,12 @@ def ftl_quote():
     save_quote(quote_number, "FTL", origin_zip, dest_zip,
                quoted_transit_days=(transit or {}).get("mean_days"),
                quoted_cost=cost["total"], payload={**quote, "miles": miles, "cost": cost})
+    on_quote_issued(customer_name=form.get("customer_name", ""),
+                    contact_email=form.get("contact_email", ""),
+                    quote_number=quote_number, mode="FTL",
+                    total=cost["total"], origin_zip=form.get("origin_zip", ""),
+                    dest_zip=form.get("dest_zip", ""),
+                    transit_days=(transit or {}).get("mean_days"))
     return render_template("ftl_quote_output.html", **ctx)
 
 
@@ -1333,6 +1352,11 @@ def dray_quote():
     save_quote(quote_number, "DRAY", origin_zip, dest_zip,
                quoted_transit_days=1,
                quoted_cost=turn["total"], payload={**quote, "turn": turn, "exposure": exposure})
+    on_quote_issued(customer_name=form.get("customer_name", ""),
+                    contact_email=form.get("contact_email", ""),
+                    quote_number=quote_number, mode="DRAY",
+                    total=turn["total"], origin_zip=form.get("origin_zip", ""),
+                    dest_zip=form.get("dest_zip", ""), transit_days=1)
     return render_template("dray_quote_output.html", **ctx)
 
 
@@ -1446,6 +1470,12 @@ def international_quote():
                 "waterfall_totals": wf_totals,
             },
         )
+        on_quote_issued(customer_name=data.get("customer_name", ""),
+                        contact_email=data.get("contact_email", ""),
+                        quote_number=qg.quote_number, mode="INTL",
+                        total=quoted_cost, origin_zip=parsed["origin_text"],
+                        dest_zip=parsed["destination_text"],
+                        transit_days=transit["mean_days"] if transit else None)
 
     return render_template(
         "international_quote_output.html",

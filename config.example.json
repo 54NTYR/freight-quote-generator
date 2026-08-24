@@ -1,4 +1,9 @@
 {
   "google_maps_api_key": "YOUR_GOOGLE_MAPS_API_KEY_HERE",
-  "confidence_level": 0.90
+  "confidence_level": 0.90,
+  "crm": {
+    "base_url": "http://localhost:3000",
+    "api_key": "",
+    "webhook_quote_issued": ""
+  }
 }

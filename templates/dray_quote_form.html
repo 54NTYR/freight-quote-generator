@@ -18,6 +18,20 @@
 
             <form id="quoteForm" method="POST" action="{{ url_for('dray_quote') }}">
                 <div class="form-section">
+                    <h2 class="section-title">Customer</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customer_name">Customer name</label>
+                            <input type="text" id="customer_name" name="customer_name" placeholder="e.g., Acme Foods">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact_email">Contact email</label>
+                            <input type="email" id="contact_email" name="contact_email" placeholder="e.g., receiving@acme.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
                     <h2 class="section-title">Route / Lane</h2>
                     <div class="form-row">
                         <div class="form-group">
