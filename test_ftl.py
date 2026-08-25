@@ -31,8 +31,10 @@ def test_utilization_thresholds():
 def test_cost_reefer_extras():
     c = ftl.assemble_cost("R", 1000, linehaul_flat=2000,
                           fsc_pct=20, continuous_run=True, precool=True)
-    # 2000 + 400 fsc + 160 continuous + 75 precool
-    assert c["total"] == 2635.0
+    # 2000 + 400 fsc + 75 precool (continuous run has no fee)
+    assert c["total"] == 2475.0
+    labels = [label for label, _amt in c["lines"]]
+    assert "Reefer continuous run (+8%)" not in labels
 
 
 def test_cost_flatbed_tarps_and_detention():

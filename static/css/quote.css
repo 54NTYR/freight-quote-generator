@@ -148,16 +148,38 @@ body {
 }
 
 .accessorials-grid {
+    --acc-col-gap: 28px;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px 18px;
+    column-gap: var(--acc-col-gap);
+    row-gap: 6px;
+    position: relative;
+}
+
+.accessorials-grid::before,
+.accessorials-grid::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--jf-navy);
+    pointer-events: none;
+}
+
+.accessorials-grid::before {
+    left: calc((100% - 2 * var(--acc-col-gap)) / 3 + var(--acc-col-gap) / 2);
+}
+
+.accessorials-grid::after {
+    left: calc((100% - 2 * var(--acc-col-gap)) * 2 / 3 + var(--acc-col-gap) * 1.5);
 }
 
 .accessorial-item {
     display: flex;
     justify-content: space-between;
     gap: 10px;
-    padding: 6px 0;
+    padding: 6px 4px;
     border-bottom: 1px solid var(--jf-hairline);
     font-size: 12px;
     text-align: left;
@@ -179,6 +201,16 @@ body {
     .accessorials-grid {
         grid-template-columns: 1fr;
     }
+
+    .accessorials-grid {
+        background-image: none;
+        column-gap: 0;
+    }
+
+    .accessorials-grid::before,
+    .accessorials-grid::after {
+        content: none;
+    }
 }
 
 .route-info {
@@ -193,6 +225,7 @@ body {
     justify-content: space-between;
     align-items: stretch;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .location {
@@ -862,10 +895,28 @@ body {
     }
 
     .accessorials-grid {
+        --acc-col-gap: 20px;
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 2px 10px;
+        column-gap: var(--acc-col-gap);
+        row-gap: 2px;
+        position: relative;
     }
-    .accessorial-item { font-size: 9px !important; padding: 3px 0; }
+    .accessorials-grid::before,
+    .accessorials-grid::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: var(--jf-navy);
+    }
+    .accessorials-grid::before {
+        left: calc((100% - 2 * var(--acc-col-gap)) / 3 + var(--acc-col-gap) / 2);
+    }
+    .accessorials-grid::after {
+        left: calc((100% - 2 * var(--acc-col-gap)) * 2 / 3 + var(--acc-col-gap) * 1.5);
+    }
+    .accessorial-item { font-size: 9px !important; padding: 3px 4px; }
 
     .route-info { margin-top: 0; padding: 6px; break-inside: avoid; page-break-inside: avoid; }
     .route-detail { gap: 6px; align-items: stretch; }

@@ -9,27 +9,28 @@
 <body>
     <div class="container">
         {% from 'partials/quote_header.html' import quote_shell with context %}
-        {% set terminal_city = quote.origin_city or quote.origin_zip %}
-        {% set facility_city = quote.destination_city or quote.destination_zip %}
+        {% set stops = facilities if facilities else [{'name': facility_name, 'place_line': ''}] %}
         {% call quote_shell() %}
         <div class="route-info">
             <div class="route-detail">
                 <div class="location">
-                    <h3>Terminal</h3>
+                    <h3>{{ origin_label or 'Origin' }}</h3>
                     <p>{{ origin_terminal or 'Origin terminal' }}</p>
-                    <p class="lane-city">{% if terminal_city %}{{ terminal_city }}{% else %}&nbsp;{% endif %}</p>
+                    <p class="lane-city">{% if origin_line %}{{ origin_line }}{% else %}&nbsp;{% endif %}</p>
                 </div>
+                {% for fac in stops %}
                 <div class="arrow">→</div>
                 <div class="location">
-                    <h3>{{ facility_role }}</h3>
-                    <p>{{ facility_name or facility_role }}</p>
-                    <p class="lane-city">{% if facility_city %}{{ facility_city }}{% else %}&nbsp;{% endif %}</p>
+                    <h3>{{ facility_role }}{% if stops|length > 1 %} {{ loop.index }}{% endif %}</h3>
+                    <p>{{ fac.name or facility_role }}</p>
+                    <p class="lane-city">{% if fac.place_line %}{{ fac.place_line }}{% else %}&nbsp;{% endif %}</p>
                 </div>
+                {% endfor %}
                 <div class="arrow">→</div>
                 <div class="location">
-                    <h3>Return</h3>
+                    <h3>{{ return_label or 'Return' }}</h3>
                     <p>{{ return_terminal or origin_terminal or 'Return terminal' }}</p>
-                    <p class="lane-city">{% if terminal_city %}{{ terminal_city }}{% else %}&nbsp;{% endif %}</p>
+                    <p class="lane-city">{% if return_line %}{{ return_line }}{% else %}&nbsp;{% endif %}</p>
                 </div>
             </div>
         </div>

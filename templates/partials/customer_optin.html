@@ -23,6 +23,7 @@
     if (!box || !fields) return;
     function sync() { fields.hidden = !box.checked; }
     box.addEventListener('change', sync);
+    window.addEventListener('pageshow', sync);
     sync();
 })();
 </script>

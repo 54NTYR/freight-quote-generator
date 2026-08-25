@@ -12,6 +12,8 @@ build/signing.local.json
 data/*.db
 config.json
 quote_counter.json
+dray_quote_history.json
+terminals.local.json
 tmp_*.html
 test_international_output.html
 Quote*.html

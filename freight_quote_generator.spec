@@ -10,6 +10,7 @@ if not os.path.exists(icon_file):
 datas = [
     ("templates", "templates"),
     ("config.example.json", "."),
+    ("terminals.json", "."),
 ]
 
 if os.path.isdir("static"):

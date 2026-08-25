@@ -71,10 +71,6 @@ def assemble_cost(equipment, miles, linehaul_flat=None, rpm=DEFAULT_RPM,
     extras, lines = 0.0, [("Linehaul", round(linehaul, 2)),
                           ("Fuel surcharge", round(fsc, 2))]
     if equipment in REEFER_CODES:
-        if continuous_run:
-            c = linehaul * REEFER_SURCHARGES["continuous_run_pct"]
-            extras += c
-            lines.append(("Reefer continuous run (+8%)", round(c, 2)))
         if precool:
             extras += REEFER_SURCHARGES["precool_fee"]
             lines.append(("Pre-cool", REEFER_SURCHARGES["precool_fee"]))

@@ -1,0 +1,36 @@
+{
+  "terminals": [
+    {
+      "id": "472e804e0a5d438ab0ecd27bf30cbd42",
+      "name": "Conglobal Industries",
+      "address": "2400 Creekway Dr",
+      "city": "S Columbus",
+      "state": "OH",
+      "zip": "43207"
+    },
+    {
+      "id": "bcddf5698a264d9a8e675f85c2e3b7f0",
+      "name": "NS Rickenbacker",
+      "address": "3329 Thoroughbred Dr",
+      "city": "Columbus",
+      "state": "OH",
+      "zip": "43217"
+    },
+    {
+      "id": "e873396110a141fba650debe113b6efa",
+      "name": "Barbours Cut Terminal",
+      "address": "Barbours Cut Terminal",
+      "city": "Morgan's Point",
+      "state": "TX",
+      "zip": "77571"
+    },
+    {
+      "id": "9008eaccefc942348298d04e20ae543f",
+      "name": "NS Cleveland",
+      "address": "5300 Greenhurst Extension",
+      "city": "Maple Heights",
+      "state": "OH",
+      "zip": "44137"
+    }
+  ]
+}

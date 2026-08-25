@@ -6,7 +6,7 @@
     <title>Drayage Quote - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body>
+<body class="dray-form-page">
     <div class="container">
         {% set header_subtitle = 'Drayage Quote Builder' %}
         {% include 'partials/page_header.html' %}
@@ -21,6 +21,12 @@
 
                 <div class="form-section">
                     <h2 class="section-title">Route / Lane</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="valid_until">Valid Until</label>
+                            <input type="date" id="valid_until" name="valid_until">
+                        </div>
+                    </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="direction">Direction</label>
@@ -46,39 +52,67 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row terminal-row">
                         <div class="form-group">
-                            <label for="origin_terminal">Origin terminal</label>
-                            <input type="text" id="origin_terminal" name="origin_terminal" placeholder="e.g., Maher, APMT">
+                            <div class="label-with-action">
+                                <label for="origin_terminal" id="origin_terminal_label">Full OUT</label>
+                                <button type="button" class="icon-plus" id="add_terminal_btn" aria-label="Add terminal">+</button>
+                            </div>
+                            <div class="suggest-wrap" data-terminal-field="origin">
+                                <input type="text" id="origin_terminal" name="origin_terminal" placeholder="Search terminals" autocomplete="off">
+                                <input type="hidden" id="origin_terminal_id" name="origin_terminal_id">
+                                <input type="hidden" id="origin_zip" name="origin_zip">
+                                <input type="hidden" id="origin_city" name="origin_city">
+                                <input type="hidden" id="origin_state" name="origin_state">
+                                <div class="suggest-list" hidden></div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="facility_name" id="facility_label">Receiver</label>
-                            <input type="text" id="facility_name" name="facility_name" placeholder="Facility name">
-                        </div>
-                        <div class="form-group">
-                            <label for="return_terminal">Return terminal</label>
-                            <input type="text" id="return_terminal" name="return_terminal" placeholder="Same as origin if blank">
+                            <label for="return_terminal" id="return_terminal_label">Empty IN</label>
+                            <div class="suggest-wrap" data-terminal-field="return">
+                                <input type="text" id="return_terminal" name="return_terminal" placeholder="Search terminals" autocomplete="off">
+                                <input type="hidden" id="return_terminal_id" name="return_terminal_id">
+                                <input type="hidden" id="return_zip" name="return_zip">
+                                <input type="hidden" id="return_city" name="return_city">
+                                <input type="hidden" id="return_state" name="return_state">
+                                <div class="suggest-list" hidden></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="origin_city">Origin city</label>
-                            <input type="text" id="origin_city" name="origin_city" placeholder="e.g., Newark">
-                        </div>
-                        <div class="form-group">
-                            <label for="origin_zip">Origin ZIP Code</label>
-                            <input type="text" id="origin_zip" name="origin_zip" required placeholder="e.g., 07114">
+                    <div id="facility_list">
+                        <div class="facility-block" data-facility>
+                            <div class="form-group">
+                                <label class="facility-search-label" for="facility_search_0">Receiver</label>
+                                <div class="suggest-wrap" data-places-field="facility">
+                                    <input type="text" id="facility_search_0" name="facility_name" class="facility-search" placeholder="Search an address" autocomplete="off">
+                                    <div class="suggest-list" hidden></div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Address</label>
+                                    <input type="text" name="facility_address" placeholder="Address">
+                                </div>
+                                <div class="form-group">
+                                    <label>Facility City</label>
+                                    <input type="text" name="facility_city" placeholder="City">
+                                </div>
+                                <div class="form-group">
+                                    <label>Facility State</label>
+                                    <input type="text" name="facility_state" maxlength="2" placeholder="ST">
+                                </div>
+                                <div class="form-group">
+                                    <label>Facility Zip</label>
+                                    <input type="text" name="facility_zip" class="facility-zip" placeholder="ZIP">
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    <button type="button" class="icon-plus facility-add" id="add_facility_btn" aria-label="Add facility">+</button>
+                    <p id="prepull_miles_warning" class="field-warning" hidden>
+                        Given the one-way distance is over {{ prepull_miles_threshold|default(150) }} miles, we should consider prepull.
+                    </p>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="dest_city">Facility city</label>
-                            <input type="text" id="dest_city" name="dest_city" placeholder="e.g., Allentown">
-                        </div>
-                        <div class="form-group">
-                            <label for="dest_zip">Facility ZIP</label>
-                            <input type="text" id="dest_zip" name="dest_zip" placeholder="e.g., 18101">
-                        </div>
                         <div class="form-group">
                             <label for="load_weight_lbs">Load weight (lbs)</label>
                             <input type="number" id="load_weight_lbs" name="load_weight_lbs" min="0" step="1" placeholder="e.g., 42000">
@@ -87,46 +121,41 @@
                             </p>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="valid_until">Valid Until</label>
-                            <input type="date" id="valid_until" name="valid_until">
-                        </div>
-                    </div>
                 </div>
 
                 <div class="form-section">
                     <h2 class="section-title">Accessorials</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="reefer">Reefer</label>
-                            <select id="reefer" name="reefer">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="hazmat">Hazmat</label>
-                            <select id="hazmat" name="hazmat">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="overweight">Overweight</label>
-                            <select id="overweight" name="overweight">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                        </div>
+                    <div class="accessorial-checks">
+                        <label class="checkbox-row" for="prepull">
+                            <input type="checkbox" id="prepull" name="prepull" value="on"> Prepull
+                        </label>
+                        <label class="checkbox-row" for="reefer">
+                            <input type="checkbox" id="reefer" name="reefer" value="on"> Reefer
+                        </label>
+                        <label class="checkbox-row" for="hazmat">
+                            <input type="checkbox" id="hazmat" name="hazmat" value="on"> Hazmat
+                        </label>
+                        <label class="checkbox-row" for="layover">
+                            <input type="checkbox" id="layover" name="layover" value="on"> Layover
+                        </label>
+                        <label class="checkbox-row" for="stop_off">
+                            <input type="checkbox" id="stop_off" name="stop_off" value="on"> Stop-off
+                        </label>
+                        <label class="checkbox-row" for="residential">
+                            <input type="checkbox" id="residential" name="residential" value="on"> Residential
+                        </label>
+                        <label class="checkbox-row" for="overweight">
+                            <input type="checkbox" id="overweight" name="overweight" value="on"> Overweight
+                        </label>
+                        <label class="checkbox-row" for="triaxle">
+                            <input type="checkbox" id="triaxle" name="triaxle" value="on"> Triaxle
+                        </label>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="triaxle">Tri-axle</label>
-                            <select id="triaxle" name="triaxle">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
+                            <label for="chassis_days">Chassis days</label>
+                            <input type="number" id="chassis_days" name="chassis_days" min="2" step="1" value="2">
+                            <span class="field-hint">2-day minimum.</span>
                         </div>
                         <div class="form-group">
                             <label for="chassis_split">Chassis split</label>
@@ -134,43 +163,6 @@
                                 <option value="0" selected>0</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="chassis_days">Chassis days</label>
-                            <input type="number" id="chassis_days" name="chassis_days" min="2" step="1" value="2">
-                            <span class="field-hint">2-day minimum.</span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="layover">Layover</label>
-                            <select id="layover" name="layover">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="stop_off">Stop-off</label>
-                            <select id="stop_off" name="stop_off">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="prepull">Prepull</label>
-                            <select id="prepull" name="prepull">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="residential">Residential</label>
-                            <select id="residential" name="residential">
-                                <option value="no">No</option>
-                                <option value="yes">Yes</option>
                             </select>
                         </div>
                     </div>
@@ -213,45 +205,54 @@
         </div>
     </div>
 
-    <script>
-        const validInput = document.getElementById('valid_until');
-        if (validInput && !validInput.value) {
-            const d = new Date();
-            d.setDate(d.getDate() + 7);
-            validInput.value = d.toISOString().slice(0, 10);
-        }
-        const direction = document.getElementById('direction');
-        const facilityLabel = document.getElementById('facility_label');
-        function syncFacilityLabel() {
-            if (!facilityLabel || !direction) return;
-            facilityLabel.textContent = direction.value === 'export' ? 'Shipper' : 'Receiver';
-        }
-        if (direction) direction.addEventListener('change', syncFacilityLabel);
-        syncFacilityLabel();
+    <aside class="dray-live-totals" id="drayLiveTotals" aria-label="Quote total">
+        <span id="live_total">$0.00</span>
+    </aside>
 
-        const owLimit = {{ overweight_lbs_threshold|default(44000) }};
-        const loadWeight = document.getElementById('load_weight_lbs');
-        const overweightSelect = document.getElementById('overweight');
-        const owWarning = document.getElementById('overweight_warning');
-        function syncOverweightWarning() {
-            if (!loadWeight || !overweightSelect || !owWarning) return;
-            const weight = parseFloat(loadWeight.value);
-            const overLimit = Number.isFinite(weight) && weight > owLimit;
-            const marked = overweightSelect.value === 'yes';
-            owWarning.hidden = !(overLimit && !marked);
-        }
-        if (loadWeight) loadWeight.addEventListener('input', syncOverweightWarning);
-        if (overweightSelect) overweightSelect.addEventListener('change', syncOverweightWarning);
-        syncOverweightWarning();
+    <div class="modal-overlay" id="terminal_modal" hidden>
+        <div class="modal-card" role="dialog" aria-labelledby="terminal_modal_title" aria-modal="true">
+            <h2 id="terminal_modal_title">Add terminal</h2>
+            <p class="field-hint">Search the address with Google, then save it to the terminal list.</p>
+            <div class="form-group">
+                <label for="new_terminal_name">Terminal Name</label>
+                <input type="text" id="new_terminal_name" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="new_terminal_address">Address</label>
+                <div class="suggest-wrap" data-places-field="terminal">
+                    <input type="text" id="new_terminal_address" autocomplete="off" placeholder="Start typing an address">
+                    <div class="suggest-list" hidden></div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="new_terminal_city">City</label>
+                    <input type="text" id="new_terminal_city" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="new_terminal_state">State</label>
+                    <input type="text" id="new_terminal_state" maxlength="2" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="new_terminal_zip">ZIP</label>
+                    <input type="text" id="new_terminal_zip" autocomplete="off">
+                </div>
+            </div>
+            <p class="form-error" id="terminal_modal_error" hidden></p>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" id="save_terminal_btn">Save terminal</button>
+                <button type="button" class="btn btn-secondary" id="cancel_terminal_btn">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-        const fscMode = document.getElementById('fsc_mode');
-        const fscLabel = document.getElementById('fsc_value_label');
-        function syncFscLabel() {
-            if (!fscMode || !fscLabel) return;
-            fscLabel.textContent = fscMode.value === 'percent' ? 'Percentage (%)' : 'Amount ($)';
-        }
-        if (fscMode) fscMode.addEventListener('change', syncFscLabel);
-        syncFscLabel();
-    </script>
+    <script type="application/json" id="dray-form-config">{{ {
+        "rates": dray_rates,
+        "previousQuotes": previous_quotes,
+        "overweightLbs": overweight_lbs_threshold,
+        "prepullMiles": prepull_miles_threshold,
+        "mapsKey": maps_api_key
+    }|tojson }}</script>
+    <script src="{{ url_for('static', filename='js/dray_form.js') }}"></script>
 </body>
 </html>

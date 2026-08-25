@@ -1,8 +1,19 @@
-<div class="header">
+<div class="header{% if previous_quotes is defined %} has-header-actions{% endif %}">
     <img src="{{ url_for('static', filename='img/jericho-freight-logo-blue.png') }}" class="logo-img" alt="Jericho Freight">
     {% if header_subtitle %}
     <div class="header-info">
         <div class="subtitle">{{ header_subtitle }}</div>
+    </div>
+    {% endif %}
+    {% if previous_quotes is defined %}
+    <div class="header-actions">
+        <label for="load_previous_quote">Load Previous Quote</label>
+        <select id="load_previous_quote">
+            <option value="">Select a quote</option>
+            {% for row in previous_quotes %}
+            <option value="{{ row.quote_number }}">{{ row.label }}</option>
+            {% endfor %}
+        </select>
     </div>
     {% endif %}
 </div>

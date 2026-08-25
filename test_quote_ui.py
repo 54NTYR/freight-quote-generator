@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from werkzeug.datastructures import MultiDict
+
 import app as appmod
 
 FAKE_REP = {"rep_name": "Alex Rivera", "rep_email": "alex@jerichofreight.com"}
@@ -64,6 +66,27 @@ def test_dray_form_fields():
     assert 'name="fsc_mode"' in html
     assert 'name="fsc_value"' in html
     assert "This load is overweight" in html
+    assert "Load Previous Quote" in html
+    assert "Full OUT" in html
+    assert "Empty IN" in html
+    assert "Origin city" not in html
+    assert "Origin ZIP" not in html
+    assert "consider prepull" in html
+    assert 'id="add_terminal_btn"' in html
+    assert 'name="facility_state"' in html
+    assert 'name="facility_address"' in html
+    assert 'name="facility_name"' in html
+    assert 'id="drayLiveTotals"' in html
+    assert 'id="live_total"' in html
+    assert 'id="live_lh"' not in html
+    assert 'id="prepull"' in html
+    acc = html[html.index('class="accessorial-checks"'):]
+    assert acc.find("Prepull") < acc.find("Reefer") < acc.find("Hazmat") < acc.find("Layover")
+    assert acc.find("Layover") < acc.find("Stop-off") < acc.find("Residential") < acc.find("Overweight")
+    assert acc.find("Overweight") < acc.find("Triaxle")
+    assert html.find("Chassis days") < html.find("Chassis split")
+    assert 'select id="reefer"' not in html
+    assert "pageshow" in html
 
 
 def test_dray_quote_output_layout_and_pricing():
@@ -71,10 +94,12 @@ def test_dray_quote_output_layout_and_pricing():
             patch("app.load_rep", return_value=FAKE_REP), \
             patch.object(appmod.QuoteGenerator, "_next_quote_number", return_value=4242), \
             patch("app.save_quote"), \
+            patch("app.record_dray_quote"), \
             patch("app.on_quote_issued"):
         response = _client().post("/dray", data={
             "origin_zip": "07114",
             "origin_city": "Newark",
+            "origin_state": "NJ",
             "dest_city": "Allentown",
             "dest_zip": "18101",
             "direction": "import",
@@ -83,6 +108,10 @@ def test_dray_quote_output_layout_and_pricing():
             "origin_terminal": "Maher",
             "return_terminal": "Maher",
             "facility_name": "Acme DC",
+            "facility_address": "1200 N Cedar Crest Blvd",
+            "facility_city": "Allentown",
+            "facility_state": "PA",
+            "facility_zip": "18101",
             "linehaul": "450",
             "fsc_mode": "amount",
             "fsc_value": "90",
@@ -112,6 +141,10 @@ def test_dray_quote_output_layout_and_pricing():
     assert "Additional charges may apply" not in html
     assert "Maher" in html
     assert "Receiver" in html
+    assert "Full OUT" in html
+    assert "Empty IN" in html
+    assert "Newark, NJ 07114" in html
+    assert "Allentown, PA 18101" in html
     assert "Total (LH+FSC+Acc+Chassis)" in html
     assert "Subtotal chassis" not in html
     assert "/day ×" not in html
@@ -136,6 +169,7 @@ def test_dray_split_and_accessorial_pricing():
             patch("app.load_rep", return_value=FAKE_REP), \
             patch.object(appmod.QuoteGenerator, "_next_quote_number", return_value=4244), \
             patch("app.save_quote"), \
+            patch("app.record_dray_quote"), \
             patch("app.on_quote_issued"):
         html = _client().post("/dray", data={
             "origin_zip": "07114",
@@ -173,6 +207,7 @@ def test_dray_fsc_percent_mode():
             patch("app.load_rep", return_value=FAKE_REP), \
             patch.object(appmod.QuoteGenerator, "_next_quote_number", return_value=4245), \
             patch("app.save_quote"), \
+            patch("app.record_dray_quote"), \
             patch("app.on_quote_issued"):
         html = _client().post("/dray", data={
             "origin_zip": "07114",
@@ -190,6 +225,7 @@ def test_customer_omitted_when_unchecked():
             patch("app.load_rep", return_value=FAKE_REP), \
             patch.object(appmod.QuoteGenerator, "_next_quote_number", return_value=4243), \
             patch("app.save_quote"), \
+            patch("app.record_dray_quote"), \
             patch("app.on_quote_issued"):
         html = _client().post("/dray", data={
             "origin_zip": "07114",
@@ -206,5 +242,44 @@ def test_customer_omitted_when_unchecked():
     assert "Hidden Co" not in html
     assert "QUOTE MADE FOR" not in html
     assert "Shipper" in html
+    assert "Empty PU" in html
+    assert "Full IN" in html
     assert "Total (LH+FSC+Chassis)" in html
     assert "Standard chassis ($50/day, 2-day min)" in html
+
+
+def test_dray_multi_facility_output():
+    with patch("app.rep_configured", return_value=True), \
+            patch("app.load_rep", return_value=FAKE_REP), \
+            patch.object(appmod.QuoteGenerator, "_next_quote_number", return_value=4246), \
+            patch("app.save_quote"), \
+            patch("app.record_dray_quote"), \
+            patch("app.on_quote_issued"):
+        html = _client().post("/dray", data=MultiDict([
+            ("origin_zip", "07114"),
+            ("origin_city", "Newark"),
+            ("origin_state", "NJ"),
+            ("direction", "import"),
+            ("linehaul", "400"),
+            ("fsc_mode", "amount"),
+            ("fsc_value", "80"),
+            ("origin_terminal", "Maher"),
+            ("return_terminal", "Maher"),
+            ("facility_name", "Acme DC"),
+            ("facility_name", "Second Yard"),
+            ("facility_address", "1200 N Cedar Crest Blvd"),
+            ("facility_address", "401 N 9th St"),
+            ("facility_city", "Allentown"),
+            ("facility_city", "Reading"),
+            ("facility_state", "PA"),
+            ("facility_state", "PA"),
+            ("facility_zip", "18101"),
+            ("facility_zip", "19601"),
+        ])).get_data(as_text=True)
+    assert "Acme DC" in html
+    assert "Second Yard" in html
+    assert "Receiver 1" in html
+    assert "Receiver 2" in html
+    assert "Newark, NJ 07114" in html
+    assert "Allentown, PA 18101" in html
+    assert "Reading, PA 19601" in html

@@ -28,12 +28,16 @@ from config import (
     save_rep,
 )
 from crm_bridge import on_quote_issued
+from dray_history import list_quotes as list_dray_history, record_quote as record_dray_quote
 from lane_stats import prediction_interval_days, resolve_lane_stats
 from paths import data_path, resource_dir
 from storage import init_db, save_quote
+from terminals import add_terminal, find_terminal, search_terminals
 
 ROUTES_MATRIX_URL = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
 GEOCODE_URL = "https://geocode.googleapis.com/v4/geocode/address"
+PLACES_AUTOCOMPLETE_URL = "https://places.googleapis.com/v1/places:autocomplete"
+PLACES_DETAILS_URL = "https://places.googleapis.com/v1/places/"
 US_ZIP_PATTERN = re.compile(r"^\d{5}(?:-\d{4})?$")
 
 ensure_config_file()
@@ -70,6 +74,22 @@ STOP_OFF_FEE = 125.0
 PREPULL_FEE = 150.0
 RESIDENTIAL_FEE = 100.0
 OVERWEIGHT_LBS_THRESHOLD = 44000
+PREPULL_MILES_THRESHOLD = 150
+DRAY_RATES = {
+    "chassis_day": CHASSIS_DAY_RATE,
+    "chassis_min_days": CHASSIS_MIN_DAYS,
+    "triaxle_day": TRIAXLE_DAY_RATE,
+    "chassis_split": CHASSIS_SPLIT_FEE,
+    "reefer": REEFER_FEE,
+    "hazmat": HAZMAT_FEE,
+    "ow": OW_FEE,
+    "layover": LAYOVER_FEE,
+    "stop_off": STOP_OFF_FEE,
+    "prepull": PREPULL_FEE,
+    "residential": RESIDENTIAL_FEE,
+    "overweight_lbs": OVERWEIGHT_LBS_THRESHOLD,
+    "prepull_miles": PREPULL_MILES_THRESHOLD,
+}
 
 
 @app.context_processor
@@ -204,6 +224,241 @@ def _routes_api_error_message(body: str) -> str:
     if message:
         return message
     return "Distance lookup failed. Check app.log for details."
+
+
+def _google_json(url: str, api_key: str, payload: dict | None = None,
+                 field_mask: str | None = None, method: str | None = None):
+    headers = {"X-Goog-Api-Key": api_key}
+    data = None
+    if field_mask:
+        headers["X-Goog-FieldMask"] = field_mask
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+        data = json.dumps(payload).encode("utf-8")
+        method = method or "POST"
+    request_obj = urllib.request.Request(
+        url, data=data, method=method or "GET", headers=headers,
+    )
+    try:
+        with urllib.request.urlopen(request_obj, timeout=15) as response:
+            return json.loads(response.read().decode("utf-8")), None
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        logging.getLogger(__name__).warning("Google HTTP error %s %s: %s", exc.code, url, body)
+        return None, body
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Google request failed %s: %s", url, exc)
+        return None, str(exc)
+
+
+GEOCODE_PLACE_PREFIX = "geocode:"
+
+
+def _places_disabled(body: str | None) -> bool:
+    raw = body or ""
+    return "SERVICE_DISABLED" in raw or "has not been used in project" in raw
+
+
+def _prediction_from_geocode(result: dict, fallback_name: str) -> dict | None:
+    if not isinstance(result, dict):
+        return None
+    parsed = _parse_place_components(result.get("addressComponents"))
+    formatted = (result.get("formattedAddress") or "").strip()
+    if not parsed["address"] and formatted:
+        parsed["address"] = formatted.split(",")[0].strip()
+    if not parsed["zip"] and not (parsed["city"] and parsed["state"]):
+        return None
+    primary = parsed["address"] or formatted.split(",")[0].strip() or fallback_name
+    secondary = ""
+    if formatted and "," in formatted:
+        secondary = ", ".join(part.strip() for part in formatted.split(",")[1:] if part.strip())
+    elif parsed["city"] or parsed["state"] or parsed["zip"]:
+        secondary = ", ".join(part for part in (parsed["city"], parsed["state"], parsed["zip"]) if part)
+    return {
+        "placeId": GEOCODE_PLACE_PREFIX + (formatted or primary),
+        "primary": primary,
+        "secondary": secondary,
+        "name": primary,
+        "address": parsed["address"] or primary,
+        "city": parsed["city"],
+        "state": parsed["state"],
+        "zip": parsed["zip"],
+    }
+
+
+def geocode_address_suggestions(query: str, api_key: str) -> list[dict]:
+    needle = (query or "").strip()
+    if len(needle) < 3:
+        return []
+    qs = urllib.parse.urlencode({
+        "address.addressLines": needle,
+        "address.regionCode": "US",
+    })
+    payload, error = _google_json(f"{GEOCODE_URL}?{qs}", api_key)
+    if error or not isinstance(payload, dict):
+        return []
+    rows = []
+    seen = set()
+    for result in payload.get("results") or []:
+        row = _prediction_from_geocode(result, needle)
+        if not row:
+            continue
+        key = (row["primary"], row["zip"], row["city"])
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append(row)
+    return rows
+
+
+def _parse_place_components(components) -> dict:
+    city = state = zip_code = street_number = route = ""
+    for part in components or []:
+        if not isinstance(part, dict):
+            continue
+        types = part.get("types") or []
+        long_t = (part.get("longText") or part.get("long_name") or "").strip()
+        short_t = (part.get("shortText") or part.get("short_name") or "").strip()
+        if "street_number" in types:
+            street_number = long_t
+        elif "route" in types:
+            route = long_t
+        elif "locality" in types:
+            city = long_t
+        elif "postal_town" in types and not city:
+            city = long_t
+        elif "sublocality_level_1" in types and not city:
+            city = long_t
+        elif "administrative_area_level_1" in types:
+            state = short_t or long_t
+        elif "postal_code" in types:
+            zip_code = long_t.split("-", 1)[0]
+    address = " ".join(part for part in (street_number, route) if part).strip()
+    return {"address": address, "city": city, "state": state, "zip": zip_code}
+
+
+def places_autocomplete(query: str, api_key: str) -> tuple[list[dict], str | None]:
+    needle = (query or "").strip()
+    if len(needle) < 3:
+        return [], None
+    payload, error = _google_json(
+        PLACES_AUTOCOMPLETE_URL,
+        api_key,
+        payload={"input": needle, "includedRegionCodes": ["us"]},
+        field_mask=(
+            "suggestions.placePrediction.placeId,"
+            "suggestions.placePrediction.text,"
+            "suggestions.placePrediction.structuredFormat"
+        ),
+    )
+    if not error and isinstance(payload, dict):
+        rows = []
+        for suggestion in payload.get("suggestions") or []:
+            pred = (suggestion or {}).get("placePrediction") or {}
+            place_id = (pred.get("placeId") or "").strip()
+            if not place_id:
+                continue
+            fmt = pred.get("structuredFormat") or {}
+            main = ((fmt.get("mainText") or {}).get("text") or "").strip()
+            secondary = ((fmt.get("secondaryText") or {}).get("text") or "").strip()
+            fallback = ((pred.get("text") or {}).get("text") or needle).strip()
+            rows.append({
+                "placeId": place_id,
+                "primary": main or fallback,
+                "secondary": secondary,
+            })
+        if rows:
+            return rows, None
+    geo_rows = geocode_address_suggestions(needle, api_key)
+    if geo_rows:
+        return geo_rows, None
+    if error and _places_disabled(error):
+        return [], "Address search needs a more complete street, city, or ZIP."
+    return [], "Address search failed."
+
+
+def _complete_place(name="", address="", city="", state="", zip_code="") -> dict:
+    name = (name or "").strip()
+    address = (address or "").strip()
+    city = (city or "").strip()
+    state = (state or "").strip()
+    zip_code = (zip_code or "").strip()
+    if not name:
+        name = address
+    if not address:
+        address = name
+    return {
+        "name": name,
+        "address": address,
+        "city": city,
+        "state": state,
+        "zip": zip_code,
+    }
+
+
+def _place_from_row(row: dict) -> dict:
+    return _complete_place(
+        row.get("name") or "",
+        row.get("address") or "",
+        row.get("city") or "",
+        row.get("state") or "",
+        row.get("zip") or "",
+    )
+
+
+def format_city_state_zip(city="", state="", zip_code="") -> str:
+    city = (city or "").strip()
+    state = (state or "").strip()
+    zip_code = (zip_code or "").strip()
+    locality = ", ".join(part for part in (city, state) if part)
+    if locality and zip_code:
+        return f"{locality} {zip_code}"
+    return locality or zip_code
+
+
+def place_details(place_id: str, api_key: str) -> tuple[dict | None, str | None]:
+    pid = (place_id or "").strip()
+    if pid.startswith(GEOCODE_PLACE_PREFIX):
+        rows = geocode_address_suggestions(pid[len(GEOCODE_PLACE_PREFIX):], api_key)
+        if not rows:
+            return None, "Address not found."
+        return _place_from_row(rows[0]), None
+    if pid.startswith("places/"):
+        pid = pid.split("/", 1)[1]
+    if not pid:
+        return None, "missing_place"
+    payload, error = _google_json(
+        PLACES_DETAILS_URL + urllib.parse.quote(pid, safe=""),
+        api_key,
+        field_mask="id,displayName,formattedAddress,addressComponents",
+    )
+    if error or not isinstance(payload, dict):
+        rows = geocode_address_suggestions(pid, api_key)
+        if rows:
+            return _place_from_row(rows[0]), None
+        return None, "Address not found."
+    parsed = _parse_place_components(payload.get("addressComponents"))
+    display = ((payload.get("displayName") or {}).get("text") or "").strip()
+    formatted = (payload.get("formattedAddress") or "").strip()
+    if not parsed["address"] and formatted:
+        parsed["address"] = formatted.split(",")[0].strip()
+    parsed["name"] = display or parsed["address"]
+    if not parsed["zip"] or not parsed["city"] or not parsed["state"] or not parsed["address"]:
+        geo_rows = geocode_address_suggestions(formatted or parsed["address"] or display, api_key)
+        if geo_rows:
+            geo = geo_rows[0]
+            for key in ("address", "city", "state", "zip"):
+                if not parsed.get(key):
+                    parsed[key] = geo.get(key) or ""
+            if not parsed.get("name"):
+                parsed["name"] = geo.get("name") or parsed.get("address") or ""
+    return _complete_place(
+        parsed.get("name") or "",
+        parsed.get("address") or "",
+        parsed.get("city") or "",
+        parsed.get("state") or "",
+        parsed.get("zip") or "",
+    ), None
 
 
 def _query_route_matrix(origin: str, destination: str, api_key: str) -> tuple[dict | None, str | None]:
@@ -632,6 +887,60 @@ def _format_thru_date(valid_until: str) -> str:
         except ValueError:
             continue
     return raw
+
+
+def _parse_facilities(form) -> list[dict]:
+    names = list(form.getlist("facility_name") or [])
+    addresses = list(form.getlist("facility_address") or [])
+    cities = list(form.getlist("facility_city") or [])
+    states = list(form.getlist("facility_state") or [])
+    zips = list(form.getlist("facility_zip") or [])
+    if not any((n or "").strip() for n in names):
+        names = [form.get("facility_name") or ""]
+    if not any((a or "").strip() for a in addresses):
+        addresses = [form.get("facility_address") or ""]
+    if not any((c or "").strip() for c in cities):
+        cities = [form.get("facility_city") or form.get("dest_city") or ""]
+    if not any((s or "").strip() for s in states):
+        states = [form.get("facility_state") or ""]
+    if not any((z or "").strip() for z in zips):
+        zips = [form.get("facility_zip") or form.get("dest_zip") or ""]
+    rows = []
+    count = max(len(names), len(addresses), len(cities), len(states), len(zips), 1)
+    for i in range(count):
+        row = {
+            "name": (names[i] if i < len(names) else "").strip(),
+            "address": (addresses[i] if i < len(addresses) else "").strip(),
+            "city": (cities[i] if i < len(cities) else "").strip(),
+            "state": (states[i] if i < len(states) else "").strip(),
+            "zip": (zips[i] if i < len(zips) else "").strip(),
+        }
+        if any(row.values()):
+            row["place_line"] = format_city_state_zip(row["city"], row["state"], row["zip"])
+            rows.append(row)
+    return rows
+
+
+def _compute_leg_miles(zips: list[str]) -> tuple[int | None, int | None, str | None]:
+    """Drive miles along zip waypoints. Returns (total, first_leg, error)."""
+    cleaned = [_normalize_zip(z) for z in zips if _normalize_zip(z)]
+    if len(cleaned) < 2:
+        return None, None, None
+    if app.config.get("TESTING"):
+        return None, None, "testing"
+    api_key = load_google_maps_api_key()
+    if not api_key:
+        return None, None, "missing_api_key"
+    total = 0
+    first = None
+    for origin, dest in zip(cleaned, cleaned[1:]):
+        miles, error = compute_driving_distance_miles(origin, dest, api_key)
+        if miles is None:
+            return None, first, error
+        if first is None:
+            first = miles
+        total += miles
+    return total, first, None
 
 
 def _truthy_flag(data, key):
@@ -1362,14 +1671,34 @@ def dray_quote():
             ssl_lines=DRAY_SSL_LINES,
             containers=DRAY_CONTAINERS,
             overweight_lbs_threshold=int(OVERWEIGHT_LBS_THRESHOLD),
+            prepull_miles_threshold=PREPULL_MILES_THRESHOLD,
+            maps_api_key=load_google_maps_api_key() or "",
+            previous_quotes=list_dray_history(),
+            dray_rates=DRAY_RATES,
         )
 
     form = request.form
-    origin_zip = form.get("origin_zip", "")
-    dest_zip = form.get("dest_zip", "")
+    facilities = _parse_facilities(form)
+    origin_terminal = (form.get("origin_terminal") or form.get("terminal") or "").strip()
+    return_terminal = (form.get("return_terminal") or origin_terminal).strip()
+    origin_match = find_terminal(origin_terminal, form.get("origin_zip", ""), form.get("origin_terminal_id", ""))
+    return_match = find_terminal(return_terminal, form.get("return_zip", ""), form.get("return_terminal_id", ""))
+    origin_zip = (origin_match or {}).get("zip") or form.get("origin_zip", "")
+    origin_city = (origin_match or {}).get("city") or form.get("origin_city", "")
+    origin_state = (origin_match or {}).get("state") or form.get("origin_state", "")
+    return_zip = (return_match or {}).get("zip") or form.get("return_zip", "") or origin_zip
+    return_city = (return_match or {}).get("city") or form.get("return_city", "")
+    return_state = (return_match or {}).get("state") or form.get("return_state", "")
+    if not return_city and return_terminal.lower() == origin_terminal.lower():
+        return_city = origin_city
+        return_state = return_state or origin_state
+    dest_zip = (facilities[0]["zip"] if facilities else "") or form.get("dest_zip", "")
+    dest_city = (facilities[0]["city"] if facilities else "") or form.get("dest_city", "")
+    facility_name = (facilities[0]["name"] if facilities else "") or form.get("facility_name", "")
+    origin_line = format_city_state_zip(origin_city, origin_state, origin_zip)
+    return_line = format_city_state_zip(return_city, return_state, return_zip)
     quote_generator = QuoteGenerator(
-        form.get("origin_city", ""), origin_zip,
-        form.get("dest_city", ""), dest_zip,
+        origin_city, origin_zip, dest_city, dest_zip,
     )
     quote_number = quote_generator.quote_number
     valid_until = form.get("valid_until")
@@ -1449,16 +1778,17 @@ def dray_quote():
     acc_total = round(sum(row["amount"] for row in acc_lines), 2)
     quoted_total = round(linehaul + fsc + acc_total + chassis_subtotal, 2)
     facility_role = "Receiver" if direction == "import" else "Shipper"
-    origin_terminal = (form.get("origin_terminal") or form.get("terminal") or "").strip()
-    return_terminal = (form.get("return_terminal") or origin_terminal).strip()
-    facility_name = (form.get("facility_name") or "").strip()
+    origin_label = "Full OUT" if direction == "import" else "Empty PU"
+    return_label = "Empty IN" if direction == "import" else "Full IN"
+    waypoint_zips = [origin_zip] + [row["zip"] for row in facilities if row.get("zip")] + [return_zip]
+    route_miles, first_leg_miles, _miles_error = _compute_leg_miles(waypoint_zips)
     quote = {
         "quote_number": quote_number,
         **COMPANY_INFO,
         "title": "Drayage Quote",
-        "origin_city": form.get("origin_city", ""),
+        "origin_city": origin_city,
         "origin_zip": origin_zip,
-        "destination_city": form.get("dest_city", ""),
+        "destination_city": dest_city,
         "destination_zip": dest_zip,
         "quote_notes": form.get("quote_notes", ""),
         "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
@@ -1478,8 +1808,15 @@ def dray_quote():
         is_overweight=is_overweight,
         origin_terminal=origin_terminal,
         return_terminal=return_terminal,
+        origin_label=origin_label,
+        return_label=return_label,
+        origin_line=origin_line,
+        return_line=return_line,
         facility_name=facility_name,
         facility_role=facility_role,
+        facilities=facilities,
+        route_miles=route_miles,
+        first_leg_miles=first_leg_miles,
         linehaul=linehaul,
         fsc=fsc,
         fsc_line=fsc_line,
@@ -1504,12 +1841,71 @@ def dray_quote():
     save_quote(quote_number, "DRAY", origin_zip, dest_zip,
                quoted_transit_days=1,
                quoted_cost=quoted_total, payload={**quote, "quoted_total": quoted_total})
+    try:
+        record_dray_quote(quote_number, form)
+    except OSError:
+        logging.exception("Could not save local dray quote history")
     on_quote_issued(customer_name=quote.get("customer_name", ""),
                     contact_email=quote.get("contact_email", ""),
                     quote_number=quote_number, mode="DRAY",
                     total=quoted_total, origin_zip=origin_zip,
                     dest_zip=dest_zip, transit_days=1)
     return render_template("dray_quote_output.html", **ctx)
+
+
+@app.route("/api/terminals", methods=["GET", "POST"])
+def api_terminals():
+    if request.method == "GET":
+        query = request.args.get("q") or request.args.get("query") or ""
+        return jsonify(terminals=search_terminals(query))
+    data = request.get_json(silent=True) or {}
+    try:
+        rec = add_terminal(
+            data.get("name"),
+            data.get("address") or "",
+            data.get("city") or "",
+            data.get("state") or "",
+            data.get("zip") or data.get("zip_code") or "",
+        )
+    except ValueError as exc:
+        return jsonify(ok=False, error=str(exc)), 400
+    return jsonify(ok=True, terminal=rec)
+
+
+@app.route("/api/dray/route_miles", methods=["POST"])
+def api_dray_route_miles():
+    data = request.get_json(silent=True) or {}
+    origin = data.get("origin_zip") or ""
+    dests = data.get("facility_zips") or []
+    ret = data.get("return_zip") or origin
+    if isinstance(dests, str):
+        dests = [dests]
+    total, first, error = _compute_leg_miles([origin] + list(dests) + [ret])
+    if total is None:
+        return jsonify(success=False, error=error or "distance_error")
+    return jsonify(success=True, miles=total, first_leg_miles=first)
+
+
+@app.route("/api/places/autocomplete")
+def api_places_autocomplete():
+    query = request.args.get("q") or request.args.get("query") or ""
+    api_key = load_google_maps_api_key()
+    if not api_key:
+        return jsonify(predictions=[], error="missing_api_key")
+    rows, error = places_autocomplete(query, api_key)
+    return jsonify(predictions=rows, error=error)
+
+
+@app.route("/api/places/details")
+def api_places_details():
+    place_id = request.args.get("place_id") or request.args.get("placeId") or ""
+    api_key = load_google_maps_api_key()
+    if not api_key:
+        return jsonify(ok=False, error="missing_api_key")
+    parsed, error = place_details(place_id, api_key)
+    if parsed is None:
+        return jsonify(ok=False, error=error or "details_error")
+    return jsonify(ok=True, place=parsed)
 
 
 @app.route("/international", methods=["GET", "POST"])
