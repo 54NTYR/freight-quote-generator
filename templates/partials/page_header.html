@@ -7,13 +7,15 @@
     {% endif %}
     {% if previous_quotes is defined %}
     <div class="header-actions">
-        <label for="load_previous_quote">Load Previous Quote</label>
-        <select id="load_previous_quote">
-            <option value="">Select a quote</option>
-            {% for row in previous_quotes %}
-            <option value="{{ row.quote_number }}">{{ row.label }}</option>
-            {% endfor %}
-        </select>
+        <span class="header-actions-label" id="load_previous_quote_label">Load Previous Quote</span>
+        <div class="header-quote-wrap">
+            <button type="button" class="header-quote-toggle" id="load_previous_quote_btn" aria-labelledby="load_previous_quote_label" aria-haspopup="listbox" aria-expanded="false">Select a quote</button>
+            <div class="header-quote-list" id="load_previous_quote_list" hidden role="listbox" aria-labelledby="load_previous_quote_label">
+                {% for row in previous_quotes %}
+                <button type="button" class="header-quote-option" role="option" data-quote="{{ row.quote_number }}">{{ row.label }}</button>
+                {% endfor %}
+            </div>
+        </div>
     </div>
     {% endif %}
 </div>

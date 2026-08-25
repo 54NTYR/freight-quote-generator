@@ -813,7 +813,8 @@ legend {
     margin-left: auto;
 }
 
-.header-actions label {
+.header-actions label,
+.header-actions-label {
     display: block;
     font-size: 12px;
     font-weight: 600;
@@ -821,13 +822,61 @@ legend {
     margin-bottom: 6px;
 }
 
-.header-actions select {
+.header-actions select,
+.header-quote-toggle {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid var(--jf-hairline);
     border-radius: var(--jf-radius-control);
     font-size: 14px;
     background: var(--jf-canvas);
+}
+
+.header-quote-wrap {
+    position: relative;
+}
+
+.header-quote-toggle {
+    text-align: left;
+    cursor: pointer;
+    color: var(--jf-ink);
+}
+
+.header-quote-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% - 1px);
+    z-index: 50;
+    background: var(--jf-canvas);
+    border: 1px solid var(--jf-hairline);
+    border-radius: var(--jf-radius-control);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    max-height: calc(8 * 36px);
+    overflow-y: auto;
+}
+
+.header-quote-option {
+    display: block;
+    width: 100%;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--jf-hairline);
+    background: var(--jf-canvas);
+    text-align: left;
+    font-size: 14px;
+    color: var(--jf-ink);
+    cursor: pointer;
+}
+
+.header-quote-option:last-child {
+    border-bottom: 0;
+}
+
+.header-quote-option:hover,
+.header-quote-option:focus {
+    background: var(--jf-pearl);
 }
 
 .label-with-action {

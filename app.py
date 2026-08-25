@@ -416,6 +416,15 @@ def format_city_state_zip(city="", state="", zip_code="") -> str:
     return locality or zip_code
 
 
+def quote_file_label(quote_number) -> str:
+    raw = str(quote_number or "").strip()
+    if not raw:
+        return "Q"
+    if raw[:1].upper() == "Q" and len(raw) > 1:
+        return raw
+    return f"Q{raw}"
+
+
 def place_details(place_id: str, api_key: str) -> tuple[dict | None, str | None]:
     pid = (place_id or "").strip()
     if pid.startswith(GEOCODE_PLACE_PREFIX):
@@ -1662,24 +1671,34 @@ def ftl_quote():
     return render_template("ftl_quote_output.html", **ctx)
 
 
+def _dray_form_context(**extra):
+    ctx = dict(
+        ssl_lines=DRAY_SSL_LINES,
+        containers=DRAY_CONTAINERS,
+        overweight_lbs_threshold=int(OVERWEIGHT_LBS_THRESHOLD),
+        prepull_miles_threshold=PREPULL_MILES_THRESHOLD,
+        maps_api_key=load_google_maps_api_key() or "",
+        previous_quotes=list_dray_history(),
+        dray_rates=DRAY_RATES,
+    )
+    ctx.update(extra)
+    return ctx
+
+
 @app.route("/dray", methods=["GET", "POST"])
 def dray_quote():
     init_db()
     if request.method == "GET":
-        return render_template(
-            "dray_quote_form.html",
-            ssl_lines=DRAY_SSL_LINES,
-            containers=DRAY_CONTAINERS,
-            overweight_lbs_threshold=int(OVERWEIGHT_LBS_THRESHOLD),
-            prepull_miles_threshold=PREPULL_MILES_THRESHOLD,
-            maps_api_key=load_google_maps_api_key() or "",
-            previous_quotes=list_dray_history(),
-            dray_rates=DRAY_RATES,
-        )
+        return render_template("dray_quote_form.html", **_dray_form_context())
 
     form = request.form
-    facilities = _parse_facilities(form)
     origin_terminal = (form.get("origin_terminal") or form.get("terminal") or "").strip()
+    if not origin_terminal:
+        return render_template(
+            "dray_quote_form.html",
+            **_dray_form_context(form_error="Choose an origin terminal before generating the quote."),
+        ), 400
+    facilities = _parse_facilities(form)
     return_terminal = (form.get("return_terminal") or origin_terminal).strip()
     origin_match = find_terminal(origin_terminal, form.get("origin_zip", ""), form.get("origin_terminal_id", ""))
     return_match = find_terminal(return_terminal, form.get("return_zip", ""), form.get("return_terminal_id", ""))
@@ -1837,6 +1856,7 @@ def dray_quote():
         ),
         current_year=datetime.now().year,
         validity_days=validity_days,
+        quote_file_label=quote_file_label(quote_number),
     )
     save_quote(quote_number, "DRAY", origin_zip, dest_zip,
                quoted_transit_days=1,

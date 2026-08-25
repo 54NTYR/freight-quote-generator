@@ -17,6 +17,9 @@
             </p>
 
             <form id="quoteForm" method="POST" action="{{ url_for('dray_quote') }}">
+                {% if form_error %}
+                <p class="form-error" role="alert">{{ form_error }}</p>
+                {% endif %}
                 {% include 'partials/customer_optin.html' %}
 
                 <div class="form-section">
@@ -59,7 +62,7 @@
                                 <button type="button" class="icon-plus" id="add_terminal_btn" aria-label="Add terminal">+</button>
                             </div>
                             <div class="suggest-wrap" data-terminal-field="origin">
-                                <input type="text" id="origin_terminal" name="origin_terminal" placeholder="Search terminals" autocomplete="off">
+                                <input type="text" id="origin_terminal" name="origin_terminal" placeholder="Search terminals" autocomplete="off" required>
                                 <input type="hidden" id="origin_terminal_id" name="origin_terminal_id">
                                 <input type="hidden" id="origin_zip" name="origin_zip">
                                 <input type="hidden" id="origin_city" name="origin_city">

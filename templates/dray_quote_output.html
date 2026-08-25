@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drayage Quote - {{ quote.company_name }}</title>
+    <title>{{ quote_file_label }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/quote.css') }}">
 </head>
 <body>
@@ -163,8 +163,21 @@
     </div>
 
     <div class="quote-toolbar">
-        <button type="button" class="btn" onclick="window.print()">Print Quote</button>
+        <button type="button" class="btn" id="printQuoteBtn">Print Quote</button>
         <button type="button" class="btn btn-secondary" onclick="history.back()">Back to Builder</button>
     </div>
+    <script>
+    (function () {
+        var label = {{ quote_file_label|tojson }};
+        document.title = label;
+        var btn = document.getElementById("printQuoteBtn");
+        if (btn) {
+            btn.addEventListener("click", function () {
+                document.title = label;
+                window.print();
+            });
+        }
+    })();
+    </script>
 </body>
 </html>

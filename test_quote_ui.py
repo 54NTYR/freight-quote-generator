@@ -67,6 +67,10 @@ def test_dray_form_fields():
     assert 'name="fsc_value"' in html
     assert "This load is overweight" in html
     assert "Load Previous Quote" in html
+    assert "header-quote-list" in html
+    assert "header-quote-toggle" in html
+    assert 'id="origin_terminal"' in html
+    assert "required" in html[html.index('id="origin_terminal"'):html.index('id="origin_terminal"') + 220]
     assert "Full OUT" in html
     assert "Empty IN" in html
     assert "Origin city" not in html
@@ -152,6 +156,8 @@ def test_dray_quote_output_layout_and_pricing():
     assert "FSC (20% thru 08/31/26)" in html
     assert "jericho-freight-logo-compact.png" in html
     assert "jericho-freight-logo-blue.png" not in html
+    assert "<title>Q4242</title>" in html
+    assert "Drayage Quote - Jericho Freight" not in html
     assert html.find("quote-letterhead") < html.find("route-info") < html.find("section-details")
     assert "$450.00" in html
     assert "$90.00" in html
@@ -173,6 +179,7 @@ def test_dray_split_and_accessorial_pricing():
             patch("app.on_quote_issued"):
         html = _client().post("/dray", data={
             "origin_zip": "07114",
+            "origin_terminal": "Maher",
             "direction": "import",
             "linehaul": "500",
             "fsc": "100",
@@ -211,6 +218,7 @@ def test_dray_fsc_percent_mode():
             patch("app.on_quote_issued"):
         html = _client().post("/dray", data={
             "origin_zip": "07114",
+            "origin_terminal": "Maher",
             "linehaul": "800",
             "fsc_mode": "percent",
             "fsc_value": "25",
@@ -283,3 +291,25 @@ def test_dray_multi_facility_output():
     assert "Newark, NJ 07114" in html
     assert "Allentown, PA 18101" in html
     assert "Reading, PA 19601" in html
+
+
+def test_quote_file_label():
+    assert appmod.quote_file_label(4242) == "Q4242"
+    assert appmod.quote_file_label("Q12") == "Q12"
+    assert appmod.quote_file_label("") == "Q"
+
+
+def test_dray_requires_origin_terminal():
+    with patch("app.rep_configured", return_value=True), \
+            patch("app.load_rep", return_value=FAKE_REP), \
+            patch("app.list_dray_history", return_value=[]), \
+            patch.object(appmod.QuoteGenerator, "_next_quote_number") as nxt:
+        response = _client().post("/dray", data={
+            "linehaul": "450",
+            "fsc_value": "90",
+        })
+    html = response.get_data(as_text=True)
+    assert response.status_code == 400
+    assert "Choose an origin terminal" in html
+    assert "Quote Details" not in html
+    nxt.assert_not_called()

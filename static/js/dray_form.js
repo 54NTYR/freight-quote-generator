@@ -577,14 +577,59 @@
         scheduleMiles();
     }
 
-    var prev = document.getElementById("load_previous_quote");
-    if (prev) {
-        prev.addEventListener("change", function () {
-            var match = previousQuotes.filter(function (row) {
-                return String(row.quote_number) === String(prev.value);
-            })[0];
-            if (match) fillForm(match.fields || {});
+    var prevBtn = document.getElementById("load_previous_quote_btn");
+    var prevList = document.getElementById("load_previous_quote_list");
+    var prevWrap = document.querySelector(".header-quote-wrap");
+    if (prevBtn && prevList) {
+        function closePrev() {
+            prevList.hidden = true;
+            prevBtn.setAttribute("aria-expanded", "false");
+        }
+        function openPrev() {
+            prevList.hidden = false;
+            prevBtn.setAttribute("aria-expanded", "true");
+        }
+        prevBtn.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            if (prevList.hidden) openPrev();
+            else closePrev();
         });
+        prevList.querySelectorAll("[data-quote]").forEach(function (item) {
+            item.addEventListener("click", function () {
+                var match = previousQuotes.filter(function (row) {
+                    return String(row.quote_number) === String(item.getAttribute("data-quote"));
+                })[0];
+                if (match) fillForm(match.fields || {});
+                prevBtn.textContent = item.textContent || "Select a quote";
+                closePrev();
+            });
+        });
+        document.addEventListener("click", function (ev) {
+            if (prevWrap && !prevWrap.contains(ev.target)) closePrev();
+        });
+        document.addEventListener("keydown", function (ev) {
+            if (ev.key === "Escape") closePrev();
+        });
+    }
+
+    if (form) {
+        form.addEventListener("submit", function (ev) {
+            var origin = document.getElementById("origin_terminal");
+            if (origin && !(origin.value || "").trim()) {
+                ev.preventDefault();
+                origin.setCustomValidity("Choose an origin terminal before generating the quote.");
+                origin.reportValidity();
+                origin.focus();
+                return;
+            }
+            if (origin) origin.setCustomValidity("");
+        });
+        var originField = document.getElementById("origin_terminal");
+        if (originField) {
+            originField.addEventListener("input", function () {
+                originField.setCustomValidity("");
+            });
+        }
     }
 
     if (validInput && !validInput.value) {
