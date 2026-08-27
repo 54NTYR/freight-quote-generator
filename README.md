@@ -39,28 +39,17 @@ Environment variables take precedence over `config.json`.
 
 See `INSTALL_FOR_USERS.md` for SmartScreen installer notes.
 
-Agents working in this repo: start at `AGENTS.md`.
-
 ## Development
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-pip install -r requirements-build.txt
 copy config.example.json config.json
 python launcher.py
 ```
 
 Requires **WebView2** (pre-installed on most Windows 10/11 systems).
-
-## Build Windows installer
-
-```powershell
-.\build_installer.ps1
-```
-
-Creates `build\app-icon.ico` from `static\img\app-icon.png`, bundles the app, and builds `installer_output\FreightQuoteGenerator-Setup.exe`.
 
 ## Repository
 

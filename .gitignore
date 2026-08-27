@@ -18,10 +18,31 @@ ltl_tiered_quote_history.json
 ltl_single_quote_history.json
 customers.json
 terminals.local.json
+rep.json
 tmp_*.html
 test_international_output.html
 Quote*.html
-stages/*/output/*
-!stages/*/output/.gitkeep
 _local/
 .cursor/
+
+# SOP builders (PDFs in sops/ stay published)
+scripts/
+
+# Local publish / installer / signing helpers
+publish_to_github.ps1
+build_installer.ps1
+installer.iss
+freight_quote_generator.spec
+requirements-build.txt
+setup.ps1
+
+# ICM process (local agent workspace)
+AGENTS.md
+CONTEXT.md
+stages/
+_shared/
+_templates/
+
+# Tests
+test_*.py
+conftest.py
