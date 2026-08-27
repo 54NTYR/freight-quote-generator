@@ -24,6 +24,36 @@
     var fscMode = document.getElementById("fsc_mode");
     var fscLabel = document.getElementById("fsc_value_label");
     var firstLegMiles = null;
+    var terminalDraftKey = "jfDrayTerminalDraft:" + window.location.pathname;
+    var terminalDraftIds = [
+        "origin_terminal", "origin_terminal_id", "origin_zip", "origin_city", "origin_state",
+        "return_terminal", "return_terminal_id", "return_zip", "return_city", "return_state"
+    ];
+
+    function saveTerminalDraft() {
+        var draft = {};
+        terminalDraftIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) draft[id] = el.value || "";
+        });
+        try {
+            sessionStorage.setItem(terminalDraftKey, JSON.stringify(draft));
+        } catch (err) {}
+    }
+
+    function restoreTerminalDraft() {
+        var draft = null;
+        try {
+            draft = JSON.parse(sessionStorage.getItem(terminalDraftKey) || "null");
+        } catch (err) {
+            draft = null;
+        }
+        if (!draft) return;
+        terminalDraftIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && typeof draft[id] === "string") el.value = draft[id];
+        });
+    }
 
     function money(n) {
         return "$" + (Number(n) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -288,16 +318,15 @@
         });
     }
 
-    function bindTerminalAddress() {
-        var address = document.getElementById("new_terminal_address");
-        if (!address) return;
-        bindPlacesSearch(address, function (parsed) {
-            var name = document.getElementById("new_terminal_name");
-            if (name && !name.value) name.value = parsed.name || "";
-            address.value = parsed.address || "";
-            document.getElementById("new_terminal_city").value = parsed.city;
-            document.getElementById("new_terminal_state").value = parsed.state;
-            document.getElementById("new_terminal_zip").value = parsed.zip;
+    function bindTerminalPlaces() {
+        var name = document.getElementById("new_terminal_name");
+        if (!name) return;
+        bindPlacesSearch(name, function (parsed) {
+            name.value = parsed.name || parsed.address || "";
+            document.getElementById("new_terminal_address").value = parsed.address || parsed.name || "";
+            document.getElementById("new_terminal_city").value = parsed.city || "";
+            document.getElementById("new_terminal_state").value = parsed.state || "";
+            document.getElementById("new_terminal_zip").value = parsed.zip || "";
         });
     }
 
@@ -367,6 +396,7 @@
             }
             hide();
             scheduleMiles();
+            saveTerminalDraft();
         }
         function render(rows) {
             list.innerHTML = "";
@@ -507,6 +537,7 @@
                 document.getElementById("origin_state").value = rec.state || payload.state;
                 closeModal();
                 scheduleMiles();
+                saveTerminalDraft();
             }).catch(function () {
                 err.textContent = "Could not save terminal.";
                 err.hidden = false;
@@ -575,6 +606,7 @@
         syncOverweightWarning();
         syncTotals();
         scheduleMiles();
+        saveTerminalDraft();
     }
 
     var prevBtn = document.getElementById("load_previous_quote_btn");
@@ -623,12 +655,18 @@
                 return;
             }
             if (origin) origin.setCustomValidity("");
+            saveTerminalDraft();
         });
         var originField = document.getElementById("origin_terminal");
         if (originField) {
             originField.addEventListener("input", function () {
                 originField.setCustomValidity("");
+                saveTerminalDraft();
             });
+        }
+        var returnField = document.getElementById("return_terminal");
+        if (returnField) {
+            returnField.addEventListener("input", saveTerminalDraft);
         }
     }
 
@@ -658,13 +696,22 @@
     syncPrepullWarning();
     syncTotals();
     bindAllFacilityPlaces();
-    bindTerminalAddress();
+    bindTerminalPlaces();
     bindTotalsDrag(document.getElementById("drayLiveTotals"));
+    window.addEventListener("pagehide", saveTerminalDraft);
     window.addEventListener("pageshow", function () {
+        restoreTerminalDraft();
+        setTimeout(restoreTerminalDraft, 0);
+        setTimeout(function () {
+            restoreTerminalDraft();
+            scheduleMiles();
+        }, 50);
         directionLabels();
         syncFscLabel();
         syncOverweightWarning();
         syncPrepullWarning();
         syncTotals();
+        scheduleMiles();
     });
+    restoreTerminalDraft();
 })();

@@ -57,6 +57,7 @@ body {
     text-align: center;
     gap: 10px;
     border-bottom: 1px solid var(--jf-hairline);
+    position: relative;
 }
 
 .logo-img {
@@ -590,7 +591,7 @@ legend {
 .mode-select-header .header-settings .mode-dropdown-menu {
     left: auto;
     right: 0;
-    min-width: 196px;
+    min-width: 220px;
 }
 
 .settings-cog {
@@ -630,18 +631,6 @@ legend {
     padding: 18px 16px;
     font-size: 18px;
     font-weight: 600;
-}
-
-.mode-button.mode-quiet {
-    background: var(--jf-pearl);
-    color: var(--jf-navy);
-    border: 1px solid var(--jf-hairline);
-}
-
-.mode-button.mode-quiet:hover {
-    background: var(--jf-canvas);
-    color: var(--jf-navy);
-    border-color: var(--jf-blue);
 }
 
 .mode-dropdown {
@@ -724,6 +713,75 @@ legend {
     font-size: 12px;
     font-weight: 400;
     color: var(--jf-muted);
+}
+
+.catalog-toolbar {
+    position: relative;
+    z-index: 5;
+    margin: 0 0 20px;
+}
+
+.catalog-filter {
+    max-width: 420px;
+    margin-bottom: 0;
+}
+
+.catalog-inline-actions {
+    justify-content: flex-start;
+    margin-top: 0;
+}
+
+.catalog-inline-actions .btn {
+    margin: 0 8px 0 0;
+    padding: 10px 18px;
+    font-size: 14px;
+}
+
+.catalog-status {
+    color: #1e7a46;
+    font-size: 14px;
+    margin: 16px 0 0;
+}
+
+.sop-list {
+    display: grid;
+    gap: 12px;
+}
+
+.sop-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 18px 20px;
+    border: 1px solid var(--jf-hairline);
+    border-radius: var(--jf-radius-inner);
+    background: var(--jf-canvas);
+}
+
+.sop-row-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--jf-navy);
+    letter-spacing: -0.2px;
+}
+
+.sop-row-blurb {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--jf-muted);
+    max-width: 62ch;
+}
+
+.sop-row-actions .btn {
+    margin: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+    .sop-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Admin / utility pages */
@@ -1091,6 +1149,7 @@ gmp-place-autocomplete {
     .header.has-header-actions {
         flex-direction: column;
         padding-right: 20px;
+        padding-left: 20px;
         text-align: center;
     }
 

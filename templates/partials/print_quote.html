@@ -1,0 +1,13 @@
+<script>
+(function () {
+    var label = {{ quote_file_label|tojson }};
+    document.title = label;
+    var btn = document.getElementById("printQuoteBtn");
+    if (btn) {
+        btn.addEventListener("click", function () {
+            document.title = label;
+            window.print();
+        });
+    }
+})();
+</script>

@@ -11,6 +11,7 @@ datas = [
     ("templates", "templates"),
     ("config.example.json", "."),
     ("terminals.json", "."),
+    ("sops", "sops"),
 ]
 
 if os.path.isdir("static"):
@@ -33,6 +34,7 @@ a = Analysis(
         "clr_loader",
         "crm_bridge",
         "twenty_client",
+        "sop_catalog",
         "requests",
     ],
     hookspath=[],

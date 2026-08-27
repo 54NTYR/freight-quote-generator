@@ -13,9 +13,15 @@ data/*.db
 config.json
 quote_counter.json
 dray_quote_history.json
+ftl_quote_history.json
+ltl_tiered_quote_history.json
+ltl_single_quote_history.json
+customers.json
 terminals.local.json
 tmp_*.html
 test_international_output.html
 Quote*.html
 stages/*/output/*
 !stages/*/output/.gitkeep
+_local/
+.cursor/

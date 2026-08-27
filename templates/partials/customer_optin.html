@@ -7,11 +7,14 @@
         <div class="form-row">
             <div class="form-group">
                 <label for="customer_name">Customer name</label>
-                <input type="text" id="customer_name" name="customer_name" placeholder="e.g., Acme Foods">
+                <div class="suggest-wrap" data-customer-field>
+                    <input type="text" id="customer_name" name="customer_name" placeholder="Search or type a customer" autocomplete="organization">
+                    <div class="suggest-list" hidden></div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="contact_email">Contact email</label>
-                <input type="email" id="contact_email" name="contact_email" placeholder="e.g., receiving@acme.com">
+                <input type="email" id="contact_email" name="contact_email" placeholder="e.g., receiving@acme.com" autocomplete="email">
             </div>
         </div>
     </div>
@@ -20,10 +23,105 @@
 (function () {
     var box = document.getElementById('include_customer');
     var fields = document.getElementById('customer_fields');
+    var input = document.getElementById('customer_name');
+    var email = document.getElementById('contact_email');
     if (!box || !fields) return;
+    var storageKey = 'jfCustomerDraft:' + window.location.pathname;
+
     function sync() { fields.hidden = !box.checked; }
-    box.addEventListener('change', sync);
-    window.addEventListener('pageshow', sync);
+
+    function saveDraft() {
+        try {
+            sessionStorage.setItem(storageKey, JSON.stringify({
+                include: !!box.checked,
+                name: input ? input.value : '',
+                email: email ? email.value : ''
+            }));
+        } catch (err) {}
+    }
+
+    function restoreDraft() {
+        var draft = null;
+        try {
+            draft = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
+        } catch (err) {
+            draft = null;
+        }
+        if (!draft) return;
+        box.checked = !!draft.include;
+        if (input && typeof draft.name === 'string') input.value = draft.name;
+        if (email && typeof draft.email === 'string') email.value = draft.email;
+        sync();
+    }
+
+    box.addEventListener('change', function () { sync(); saveDraft(); });
+    window.addEventListener('pagehide', saveDraft);
+    window.addEventListener('pageshow', function () {
+        restoreDraft();
+        sync();
+        // Chromium can apply form restoration after pageshow and drop
+        // the customer name; re-apply the draft after that pass.
+        setTimeout(function () {
+            restoreDraft();
+            sync();
+        }, 0);
+    });
+    var form = document.getElementById('quoteForm');
+    if (form) form.addEventListener('submit', saveDraft);
+    restoreDraft();
     sync();
+
+    var wrap = input && (input.closest('.suggest-wrap') || input.parentElement);
+    var list = wrap && wrap.querySelector('.suggest-list');
+    if (!input || !list) return;
+    var timer = null;
+    function hide() { list.hidden = true; list.innerHTML = ''; }
+    function esc(value) {
+        return String(value || '').replace(/[&<>"']/g, function (ch) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+        });
+    }
+    function pick(row) {
+        input.value = row.name || '';
+        if (email) email.value = row.email || '';
+        hide();
+        saveDraft();
+    }
+    function render(rows) {
+        list.innerHTML = '';
+        if (!rows.length) {
+            hide();
+            return;
+        }
+        rows.forEach(function (row) {
+            var item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'suggest-item';
+            item.innerHTML = '<span><strong>' + esc(row.name) + '</strong> ' +
+                '<span class="suggest-secondary">' + esc(row.email || '') + '</span></span>';
+            item.addEventListener('mousedown', function (ev) {
+                ev.preventDefault();
+                pick(row);
+            });
+            list.appendChild(item);
+        });
+        list.hidden = false;
+    }
+    input.addEventListener('input', function () {
+        saveDraft();
+        var q = (input.value || '').trim();
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+            fetch('/api/customers?q=' + encodeURIComponent(q))
+                .then(function (res) { return res.json(); })
+                .then(function (data) { render((data && data.customers) || []); })
+                .catch(function () { hide(); });
+        }, 180);
+    });
+    if (email) email.addEventListener('input', saveDraft);
+    input.addEventListener('focus', function () {
+        if (input.value) input.dispatchEvent(new Event('input'));
+    });
+    input.addEventListener('blur', function () { setTimeout(hide, 180); });
 })();
 </script>

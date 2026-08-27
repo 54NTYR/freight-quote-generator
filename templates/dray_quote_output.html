@@ -36,78 +36,80 @@
         </div>
         {% endcall %}
 
-        <div class="section dray-split" id="section-details">
-            <div class="dray-col">
-                <h2 class="section-title">Quote Details</h2>
-                <table class="pricing-table ledger-table">
-                    <tbody>
-                        <tr>
-                            <td>Shipment</td>
-                            <td class="breakdown-total">{{ direction|capitalize }} · {{ container }}</td>
-                        </tr>
-                        <tr>
-                            <td>SSL</td>
-                            <td class="breakdown-total">{{ ssl_line }}</td>
-                        </tr>
-                        {% if load_weight_lbs %}
-                        <tr>
-                            <td>Weight</td>
-                            <td class="breakdown-total">{{ load_weight_lbs|int }} lbs</td>
-                        </tr>
-                        {% endif %}
-                        <tr>
-                            <td>Reefer</td>
-                            <td class="breakdown-total">{{ 'Yes' if reefer_on else 'No' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Hazmat</td>
-                            <td class="breakdown-total">{{ 'Yes' if hazmat_on else 'No' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Overweight</td>
-                            <td class="breakdown-total">{{ 'Yes' if is_overweight else 'No' }}</td>
-                        </tr>
-                        <tr>
-                            <td>Tri-axle</td>
-                            <td class="breakdown-total">{{ 'Yes' if triaxle_on else 'No' }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="dray-col">
-                <h2 class="section-title">Pricing Details</h2>
-                <table class="pricing-table ledger-table">
-                    <tbody>
-                        <tr>
-                            <td>Line Haul</td>
-                            <td class="breakdown-total">${{ '{:,.2f}'.format(linehaul) }}</td>
-                        </tr>
-                        <tr>
-                            <td>{{ fsc_line }}</td>
-                            <td class="breakdown-total">${{ '{:,.2f}'.format(fsc) }}</td>
-                        </tr>
-                        {% for row in acc_lines %}
-                        <tr>
-                            <td>{{ row.label }}</td>
-                            <td class="breakdown-total">${{ '{:,.2f}'.format(row.amount) }}</td>
-                        </tr>
-                        {% endfor %}
-                        <tr>
-                            <td>{{ chassis_label }} (${{ chassis_rate|int }}/day, {{ chassis_min_days }}-day min)</td>
-                            <td class="breakdown-total">${{ '{:,.2f}'.format(chassis_rental) }}</td>
-                        </tr>
-                        {% if chassis_split_count %}
-                        <tr>
-                            <td>Chassis Split{% if chassis_split_count > 1 %} ({{ chassis_split_count }}){% endif %}</td>
-                            <td class="breakdown-total">${{ '{:,.2f}'.format(chassis_split) }}</td>
-                        </tr>
-                        {% endif %}
-                        <tr class="ledger-total">
-                            <td><strong>{{ total_label }}</strong></td>
-                            <td class="breakdown-total"><span class="highlight">${{ '{:,.2f}'.format(quoted_total) }}</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div class="section" id="section-details">
+            <div class="dray-split">
+                <div class="dray-col">
+                    <h2 class="section-title">Quote Details</h2>
+                    <table class="pricing-table ledger-table">
+                        <tbody>
+                            <tr>
+                                <td>Shipment</td>
+                                <td class="breakdown-total">{{ direction|capitalize }} · {{ container }}</td>
+                            </tr>
+                            <tr>
+                                <td>SSL</td>
+                                <td class="breakdown-total">{{ ssl_line }}</td>
+                            </tr>
+                            {% if load_weight_lbs %}
+                            <tr>
+                                <td>Weight</td>
+                                <td class="breakdown-total">{{ load_weight_lbs|int }} lbs</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td>Reefer</td>
+                                <td class="breakdown-total">{{ 'Yes' if reefer_on else 'No' }}</td>
+                            </tr>
+                            <tr>
+                                <td>Hazmat</td>
+                                <td class="breakdown-total">{{ 'Yes' if hazmat_on else 'No' }}</td>
+                            </tr>
+                            <tr>
+                                <td>Overweight</td>
+                                <td class="breakdown-total">{{ 'Yes' if is_overweight else 'No' }}</td>
+                            </tr>
+                            <tr>
+                                <td>Tri-axle</td>
+                                <td class="breakdown-total">{{ 'Yes' if triaxle_on else 'No' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dray-col">
+                    <h2 class="section-title">Pricing Details</h2>
+                    <table class="pricing-table ledger-table">
+                        <tbody>
+                            <tr>
+                                <td>Line Haul</td>
+                                <td class="breakdown-total">${{ '{:,.2f}'.format(linehaul) }}</td>
+                            </tr>
+                            <tr>
+                                <td>{{ fsc_line }}</td>
+                                <td class="breakdown-total">${{ '{:,.2f}'.format(fsc) }}</td>
+                            </tr>
+                            {% for row in acc_lines %}
+                            <tr>
+                                <td>{{ row.label }}</td>
+                                <td class="breakdown-total">${{ '{:,.2f}'.format(row.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <td>{{ chassis_label }} (${{ chassis_rate|int }}/day, {{ chassis_min_days }}-day min)</td>
+                                <td class="breakdown-total">${{ '{:,.2f}'.format(chassis_rental) }}</td>
+                            </tr>
+                            {% if chassis_split_count %}
+                            <tr>
+                                <td>Chassis Split{% if chassis_split_count > 1 %} ({{ chassis_split_count }}){% endif %}</td>
+                                <td class="breakdown-total">${{ '{:,.2f}'.format(chassis_split) }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="ledger-total">
+                                <td><strong>{{ total_label }}</strong></td>
+                                <td class="breakdown-total"><span class="highlight">${{ '{:,.2f}'.format(quoted_total) }}</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -166,18 +168,6 @@
         <button type="button" class="btn" id="printQuoteBtn">Print Quote</button>
         <button type="button" class="btn btn-secondary" onclick="history.back()">Back to Builder</button>
     </div>
-    <script>
-    (function () {
-        var label = {{ quote_file_label|tojson }};
-        document.title = label;
-        var btn = document.getElementById("printQuoteBtn");
-        if (btn) {
-            btn.addEventListener("click", function () {
-                document.title = label;
-                window.print();
-            });
-        }
-    })();
-    </script>
+    {% include 'partials/print_quote.html' %}
 </body>
 </html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = 'Customers' %}
+        {% include 'partials/page_header.html' %}
+        <div class="page-body">
+            <p class="quote-type-nav">
+                <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+            <div class="catalog-toolbar">
+                <div class="form-group catalog-filter">
+                    <label for="catalog_filter">Search customers</label>
+                    <div class="suggest-wrap">
+                        <input type="search" id="catalog_filter" placeholder="Search name or email" autocomplete="off">
+                        <div class="suggest-list" hidden></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-section" id="catalogAdd">
+                <h2 class="section-title" id="catalog_form_title">Add customer</h2>
+                <div class="form-row catalog-row-fields">
+                    <div class="form-group">
+                        <label for="new_customer_name">Customer name</label>
+                        <input type="text" id="new_customer_name" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="new_customer_email">Contact email</label>
+                        <input type="email" id="new_customer_email" autocomplete="off">
+                    </div>
+                </div>
+                <p class="form-error" id="catalog_add_error" hidden></p>
+                <div class="form-actions catalog-inline-actions">
+                    <button type="button" class="btn btn-primary" id="catalog_add_btn">Add customer</button>
+                </div>
+            </div>
+            <p class="catalog-status" id="catalog_status" hidden></p>
+        </div>
+    </div>
+    <script type="application/json" id="catalog-data">{{ customers|tojson }}</script>
+    <script src="{{ url_for('static', filename='js/catalog_editor.js') }}"></script>
+    <script>CatalogEditor.initCustomers();</script>
+</body>
+</html>

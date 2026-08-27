@@ -11,6 +11,7 @@ Built on ICM: folders carry sequencing, hierarchy carries context, files carry s
 | `stages/` | product-change pipeline, in order |
 | `_shared/` | factory: brand, quote-mode map, Maps API, installer rules |
 | `_templates/` | blank `change-spec.md` — copy, don't start from nothing |
+| `_local/` | gitignored unreleased log for release notes |
 | `app.py`, `templates/`, `static/` | the app |
 | `launcher.py`, `desktop_api.py`, `paths.py` | desktop window + user data |
 | `build_installer.ps1`, `installer.iss` | Windows packaging |
@@ -25,6 +26,8 @@ Built on ICM: folders carry sequencing, hierarchy carries context, files carry s
 | ready to share with other Windows users | `stages/03_ship/CONTEXT.md` | human runs the new installer once |
 | distance / Google Maps | `_shared/maps-api.md` then `config.py` + `app.py` | do not start a pipeline run |
 | company name, phone, logo | `_shared/brand.md` | edit the home it names, not this file |
+| finished an app change | `_local/unreleased.md` | one short bullet; never commit |
+| asked for release notes | skill `release-notes` | user gives the version; then ask to clear the log |
 | asked for status | scan `stages/*/output/` | report what exists |
 
 ## The one rule

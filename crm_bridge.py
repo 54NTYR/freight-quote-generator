@@ -1,6 +1,7 @@
 """Syncs issued quotes into Twenty (CRM). Fail-soft by design: a CRM outage
 must never block quoting. Reads config.json 'crm' block."""
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 
 import requests
@@ -9,6 +10,10 @@ from config import load_config
 from twenty_client import TwentyClient
 
 log = logging.getLogger("crm_bridge")
+
+# After a refused/timeout, skip retries briefly so Generate does not spam the log.
+_OFFLINE_COOLDOWN_SEC = 30.0
+_offline_until = 0.0
 
 
 def _cfg():
@@ -24,13 +29,43 @@ def _now_iso():
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _is_offline_error(exc: BaseException) -> bool:
+    return isinstance(exc, (requests.exceptions.ConnectionError, requests.exceptions.Timeout))
+
+
+def _crm_base_url() -> str:
+    return (_cfg().get("base_url") or "http://localhost:3000").rstrip("/")
+
+
+def _mark_offline() -> None:
+    global _offline_until
+    _offline_until = time.monotonic() + _OFFLINE_COOLDOWN_SEC
+    log.warning(
+        "CRM is not running at %s. Quote was saved; CRM sync skipped.",
+        _crm_base_url(),
+    )
+
+
+def _offline() -> bool:
+    return time.monotonic() < _offline_until
+
+
+def crm_sync_ready() -> bool:
+    """False when CRM has no API key or was recently unreachable."""
+    if not str(_cfg().get("api_key") or "").strip():
+        return False
+    return not _offline()
+
+
 def on_quote_issued(customer_name, contact_email, quote_number, mode,
                     total, origin_zip, dest_zip, transit_days):
+    if _offline():
+        return None
     try:
         cfg = _cfg()
         client = _client()
         if client is None:
-            return None  # CRM not configured — silent no-op
+            return None  # CRM not configured; silent no-op
         domain = contact_email.rsplit("@", 1)[-1].lower() if "@" in contact_email else None
         company = (client.find_company_by_domain(domain) if domain else None) \
             or client.create_company(customer_name or domain or "Unnamed", domain)
@@ -45,8 +80,10 @@ def on_quote_issued(customer_name, contact_email, quote_number, mode,
             else:
                 try:
                     client.attach_person_to_company(person["id"], company["id"])
-                except Exception:
-                    log.exception("Person→Company link failed (quote unaffected)")
+                except Exception as exc:
+                    if _is_offline_error(exc):
+                        raise
+                    log.exception("Person to Company link failed (quote unaffected)")
         client.create_note(
             f"Quote {quote_number} issued",
             f"{mode} · {origin_zip} → {dest_zip} · ${float(total or 0):,.2f} · "
@@ -66,7 +103,9 @@ def on_quote_issued(customer_name, contact_email, quote_number, mode,
                     quote_number, mode, origin_zip, dest_zip,
                     total, transit_days, company["id"])["id"]
             client.update_company(company["id"], {"lastQuoteAt": _now_iso()})
-        except Exception:
+        except Exception as exc:
+            if _is_offline_error(exc):
+                raise
             log.exception("Quote object / lastQuoteAt sync failed (quote unaffected)")
         if cfg.get("webhook_quote_issued"):
             requests.post(cfg["webhook_quote_issued"], json={
@@ -78,6 +117,9 @@ def on_quote_issued(customer_name, contact_email, quote_number, mode,
         return {"companyId": company["id"],
                 "personId": person["id"] if person else None,
                 "quoteId": quote_id}
-    except Exception:
+    except Exception as exc:
+        if _is_offline_error(exc):
+            _mark_offline()
+            return None
         log.exception("CRM sync failed (quote unaffected)")
         return None

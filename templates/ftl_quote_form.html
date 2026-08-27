@@ -284,5 +284,7 @@
             document.getElementById(id).addEventListener('blur', refreshDistance);
         });
     </script>
+    <script type="application/json" id="previous-quotes-data">{{ previous_quotes|tojson }}</script>
+    <script src="{{ url_for('static', filename='js/previous_quotes.js') }}"></script>
 </body>
 </html>

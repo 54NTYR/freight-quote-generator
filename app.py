@@ -3,6 +3,7 @@ import logging
 import math
 import os
 import re
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -11,7 +12,7 @@ import base64
 import binascii
 from datetime import datetime, timedelta
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, url_for
 
 import analytics_core as ac
 import dray as dray_mod
@@ -27,17 +28,46 @@ from config import (
     rep_configured,
     save_rep,
 )
-from crm_bridge import on_quote_issued
+from crm_bridge import crm_sync_ready, on_quote_issued
+from customers import (
+    all_customers,
+    delete_customer,
+    remember_customer,
+    search_customers,
+    update_customer,
+)
 from dray_history import list_quotes as list_dray_history, record_quote as record_dray_quote
 from lane_stats import prediction_interval_days, resolve_lane_stats
 from paths import data_path, resource_dir
+from quote_history import list_quotes, record_quote
+from sop_catalog import SOP_FILES, allowed_sop_filenames, sops_dir
 from storage import init_db, save_quote
-from terminals import add_terminal, find_terminal, search_terminals
+from terminals import (
+    add_terminal,
+    all_terminals,
+    delete_terminal,
+    find_terminal,
+    search_terminals,
+    update_terminal,
+)
 
 ROUTES_MATRIX_URL = "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
 GEOCODE_URL = "https://geocode.googleapis.com/v4/geocode/address"
 PLACES_AUTOCOMPLETE_URL = "https://places.googleapis.com/v1/places:autocomplete"
 PLACES_DETAILS_URL = "https://places.googleapis.com/v1/places/"
+# Typical US 5-axle tractor + 40' / 53' trailer. Width is 8'6" rounded down so it stays legal.
+TRUCK_VEHICLE_INFO = {
+    "totalAxleCount": 5,
+    "totalHeightMm": 4114,
+    "totalLengthMm": 21945,
+    "totalWidthMm": 2590,
+    "totalWeightKg": 32658,
+    "trailerInfo": [{"lengthMm": 16154}],
+}
+ROUTES_FIELD_MASK = (
+    "originIndex,destinationIndex,distanceMeters,status,condition,"
+    "travelAdvisory"
+)
 US_ZIP_PATTERN = re.compile(r"^\d{5}(?:-\d{4})?$")
 
 ensure_config_file()
@@ -252,6 +282,8 @@ def _google_json(url: str, api_key: str, payload: dict | None = None,
 
 
 GEOCODE_PLACE_PREFIX = "geocode:"
+# Places Autocomplete (New) uses CLDR region codes. Puerto Rico is `pr`, not `us`.
+PLACES_REGION_CODES = ["us", "pr", "co"]
 
 
 def _places_disabled(body: str | None) -> bool:
@@ -286,20 +318,21 @@ def _prediction_from_geocode(result: dict, fallback_name: str) -> dict | None:
     }
 
 
-def geocode_address_suggestions(query: str, api_key: str) -> list[dict]:
-    needle = (query or "").strip()
-    if len(needle) < 3:
-        return []
-    qs = urllib.parse.urlencode({
-        "address.addressLines": needle,
-        "address.regionCode": "US",
-    })
+def _geocode_payload(query: str, api_key: str, region_code: str | None = None) -> dict | None:
+    params = {"address.addressLines": query}
+    if region_code:
+        params["address.regionCode"] = region_code.upper()
+    qs = urllib.parse.urlencode(params)
     payload, error = _google_json(f"{GEOCODE_URL}?{qs}", api_key)
     if error or not isinstance(payload, dict):
-        return []
+        return None
+    return payload
+
+
+def _rows_from_geocode_payload(payload: dict | None, needle: str) -> list[dict]:
     rows = []
     seen = set()
-    for result in payload.get("results") or []:
+    for result in (payload or {}).get("results") or []:
         row = _prediction_from_geocode(result, needle)
         if not row:
             continue
@@ -309,6 +342,25 @@ def geocode_address_suggestions(query: str, api_key: str) -> list[dict]:
         seen.add(key)
         rows.append(row)
     return rows
+
+
+def geocode_address_suggestions(query: str, api_key: str) -> list[dict]:
+    needle = (query or "").strip()
+    if len(needle) < 3:
+        return []
+    rows = _rows_from_geocode_payload(_geocode_payload(needle, api_key, None), needle)
+    if rows:
+        return rows
+    merged = []
+    seen = set()
+    for region in PLACES_REGION_CODES:
+        for row in _rows_from_geocode_payload(_geocode_payload(needle, api_key, region), needle):
+            key = (row["primary"], row["zip"], row["city"])
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(row)
+    return merged
 
 
 def _parse_place_components(components) -> dict:
@@ -327,9 +379,13 @@ def _parse_place_components(components) -> dict:
             city = long_t
         elif "postal_town" in types and not city:
             city = long_t
+        elif "administrative_area_level_2" in types and not city:
+            city = long_t
         elif "sublocality_level_1" in types and not city:
             city = long_t
         elif "administrative_area_level_1" in types:
+            state = short_t or long_t
+        elif "country" in types and not state:
             state = short_t or long_t
         elif "postal_code" in types:
             zip_code = long_t.split("-", 1)[0]
@@ -344,7 +400,7 @@ def places_autocomplete(query: str, api_key: str) -> tuple[list[dict], str | Non
     payload, error = _google_json(
         PLACES_AUTOCOMPLETE_URL,
         api_key,
-        payload={"input": needle, "includedRegionCodes": ["us"]},
+        payload={"input": needle, "includedRegionCodes": list(PLACES_REGION_CODES)},
         field_mask=(
             "suggestions.placePrediction.placeId,"
             "suggestions.placePrediction.text,"
@@ -416,13 +472,34 @@ def format_city_state_zip(city="", state="", zip_code="") -> str:
     return locality or zip_code
 
 
-def quote_file_label(quote_number) -> str:
+_FILE_LABEL_PREFIXES = ("DRAY-Q", "FTL-Q", "LTL-Q", "INTL-Q")
+_FILE_LABEL_MODES = {
+    "FTL": "FTL",
+    "LTL": "LTL",
+    "DRAY": "DRAY",
+    "INTL": "INTL",
+}
+
+
+def quote_file_label(quote_number, mode="DRAY") -> str:
+    prefix = _FILE_LABEL_MODES.get(str(mode or "DRAY").strip().upper(), "DRAY")
     raw = str(quote_number or "").strip()
-    if not raw:
-        return "Q"
-    if raw[:1].upper() == "Q" and len(raw) > 1:
-        return raw
-    return f"Q{raw}"
+    upper = raw.upper()
+    for existing in _FILE_LABEL_PREFIXES:
+        if upper.startswith(existing):
+            raw = raw[len(existing):].strip()
+            break
+    else:
+        if raw[:1].upper() == "Q":
+            raw = raw[1:].strip()
+    return f"{prefix}-Q{raw}"
+
+
+def _record_quote_history(catalog, quote_number, form):
+    try:
+        record_quote(catalog, quote_number, form)
+    except OSError:
+        logging.exception("Could not save local quote history")
 
 
 def place_details(place_id: str, api_key: str) -> tuple[dict | None, str | None]:
@@ -470,14 +547,28 @@ def place_details(place_id: str, api_key: str) -> tuple[dict | None, str | None]
     ), None
 
 
-def _query_route_matrix(origin: str, destination: str, api_key: str) -> tuple[dict | None, str | None]:
-    payload = {
+def _route_matrix_payload(origin: str, destination: str, style: str) -> dict:
+    if style == "lvr":
+        return {
+            "origins": [{
+                "waypoint": {"address": origin},
+                "routeModifiers": {"vehicleInfo": TRUCK_VEHICLE_INFO},
+            }],
+            "destinations": [{"waypoint": {"address": destination}}],
+            "travelMode": "TRUCK",
+            "routingPreference": "TRAFFIC_AWARE_OPTIMAL",
+            "units": "IMPERIAL",
+        }
+    return {
         "origins": [{"waypoint": {"address": origin}}],
         "destinations": [{"waypoint": {"address": destination}}],
         "travelMode": "DRIVE",
         "routingPreference": "TRAFFIC_UNAWARE",
         "units": "IMPERIAL",
     }
+
+
+def _post_route_matrix(payload: dict, api_key: str) -> tuple[dict | None, str | None]:
     request_obj = urllib.request.Request(
         ROUTES_MATRIX_URL,
         data=json.dumps(payload).encode("utf-8"),
@@ -485,12 +576,12 @@ def _query_route_matrix(origin: str, destination: str, api_key: str) -> tuple[di
         headers={
             "Content-Type": "application/json",
             "X-Goog-Api-Key": api_key,
-            "X-Goog-FieldMask": "originIndex,destinationIndex,distanceMeters,status,condition",
+            "X-Goog-FieldMask": ROUTES_FIELD_MASK,
         },
     )
-
+    timeout = 20 if payload.get("travelMode") == "TRUCK" else 15
     try:
-        with urllib.request.urlopen(request_obj, timeout=15) as response:
+        with urllib.request.urlopen(request_obj, timeout=timeout) as response:
             result = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -503,8 +594,17 @@ def _query_route_matrix(origin: str, destination: str, api_key: str) -> tuple[di
     if not isinstance(result, list) or not result:
         logging.getLogger(__name__).warning("Routes API returned unexpected response: %s", result)
         return None, "Distance lookup failed. Check app.log for details."
-
     return result[0], None
+
+
+def _query_route_matrix(origin: str, destination: str, api_key: str) -> tuple[dict | None, str | None]:
+    element, error = _post_route_matrix(_route_matrix_payload(origin, destination, "lvr"), api_key)
+    if element is not None:
+        return element, None
+    logging.getLogger(__name__).warning(
+        "Large vehicle routing failed (%s); falling back to car routing.", error
+    )
+    return _post_route_matrix(_route_matrix_payload(origin, destination, "drive"), api_key)
 
 
 def compute_driving_distance_miles(origin_zip: str, destination_zip: str, api_key: str) -> tuple[int | None, str | None]:
@@ -767,6 +867,11 @@ def _customer_ctx(source):
     email = (source.get("contact_email") or "").strip()
     if not include:
         return {"include_customer": False, "customer_name": "", "contact_email": ""}
+    if name:
+        try:
+            remember_customer(name, email)
+        except OSError:
+            logging.exception("Could not save local customer catalog")
     return {"include_customer": True, "customer_name": name, "contact_email": email}
 
 
@@ -960,12 +1065,22 @@ def _truthy_flag(data, key):
 
 
 def _quote_distance(form, origin_zip, dest_zip, maps_miles):
-    """Maps miles, else operator manual_miles. Great-circle stays in
-    resolve_road_miles for callers that already have coordinates."""
+    """Posted miles from Calculate miles / override. Do not call Google here."""
     return ac.resolve_road_miles(
         maps_miles=maps_miles,
         manual_miles=form.get("manual_miles") if form is not None else None,
     )
+
+
+def _enqueue_quote_issued(**kwargs):
+    if not crm_sync_ready():
+        return
+    threading.Thread(
+        target=on_quote_issued,
+        kwargs=kwargs,
+        daemon=True,
+        name="crm-quote-issued",
+    ).start()
 
 
 def ltl_price_for_pallet_count(count, tier_prices):
@@ -1398,6 +1513,32 @@ def home():
     return render_template("mode_select.html")
 
 
+@app.route("/customers")
+def customers_editor():
+    return render_template("customers_editor.html", customers=all_customers())
+
+
+@app.route("/locations")
+def locations_editor():
+    return render_template("locations_editor.html", locations=all_terminals())
+
+
+@app.route("/sops")
+def sops_library():
+    return render_template("sops_library.html", sops=SOP_FILES)
+
+
+@app.route("/sops/<filename>")
+def sop_file(filename):
+    if filename not in allowed_sop_filenames():
+        abort(404)
+    folder = sops_dir()
+    path = os.path.join(folder, filename)
+    if not os.path.isfile(path):
+        abort(404)
+    return send_from_directory(folder, filename)
+
+
 @app.route("/ltl")
 def ltl_quote_redirect():
     return redirect(url_for("ltl_tiered_quote"))
@@ -1406,7 +1547,7 @@ def ltl_quote_redirect():
 @app.route("/ltl/tiered", methods=["GET", "POST"])
 def ltl_tiered_quote():
     if request.method == "GET":
-        return render_template("ltl_quote_form.html")
+        return render_template("ltl_quote_form.html", previous_quotes=list_quotes("LTL_TIERED"))
 
     tier_prices = {
         "tier1": float(request.form["tier1_price"]),
@@ -1421,9 +1562,8 @@ def ltl_tiered_quote():
         request.form["destination_city"],
         request.form["destination_zip"],
     )
-    maps_result = quote_generator.calculate_distance(quote_generator.origin_zip, quote_generator.destination_zip)
     distance = _quote_distance(
-        request.form, quote_generator.origin_zip, quote_generator.destination_zip, maps_result
+        request.form, quote_generator.origin_zip, quote_generator.destination_zip, None
     )
     analysis_config = parse_ltl_analysis_config(request.form)
     if distance:
@@ -1475,15 +1615,17 @@ def ltl_tiered_quote():
         quoted_cost=quoted_cost,
         payload=quote,
     )
-    on_quote_issued(customer_name=quote.get("customer_name", ""),
+    _enqueue_quote_issued(customer_name=quote.get("customer_name", ""),
                     contact_email=quote.get("contact_email", ""),
                     quote_number=quote_generator.quote_number, mode="LTL",
                     total=quoted_cost, origin_zip=request.form.get("origin_zip", ""),
                     dest_zip=_form_dest_zip(request.form), transit_days=_stats["mu"])
+    _record_quote_history("LTL_TIERED", quote_generator.quote_number, request.form)
 
     return render_template(
         "ltl_quote_output.html",
         quote=quote,
+        quote_file_label=quote_file_label(quote_generator.quote_number, "LTL"),
         tier_prices=json.dumps(tier_prices),
         analysis_config=json.dumps(analysis_config),
         scenarios=scenarios,
@@ -1500,14 +1642,20 @@ def ltl_tiered_quote():
 @app.route("/ltl/single", methods=["GET", "POST"])
 def ltl_single_quote():
     if request.method == "GET":
-        return render_template("ltl_single_quote_form.html")
+        return render_template(
+            "ltl_single_quote_form.html",
+            previous_quotes=list_quotes("LTL_SINGLE"),
+        )
 
     try:
         payload = parse_single_ltl_form(request.form)
         if payload["total_cost"] <= 0:
             raise ValueError("invalid pricing")
     except (ValueError, KeyError, TypeError):
-        return render_template("ltl_single_quote_form.html"), 400
+        return render_template(
+            "ltl_single_quote_form.html",
+            previous_quotes=list_quotes("LTL_SINGLE"),
+        ), 400
 
     quote_generator = QuoteGenerator(
         request.form["origin_city"],
@@ -1515,9 +1663,8 @@ def ltl_single_quote():
         request.form["destination_city"],
         request.form["destination_zip"],
     )
-    maps_result = quote_generator.calculate_distance(quote_generator.origin_zip, quote_generator.destination_zip)
     distance = _quote_distance(
-        request.form, quote_generator.origin_zip, quote_generator.destination_zip, maps_result
+        request.form, quote_generator.origin_zip, quote_generator.destination_zip, None
     )
     if distance and request.form.get("transit_mean_days") in (None, ""):
         payload["transit_mean_days"] = max(1.0, float(ac.drive_days_for_miles(distance) or 1))
@@ -1562,15 +1709,17 @@ def ltl_single_quote():
         quoted_cost=payload["total_cost"],
         payload=quote,
     )
-    on_quote_issued(customer_name=quote.get("customer_name", ""),
+    _enqueue_quote_issued(customer_name=quote.get("customer_name", ""),
                     contact_email=quote.get("contact_email", ""),
                     quote_number=quote_generator.quote_number, mode="LTL",
                     total=payload["total_cost"], origin_zip=request.form.get("origin_zip", ""),
                     dest_zip=_form_dest_zip(request.form), transit_days=_stats["mu"])
+    _record_quote_history("LTL_SINGLE", quote_generator.quote_number, request.form)
 
     return render_template(
         "ltl_single_quote_output.html",
         quote=quote,
+        quote_file_label=quote_file_label(quote_generator.quote_number, "LTL"),
         payload=payload,
         analytics=analytics,
         transit_prediction=transit_prediction,
@@ -1584,7 +1733,7 @@ def ltl_single_quote():
 def ftl_quote():
     init_db()
     if request.method == "GET":
-        return render_template("ftl_quote_form.html")
+        return render_template("ftl_quote_form.html", previous_quotes=list_quotes("FTL"))
 
     form = request.form
     equipment = form.get("equipment", "V")
@@ -1597,8 +1746,7 @@ def ftl_quote():
         form.get("origin_city", ""), origin_zip,
         form.get("dest_city", ""), dest_zip,
     )
-    maps_result = quote_generator.calculate_distance(origin_zip, dest_zip)
-    miles = _quote_distance(form, origin_zip, dest_zip, maps_result)
+    miles = _quote_distance(form, origin_zip, dest_zip, None)
     cost = ftl_mod.assemble_cost(
         equipment, miles, _pf(form, "linehaul_flat"), rpm=_pf(form, "rpm") or ftl_mod.DEFAULT_RPM,
         fsc_pct=_pf(form, "fsc_pct"), continuous_run=bool(form.get("continuous_run")),
@@ -1658,16 +1806,18 @@ def ftl_quote():
         cost_per_position=(metrics or {}).get("cost_per_position"),
         current_year=datetime.now().year,
         validity_days=validity_days,
+        quote_file_label=quote_file_label(quote_number, "FTL"),
     )
     save_quote(quote_number, "FTL", origin_zip, dest_zip,
                quoted_transit_days=(transit or {}).get("mean_days"),
                quoted_cost=cost["total"], payload={**quote, "miles": miles, "cost": cost})
-    on_quote_issued(customer_name=quote.get("customer_name", ""),
+    _enqueue_quote_issued(customer_name=quote.get("customer_name", ""),
                     contact_email=quote.get("contact_email", ""),
                     quote_number=quote_number, mode="FTL",
                     total=cost["total"], origin_zip=form.get("origin_zip", ""),
                     dest_zip=form.get("dest_zip", ""),
                     transit_days=(transit or {}).get("mean_days"))
+    _record_quote_history("FTL", quote_number, form)
     return render_template("ftl_quote_output.html", **ctx)
 
 
@@ -1799,8 +1949,8 @@ def dray_quote():
     facility_role = "Receiver" if direction == "import" else "Shipper"
     origin_label = "Full OUT" if direction == "import" else "Empty PU"
     return_label = "Empty IN" if direction == "import" else "Full IN"
-    waypoint_zips = [origin_zip] + [row["zip"] for row in facilities if row.get("zip")] + [return_zip]
-    route_miles, first_leg_miles, _miles_error = _compute_leg_miles(waypoint_zips)
+    # Quote output does not display miles. Live prepull uses POST /api/dray/route_miles.
+    route_miles, first_leg_miles = None, None
     quote = {
         "quote_number": quote_number,
         **COMPANY_INFO,
@@ -1856,7 +2006,7 @@ def dray_quote():
         ),
         current_year=datetime.now().year,
         validity_days=validity_days,
-        quote_file_label=quote_file_label(quote_number),
+        quote_file_label=quote_file_label(quote_number, "DRAY"),
     )
     save_quote(quote_number, "DRAY", origin_zip, dest_zip,
                quoted_transit_days=1,
@@ -1865,17 +2015,24 @@ def dray_quote():
         record_dray_quote(quote_number, form)
     except OSError:
         logging.exception("Could not save local dray quote history")
-    on_quote_issued(customer_name=quote.get("customer_name", ""),
-                    contact_email=quote.get("contact_email", ""),
-                    quote_number=quote_number, mode="DRAY",
-                    total=quoted_total, origin_zip=origin_zip,
-                    dest_zip=dest_zip, transit_days=1)
+    _enqueue_quote_issued(
+        customer_name=quote.get("customer_name", ""),
+        contact_email=quote.get("contact_email", ""),
+        quote_number=quote_number,
+        mode="DRAY",
+        total=quoted_total,
+        origin_zip=origin_zip,
+        dest_zip=dest_zip,
+        transit_days=1,
+    )
     return render_template("dray_quote_output.html", **ctx)
 
 
 @app.route("/api/terminals", methods=["GET", "POST"])
 def api_terminals():
     if request.method == "GET":
+        if request.args.get("all"):
+            return jsonify(terminals=all_terminals())
         query = request.args.get("q") or request.args.get("query") or ""
         return jsonify(terminals=search_terminals(query))
     data = request.get_json(silent=True) or {}
@@ -1890,6 +2047,63 @@ def api_terminals():
     except ValueError as exc:
         return jsonify(ok=False, error=str(exc)), 400
     return jsonify(ok=True, terminal=rec)
+
+
+@app.route("/api/terminals/<terminal_id>", methods=["PUT", "DELETE"])
+def api_terminal_item(terminal_id):
+    if request.method == "DELETE":
+        if not delete_terminal(terminal_id):
+            return jsonify(ok=False, error="Location not found."), 404
+        return jsonify(ok=True)
+    data = request.get_json(silent=True) or {}
+    try:
+        rec = update_terminal(
+            terminal_id,
+            data.get("name") or "",
+            data.get("address") or "",
+            data.get("city") or "",
+            data.get("state") or "",
+            data.get("zip") or data.get("zip_code") or "",
+        )
+    except ValueError as exc:
+        return jsonify(ok=False, error=str(exc)), 400
+    if rec is None:
+        return jsonify(ok=False, error="Location not found."), 404
+    return jsonify(ok=True, terminal=rec)
+
+
+@app.route("/api/customers", methods=["GET", "POST"])
+def api_customers():
+    if request.method == "GET":
+        if request.args.get("all"):
+            return jsonify(customers=all_customers())
+        query = request.args.get("q") or request.args.get("query") or ""
+        return jsonify(customers=search_customers(query))
+    data = request.get_json(silent=True) or {}
+    rec = remember_customer(data.get("name") or "", data.get("email") or data.get("contact_email") or "")
+    if rec is None:
+        return jsonify(ok=False, error="Customer name is required."), 400
+    return jsonify(ok=True, customer=rec)
+
+
+@app.route("/api/customers/<customer_id>", methods=["PUT", "DELETE"])
+def api_customer_item(customer_id):
+    if request.method == "DELETE":
+        if not delete_customer(customer_id):
+            return jsonify(ok=False, error="Customer not found."), 404
+        return jsonify(ok=True)
+    data = request.get_json(silent=True) or {}
+    try:
+        rec = update_customer(
+            customer_id,
+            data.get("name") or "",
+            data.get("email") or data.get("contact_email") or "",
+        )
+    except ValueError as exc:
+        return jsonify(ok=False, error=str(exc)), 400
+    if rec is None:
+        return jsonify(ok=False, error="Customer not found."), 404
+    return jsonify(ok=True, customer=rec)
 
 
 @app.route("/api/dray/route_miles", methods=["POST"])
@@ -2040,7 +2254,7 @@ def international_quote():
                 "waterfall_totals": wf_totals,
             },
         )
-        on_quote_issued(customer_name=quote.get("customer_name", ""),
+        _enqueue_quote_issued(customer_name=quote.get("customer_name", ""),
                         contact_email=quote.get("contact_email", ""),
                         quote_number=qg.quote_number, mode="INTL",
                         total=quoted_cost, origin_zip=parsed["origin_text"],
@@ -2066,6 +2280,7 @@ def international_quote():
         container_stats=container_stats,
         pallets=pallets,
         validity_days=validity_days,
+        quote_file_label=quote_file_label(qg.quote_number, "INTL"),
     )
 
 

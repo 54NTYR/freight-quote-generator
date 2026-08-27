@@ -177,7 +177,7 @@
                                 <label>Cargo value per pallet ($, optional) <input type="number" step="0.01" name="cargo_value_per_pallet"></label>
                             </div>
                             <div class="form-group">
-                                <label>Route miles (optional override) <input type="number" name="manual_miles"></label>
+                                <label>Route miles (optional override) <input type="number" id="manual_miles" name="manual_miles"></label>
                             </div>
                         </div>
                     </div>
@@ -345,6 +345,8 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    var milesField = document.getElementById("manual_miles");
+                    if (milesField && data.miles) milesField.value = data.miles;
                     if (data.display_distance) {
                         resultEl.textContent = `Distance: ${data.display_distance}`;
                     } else {
@@ -403,5 +405,7 @@
             loadTemplate('standard');
         });
     </script>
+    <script type="application/json" id="previous-quotes-data">{{ previous_quotes|tojson }}</script>
+    <script src="{{ url_for('static', filename='js/previous_quotes.js') }}"></script>
 </body>
 </html>

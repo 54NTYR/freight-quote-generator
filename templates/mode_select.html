@@ -27,6 +27,9 @@
                 <div class="mode-dropdown-menu" id="settingsMenu" role="menu">
                     <div class="mode-dropdown-menu-inner">
                         <a class="mode-dropdown-link" href="{{ url_for('rep_setup') }}" role="menuitem">Change User</a>
+                        <a class="mode-dropdown-link" href="{{ url_for('customers_editor') }}" role="menuitem">Customers</a>
+                        <a class="mode-dropdown-link" href="{{ url_for('locations_editor') }}" role="menuitem">Terminal Locations</a>
+                        <a class="mode-dropdown-link" href="{{ url_for('sops_library') }}" role="menuitem">SOP's</a>
                     </div>
                 </div>
             </div>
@@ -61,7 +64,7 @@
                         </div>
                     </div>
                 </div>
-                <a class="mode-button" href="{{ url_for('dray_quote') }}">DRAY</a>
+                <a class="mode-button" href="{{ url_for('dray_quote') }}">Dray</a>
                 <a class="mode-button" href="/international">International</a>
             </div>
         </div>

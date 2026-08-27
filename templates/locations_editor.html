@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Locations - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = 'Terminal Locations' %}
+        {% include 'partials/page_header.html' %}
+        <div class="page-body">
+            <p class="quote-type-nav">
+                <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+            <div class="catalog-toolbar">
+                <div class="form-group catalog-filter">
+                    <label for="catalog_filter">Search terminals</label>
+                    <div class="suggest-wrap">
+                        <input type="search" id="catalog_filter" placeholder="Search name, city, or ZIP" autocomplete="off">
+                        <div class="suggest-list" hidden></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-section" id="catalogAdd">
+                <h2 class="section-title" id="catalog_form_title">Add location</h2>
+                <p class="field-hint">Search the terminal with Google, then save it to the location list.</p>
+                <div class="form-group">
+                    <label for="new_location_name">Terminal Name</label>
+                    <div class="suggest-wrap" data-places-field="terminal">
+                        <input type="text" id="new_location_name" autocomplete="off" placeholder="Start typing a terminal or address">
+                        <div class="suggest-list" hidden></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="new_location_address">Address</label>
+                    <input type="text" id="new_location_address" autocomplete="off">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new_location_city">City</label>
+                        <input type="text" id="new_location_city" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="new_location_state">State</label>
+                        <input type="text" id="new_location_state" maxlength="40" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="new_location_zip">ZIP</label>
+                        <input type="text" id="new_location_zip" autocomplete="off">
+                    </div>
+                </div>
+                <p class="form-error" id="catalog_add_error" hidden></p>
+                <div class="form-actions catalog-inline-actions">
+                    <button type="button" class="btn btn-primary" id="catalog_add_btn">Add location</button>
+                </div>
+            </div>
+            <p class="catalog-status" id="catalog_status" hidden></p>
+        </div>
+    </div>
+    <script type="application/json" id="catalog-data">{{ locations|tojson }}</script>
+    <script src="{{ url_for('static', filename='js/catalog_editor.js') }}"></script>
+    <script>CatalogEditor.initLocations();</script>
+</body>
+</html>

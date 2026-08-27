@@ -102,7 +102,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Facility State</label>
-                                    <input type="text" name="facility_state" maxlength="2" placeholder="ST">
+                                    <input type="text" name="facility_state" maxlength="40" placeholder="ST">
                                 </div>
                                 <div class="form-group">
                                     <label>Facility Zip</label>
@@ -215,17 +215,17 @@
     <div class="modal-overlay" id="terminal_modal" hidden>
         <div class="modal-card" role="dialog" aria-labelledby="terminal_modal_title" aria-modal="true">
             <h2 id="terminal_modal_title">Add terminal</h2>
-            <p class="field-hint">Search the address with Google, then save it to the terminal list.</p>
+            <p class="field-hint">Search the terminal with Google, then save it to the terminal list.</p>
             <div class="form-group">
                 <label for="new_terminal_name">Terminal Name</label>
-                <input type="text" id="new_terminal_name" autocomplete="off">
+                <div class="suggest-wrap" data-places-field="terminal">
+                    <input type="text" id="new_terminal_name" autocomplete="off" placeholder="Start typing a terminal or address">
+                    <div class="suggest-list" hidden></div>
+                </div>
             </div>
             <div class="form-group">
                 <label for="new_terminal_address">Address</label>
-                <div class="suggest-wrap" data-places-field="terminal">
-                    <input type="text" id="new_terminal_address" autocomplete="off" placeholder="Start typing an address">
-                    <div class="suggest-list" hidden></div>
-                </div>
+                <input type="text" id="new_terminal_address" autocomplete="off">
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -234,7 +234,7 @@
                 </div>
                 <div class="form-group">
                     <label for="new_terminal_state">State</label>
-                    <input type="text" id="new_terminal_state" maxlength="2" autocomplete="off">
+                    <input type="text" id="new_terminal_state" maxlength="40" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="new_terminal_zip">ZIP</label>

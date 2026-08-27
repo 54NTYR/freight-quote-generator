@@ -15,54 +15,37 @@
             <p class="quote-type-nav">
                 <a href="{{ url_for('home') }}">Back to modes</a>
             </p>
+            {% include 'partials/customer_optin.html' %}
             <div class="form-section">
-                <label class="checkbox-row" for="include_customer">
-                    <input type="checkbox" id="include_customer" value="on">
-                    Include customer on quote
-                </label>
-                <div id="customer_fields" class="customer-fields" hidden>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="customer_name">Customer name</label>
-                            <input id="customer_name" placeholder="e.g., Acme Foods">
-                        </div>
-                        <div class="form-group">
-                            <label for="contact_email">Contact email</label>
-                            <input id="contact_email" type="email" placeholder="e.g., receiving@acme.com">
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="quote_name">Quote Title</label>
+                    <input id="quote_name" value="Cartagena International Quote">
+                </div>
+                <div class="form-group">
+                    <label for="origin_text">Origin</label>
+                    <input id="origin_text" value="Jerome, ID">
+                </div>
+                <div class="form-group">
+                    <label for="destination_text">Destination</label>
+                    <input id="destination_text" value="Cartagena, Colombia">
+                </div>
+                <div class="form-group">
+                    <label for="example_pallets">Pallet Count</label>
+                    <input id="example_pallets" type="number" name="pallets" value="10" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Route miles (optional override) <input id="manual_miles" type="number" name="manual_miles"></label>
+                </div>
+                <div class="form-group">
+                    <label for="valid_until">Valid Until</label>
+                    <input id="valid_until" type="date">
                 </div>
                 <div class="form-row">
-                    <div class="form-group">
-                        <label for="quote_name">Quote Title</label>
-                        <input id="quote_name" value="Cartagena International Quote">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="quote_notes">Notes (will appear on quote)</label>
+                        <textarea id="quote_notes" rows="3" placeholder="Optional notes to include at the end of the quote"></textarea>
                     </div>
-                    <div class="form-group">
-                        <label for="origin_text">Origin</label>
-                        <input id="origin_text" value="Jerome, ID">
-                    </div>
-                    <div class="form-group">
-                        <label for="destination_text">Destination</label>
-                        <input id="destination_text" value="Cartagena, Colombia">
-                    </div>
-                    <div class="form-group">
-                        <label for="example_pallets">Pallet Count</label>
-                        <input id="example_pallets" type="number" name="pallets" value="10" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Route miles (optional override) <input id="manual_miles" type="number" name="manual_miles"></label>
-                    </div>
-                    <div class="form-group">
-                        <label for="valid_until">Valid Until</label>
-                        <input id="valid_until" type="date">
-                    </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="quote_notes">Notes (will appear on quote)</label>
-                            <textarea id="quote_notes" rows="3" placeholder="Optional notes to include at the end of the quote"></textarea>
-                        </div>
-                    </div>
+                </div>
             </div>
 
             {% include '_intl_form_fields.html' %}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOP's - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = "SOP's" %}
+        {% include 'partials/page_header.html' %}
+        <div class="page-body">
+            <p class="quote-type-nav">
+                <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+            <p class="page-lede">How-to PDFs for every quote mode and for Settings.</p>
+            <div class="sop-list">
+                {% for row in sops %}
+                <article class="sop-row">
+                    <div class="sop-row-copy">
+                        <h2 class="sop-row-title">{{ row.title }}</h2>
+                        <p class="sop-row-blurb">{{ row.blurb }}</p>
+                    </div>
+                    <div class="sop-row-actions">
+                        <a class="btn btn-primary" href="{{ url_for('sop_file', filename=row.filename) }}" target="_blank" rel="noopener">Open PDF</a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

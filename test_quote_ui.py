@@ -1,4 +1,5 @@
 from unittest.mock import patch
+import os
 
 from werkzeug.datastructures import MultiDict
 
@@ -23,7 +24,13 @@ def test_mode_select_order_and_settings():
     with patch("app.rep_configured", return_value=True), patch("app.load_rep", return_value=FAKE_REP):
         html = _client().get("/").get_data(as_text=True)
     assert "Pick a live quote type" not in html
-    assert html.index(">FTL<") < html.index(">LTL<") < html.index(">DRAY<") < html.index("International")
+    assert html.index(">FTL<") < html.index(">LTL<") < html.index(">Dray<") < html.index("International")
+    assert "Catalog" not in html
+    settings = html[html.index('id="settingsMenu"'):html.index("Select Transportation Mode")]
+    assert settings.index("Change User") < settings.index("Customers") < settings.index("Terminal Locations") < settings.index("SOP's")
+    assert "/customers" in html
+    assert "/locations" in html
+    assert "/sops" in html
     assert "settings-cog" in html
     assert "Change User" in html
     assert 'aria-label="Settings"' in html
@@ -43,6 +50,10 @@ def test_forms_use_customer_optin():
         assert "Include customer on quote" in html
         assert "id=\"customer_fields\"" in html
         assert "hidden" in html
+        assert "jfCustomerDraft" in html
+        assert "restoreDraft" in html
+        assert 'autocomplete="organization"' in html
+        assert 'autocomplete="off"' not in html.split("id=\"customer_name\"")[1][:400]
 
 
 def test_dray_form_fields():
@@ -77,6 +88,9 @@ def test_dray_form_fields():
     assert "Origin ZIP" not in html
     assert "consider prepull" in html
     assert 'id="add_terminal_btn"' in html
+    assert "Search the terminal with Google" in html
+    assert html.index('data-places-field="terminal"') < html.index('id="new_terminal_name"') < html.index('id="new_terminal_address"')
+    assert "/api/customers" in html
     assert 'name="facility_state"' in html
     assert 'name="facility_address"' in html
     assert 'name="facility_name"' in html
@@ -91,6 +105,9 @@ def test_dray_form_fields():
     assert html.find("Chassis days") < html.find("Chassis split")
     assert 'select id="reefer"' not in html
     assert "pageshow" in html
+    js = _client().get("/static/js/dray_form.js").get_data(as_text=True)
+    assert "jfDrayTerminalDraft" in js
+    assert "restoreTerminalDraft" in js
 
 
 def test_dray_quote_output_layout_and_pricing():
@@ -156,9 +173,11 @@ def test_dray_quote_output_layout_and_pricing():
     assert "FSC (20% thru 08/31/26)" in html
     assert "jericho-freight-logo-compact.png" in html
     assert "jericho-freight-logo-blue.png" not in html
-    assert "<title>Q4242</title>" in html
+    assert "<title>DRAY-Q4242</title>" in html
     assert "Drayage Quote - Jericho Freight" not in html
     assert html.find("quote-letterhead") < html.find("route-info") < html.find("section-details")
+    assert 'class="section dray-split"' not in html
+    assert html.find('id="section-details"') < html.find('class="dray-split"')
     assert "$450.00" in html
     assert "$90.00" in html
     assert "$25.00" in html
@@ -294,9 +313,13 @@ def test_dray_multi_facility_output():
 
 
 def test_quote_file_label():
-    assert appmod.quote_file_label(4242) == "Q4242"
-    assert appmod.quote_file_label("Q12") == "Q12"
-    assert appmod.quote_file_label("") == "Q"
+    assert appmod.quote_file_label(4242, "FTL") == "FTL-Q4242"
+    assert appmod.quote_file_label("Q12", "LTL") == "LTL-Q12"
+    assert appmod.quote_file_label("", "DRAY") == "DRAY-Q"
+    assert appmod.quote_file_label(4242, "INTL") == "INTL-Q4242"
+    assert appmod.quote_file_label("DRAY-Q9", "DRAY") == "DRAY-Q9"
+    assert appmod.quote_file_label(4242) == "DRAY-Q4242"
+    assert appmod.quote_file_label("FTL-Q4242", "FTL") == "FTL-Q4242"
 
 
 def test_dray_requires_origin_terminal():
@@ -313,3 +336,92 @@ def test_dray_requires_origin_terminal():
     assert "Choose an origin terminal" in html
     assert "Quote Details" not in html
     nxt.assert_not_called()
+
+
+def test_forms_do_not_include_header_mode_menu():
+    with patch("app.rep_configured", return_value=True), patch("app.load_rep", return_value=FAKE_REP):
+        html = _client().get("/ftl").get_data(as_text=True)
+    assert "headerModeDropdown" not in html
+    assert "headerModeTrigger" not in html
+    assert ">Modes<" not in html
+    assert 'id="catalogDropdown"' not in html
+
+
+def test_customer_and_location_editors():
+    with patch("app.rep_configured", return_value=True), patch("app.load_rep", return_value=FAKE_REP):
+        client = _client()
+        customers_html = client.get("/customers").get_data(as_text=True)
+        locations_html = client.get("/locations").get_data(as_text=True)
+    assert "Add customer" in customers_html
+    assert "stay on this computer" not in customers_html
+    assert 'id="catalog_filter"' in customers_html
+    assert "Add location" in locations_html
+    assert "stay on this computer" not in locations_html
+    assert "Search the terminal with Google" in locations_html
+    assert 'id="new_location_name"' in locations_html
+    assert 'id="catalog_filter"' in locations_html
+    assert locations_html.index('id="catalog_filter"') < locations_html.index('id="catalogAdd"')
+    assert customers_html.index('id="catalog_filter"') < customers_html.index('id="catalogAdd"')
+    assert 'data-places-field="terminal"' in locations_html
+    assert "headerModeDropdown" not in customers_html
+    assert "headerModeDropdown" not in locations_html
+    assert 'id="catalog_list"' not in customers_html
+    assert 'id="catalog_list"' not in locations_html
+
+
+def test_ftl_and_ltl_forms_load_previous_quote():
+    with patch("app.rep_configured", return_value=True), patch("app.load_rep", return_value=FAKE_REP):
+        client = _client()
+        ftl_html = client.get("/ftl").get_data(as_text=True)
+        tiered_html = client.get("/ltl/tiered").get_data(as_text=True)
+        single_html = client.get("/ltl/single").get_data(as_text=True)
+        intl_html = client.get("/international").get_data(as_text=True)
+    for html in (ftl_html, tiered_html, single_html):
+        assert "Load Previous Quote" in html
+        assert "header-quote-list" in html
+    assert "Load Previous Quote" not in intl_html
+
+
+def test_ftl_quote_output_print_title():
+    with patch("app.rep_configured", return_value=True), \
+            patch("app.load_rep", return_value=FAKE_REP), \
+            patch.object(appmod.QuoteGenerator, "_next_quote_number", return_value=4242), \
+            patch("app.save_quote"), \
+            patch("app.record_quote"), \
+            patch("app.on_quote_issued"):
+        response = _client().post("/ftl", data={
+            "origin_city": "Cheyenne",
+            "origin_zip": "82001",
+            "dest_city": "Denver",
+            "dest_zip": "80202",
+            "equipment": "V",
+            "linehaul_flat": "2000",
+        })
+    html = response.get_data(as_text=True)
+    assert response.status_code == 200
+    assert "<title>FTL-Q4242</title>" in html
+    assert 'id="printQuoteBtn"' in html
+
+
+def test_sops_library_lists_and_serves_pdfs():
+    from sop_catalog import SOP_FILES, sop_path
+
+    with patch("app.rep_configured", return_value=True), patch("app.load_rep", return_value=FAKE_REP):
+        client = _client()
+        html = client.get("/sops").get_data(as_text=True)
+        missing = client.get("/sops/not-a-real.pdf")
+        assert "SOP's" in html
+        assert html.index("LTL Single Shipment Quote SOP") < html.index("LTL Tiered Quote SOP")
+        assert html.index("FTL Quote SOP") < html.index("Drayage Quote SOP")
+        assert html.index("International Quote SOP") < html.index("Settings SOP")
+        for row in SOP_FILES:
+            assert row["title"] in html
+            assert row["filename"] in html
+            path = sop_path(row["filename"])
+            assert os.path.isfile(path), path
+            response = client.get("/sops/" + row["filename"])
+            assert response.status_code == 200
+            assert response.mimetype == "application/pdf"
+            assert response.data[:4] == b"%PDF"
+        assert missing.status_code == 404
+

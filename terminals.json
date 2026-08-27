@@ -31,6 +31,14 @@
       "city": "Maple Heights",
       "state": "OH",
       "zip": "44137"
+    },
+    {
+      "id": "e37fe7a7e3414165884e6ba12aee57d5",
+      "name": "Garden",
+      "address": "2 Main Street",
+      "city": "Garden City",
+      "state": "GA",
+      "zip": "31408"
     }
   ]
 }
