@@ -6,7 +6,7 @@
     <title>Single Shipment LTL Quote - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body>
+<body class="has-live-totals">
     <div class="container">
         {% set header_subtitle = 'LTL Single Shipment Quote' %}
         {% include 'partials/page_header.html' %}
@@ -180,6 +180,9 @@
         </div>
     </div>
 
+    {% include 'partials/live_totals.html' %}
+
+    <script src="{{ url_for('static', filename='js/live_totals.js') }}"></script>
     <script>
         const palletInput = document.getElementById('pallet_count');
         const linehaulInput = document.getElementById('linehaul_cost');
@@ -220,6 +223,7 @@
             document.getElementById('summary-accessorials').textContent = `$${accessorials.toFixed(2)}`;
             document.getElementById('summary-total').textContent = `$${total.toFixed(2)}`;
             rateInput.value = (total / pallets).toFixed(2);
+            if (window.JFLiveTotals) JFLiveTotals.set(total);
         }
 
         async function calculateDistance() {

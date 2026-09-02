@@ -40,7 +40,7 @@ SOP_FILES = (
         "slug": "settings",
         "title": "Settings SOP",
         "filename": "SOP-Settings.pdf",
-        "blurb": "The settings cog: your name on quotes, customers, terminals, and this SOP library.",
+        "blurb": "The settings cog: your name on quotes, the shared Google quote counter, customers, terminals, and this SOP library.",
     },
 )
 

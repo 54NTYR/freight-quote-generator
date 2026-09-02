@@ -6,7 +6,7 @@
     <title>International Freight Quote - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body>
+<body class="has-live-totals">
     <div class="container">
         {% set header_subtitle = 'International Quote Builder' %}
         {% include 'partials/page_header.html' %}
@@ -65,6 +65,8 @@
         </div>
     </div>
 
+    {% include 'partials/live_totals.html' %}
+
     <template id="lane_template">
         <div class="lane">
             <div class="lane-title">
@@ -111,6 +113,7 @@
         </div>
     </template>
 
+    <script src="{{ url_for('static', filename='js/live_totals.js') }}"></script>
     <script>
         const lanesContainer = document.getElementById('lanes_container');
         const laneTemplate = document.getElementById('lane_template');
@@ -365,6 +368,7 @@
 
         // start with draft or one lane
         if (!loadDraft()) addLane();
+        if (typeof syncIntlLiveTotal === "function") syncIntlLiveTotal();
 
         // set default valid_until to 15 days from now if empty
         const validInput = document.getElementById('valid_until');
@@ -462,6 +466,22 @@
             document.body.appendChild(form);
             form.submit();
         });
+
+        function syncIntlLiveTotal() {
+            if (!window.JFLiveTotals) return;
+            var maxLane = 0;
+            document.querySelectorAll('.lane').forEach(function (laneEl) {
+                var extra = parseFloat(laneEl.querySelector('.lane-extra-fees').value) || 0;
+                var legs = Array.from(laneEl.querySelectorAll('.leg-cost')).reduce(function (sum, el) {
+                    return sum + (parseFloat(el.value) || 0);
+                }, 0);
+                maxLane = Math.max(maxLane, legs + extra);
+            });
+            JFLiveTotals.set(maxLane);
+        }
+        document.addEventListener('input', syncIntlLiveTotal);
+        document.addEventListener('change', syncIntlLiveTotal);
+        syncIntlLiveTotal();
     </script>
 </body>
 </html>

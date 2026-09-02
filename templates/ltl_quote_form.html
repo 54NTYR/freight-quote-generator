@@ -6,7 +6,7 @@
     <title>Freight Quote Generator - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body>
+<body class="has-live-totals">
     <div class="container">
         {% set header_subtitle = 'LTL Tiered Quote Builder' %}
         {% include 'partials/page_header.html' %}
@@ -265,6 +265,9 @@
         </div>
     </div>
 
+    {% include 'partials/live_totals.html' %}
+
+    <script src="{{ url_for('static', filename='js/live_totals.js') }}"></script>
     <script>
         const analysisDefaults = {
             requested_volume: 5,
@@ -403,7 +406,26 @@
         // Load standard template by default
         window.addEventListener('load', () => {
             loadTemplate('standard');
+            syncTieredLiveTotal();
         });
+
+        function priceForPalletCount(count) {
+            const pallets = Math.max(1, parseInt(count, 10) || 1);
+            if (pallets === 1) return parseFloat(document.getElementById('tier1_price').value) || 0;
+            if (pallets <= 5) return parseFloat(document.getElementById('tier2_price').value) || 0;
+            if (pallets <= 10) return parseFloat(document.getElementById('tier3_price').value) || 0;
+            return parseFloat(document.getElementById('tier4_price').value) || 0;
+        }
+
+        function syncTieredLiveTotal() {
+            if (!window.JFLiveTotals) return;
+            const volume = Math.max(1, parseInt(document.getElementById('requested_volume').value, 10) || 1);
+            JFLiveTotals.set(volume * priceForPalletCount(volume));
+        }
+
+        document.getElementById('quoteForm').addEventListener('input', syncTieredLiveTotal);
+        document.getElementById('quoteForm').addEventListener('change', syncTieredLiveTotal);
+        syncTieredLiveTotal();
     </script>
     <script type="application/json" id="previous-quotes-data">{{ previous_quotes|tojson }}</script>
     <script src="{{ url_for('static', filename='js/previous_quotes.js') }}"></script>

@@ -10,9 +10,17 @@ import urllib.request
 import uuid
 import base64
 import binascii
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, url_for
+
+from quote_counter import (
+    QuoteCounterError,
+    load_quote_counter_settings,
+    next_local_quote_number,
+    next_quote_number,
+    save_quote_counter_settings,
+)
 
 import analytics_core as ac
 import dray as dray_mod
@@ -149,6 +157,27 @@ def rep_setup():
         return render_template("rep_setup.html", error="Both fields are required.",
                                rep_name=name, rep_email=email), 400
     return render_template("rep_setup.html", **load_rep())
+
+
+@app.errorhandler(QuoteCounterError)
+def quote_counter_failed(exc):
+    return render_template("counter_error.html", error=str(exc)), 503
+
+
+@app.route("/settings/counter", methods=["GET", "POST"])
+def counter_setup():
+    if request.method == "POST":
+        settings = save_quote_counter_settings(
+            request.form.get("quote_counter_url") or "",
+            request.form.get("quote_counter_secret") or "",
+        )
+    else:
+        settings = load_quote_counter_settings()
+    return render_template(
+        "counter_setup.html",
+        quote_counter_url=settings["url"],
+        quote_counter_secret=settings["secret"],
+    )
 
 
 def _normalize_zip(zip_code: str) -> str:
@@ -653,11 +682,12 @@ def compute_driving_distance_miles(origin_zip: str, destination_zip: str, api_ke
 
 
 class QuoteGenerator:
-    def __init__(self, origin_city, origin_zip, destination_city, destination_zip, preview=False):
+    def __init__(self, origin_city, origin_zip, destination_city, destination_zip, preview=False, quote_mode=""):
         self.origin_city = origin_city
         self.origin_zip = origin_zip
         self.destination_city = destination_city
         self.destination_zip = destination_zip
+        self.quote_mode = quote_mode
         self.company_name = COMPANY_INFO["company_name"]
         self.phone = COMPANY_INFO["phone"]
         self.email = COMPANY_INFO["email"]
@@ -667,19 +697,9 @@ class QuoteGenerator:
         self.quote_number = "PREVIEW" if preview else self._next_quote_number()
 
     def _next_quote_number(self):
-        counter_file = data_path("quote_counter.json")
-        if not os.path.exists(counter_file):
-            with open(counter_file, "w", encoding="utf-8") as f:
-                json.dump({"counter": 1}, f)
-            return 1
-
-        with open(counter_file, "r+", encoding="utf-8") as f:
-            data = json.load(f)
-            data["counter"] += 1
-            f.seek(0)
-            json.dump(data, f)
-            f.truncate()
-            return data["counter"]
+        if app.config.get("TESTING"):
+            return next_local_quote_number()
+        return next_quote_number(self.quote_mode)
 
     def calculate_distance(self, origin_zip, destination_zip):
         api_key = load_google_maps_api_key()
@@ -991,6 +1011,33 @@ def _format_fsc_pct(pct) -> str:
     if abs(value - round(value)) < 0.05:
         return str(int(round(value)))
     return f"{value:.1f}"
+
+
+def _format_quote_date(value=None) -> str:
+    """Long month name, day without a leading zero, year. e.g. September 1, 2026."""
+    if value is None or value == "":
+        dt = datetime.now()
+    elif isinstance(value, datetime):
+        dt = value
+    elif isinstance(value, date):
+        dt = datetime(value.year, value.month, value.day)
+    else:
+        raw = str(value).strip()
+        dt = None
+        sliced = {
+            "%Y-%m-%d": raw[:10],
+            "%m/%d/%Y": raw[:10],
+            "%m/%d/%y": raw[:8],
+        }
+        for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y", "%B %d, %Y", "%b %d, %Y"):
+            try:
+                dt = datetime.strptime(sliced.get(fmt, raw.replace("  ", " ")), fmt)
+                break
+            except ValueError:
+                continue
+        if dt is None:
+            return raw
+    return dt.strftime("%B %d, %Y").replace(" 0", " ")
 
 
 def _format_thru_date(valid_until: str) -> str:
@@ -1561,6 +1608,7 @@ def ltl_tiered_quote():
         request.form["origin_zip"],
         request.form["destination_city"],
         request.form["destination_zip"],
+        quote_mode="LTL",
     )
     distance = _quote_distance(
         request.form, quote_generator.origin_zip, quote_generator.destination_zip, None
@@ -1593,8 +1641,8 @@ def ltl_tiered_quote():
         "distance": distance,
         "transit_time": transit_prediction["display_window"] if prediction else f"{_stats['mu']} days",
         "pricing_tiers": quote_generator.create_pricing_tiers(tier_prices),
-        "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
-        "valid_until": valid_until_date.strftime("%B %d, %Y").replace(" 0", " "),
+        "current_date": _format_quote_date(),
+        "valid_until": _format_quote_date(valid_until_date),
         **COMPANY_INFO,
         **_customer_ctx(request.form),
         **load_rep(),
@@ -1662,6 +1710,7 @@ def ltl_single_quote():
         request.form["origin_zip"],
         request.form["destination_city"],
         request.form["destination_zip"],
+        quote_mode="LTL",
     )
     distance = _quote_distance(
         request.form, quote_generator.origin_zip, quote_generator.destination_zip, None
@@ -1692,8 +1741,8 @@ def ltl_single_quote():
         "price_per_pallet": payload["price_per_pallet"],
         "total_cost": payload["total_cost"],
         "cost_per_pallet_mile": analytics["cost_per_pallet_mile"],
-        "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
-        "valid_until": valid_until_date.strftime("%B %d, %Y").replace(" 0", " "),
+        "current_date": _format_quote_date(),
+        "valid_until": _format_quote_date(valid_until_date),
         **COMPANY_INFO,
         **_customer_ctx(request.form),
         **load_rep(),
@@ -1745,15 +1794,18 @@ def ftl_quote():
     quote_generator = QuoteGenerator(
         form.get("origin_city", ""), origin_zip,
         form.get("dest_city", ""), dest_zip,
+        quote_mode="FTL",
     )
     miles = _quote_distance(form, origin_zip, dest_zip, None)
+    include_fsc = _truthy_flag(form, "include_fsc")
+    fsc_mode = (form.get("fsc_mode") or "amount").strip().lower()
+    fsc_value = _pf(form, "fsc_value")
     cost = ftl_mod.assemble_cost(
         equipment, miles, _pf(form, "linehaul_flat"), rpm=_pf(form, "rpm") or ftl_mod.DEFAULT_RPM,
-        fsc_pct=_pf(form, "fsc_pct"), continuous_run=bool(form.get("continuous_run")),
-        precool=bool(form.get("precool")), tarps=_pf(form, "tarps") or 0,
-        detention_hours=_pf(form, "detention_hours") or 0,
-        detention_rate=_pf(form, "detention_rate") or 75.0,
-        misc_accessorial=_pf(form, "misc_accessorial") or 0)
+        include_fsc=include_fsc, fsc_mode=fsc_mode,
+        fsc_pct=(fsc_value or 0) if fsc_mode.startswith("percent") else 0,
+        fsc_amount=None if fsc_mode.startswith("percent") else fsc_value,
+        precool=bool(form.get("precool")), tarps=_pf(form, "tarps") or 0)
     transit = ftl_mod.transit_estimate(miles, equipment,
                                        team=bool(form.get("team")), conf=CONF_LEVEL)
     stats = resolve_lane_stats("FTL", origin_zip, dest_zip,
@@ -1785,8 +1837,8 @@ def ftl_quote():
         "destination_city": form.get("dest_city", ""),
         "destination_zip": dest_zip,
         "quote_notes": form.get("quote_notes", ""),
-        "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
-        "valid_until": valid_until,
+        "current_date": _format_quote_date(),
+        "valid_until": _format_quote_date(valid_until),
         **_customer_ctx(form),
         **load_rep(),
     }
@@ -1868,6 +1920,7 @@ def dray_quote():
     return_line = format_city_state_zip(return_city, return_state, return_zip)
     quote_generator = QuoteGenerator(
         origin_city, origin_zip, dest_city, dest_zip,
+        quote_mode="DRAY",
     )
     quote_number = quote_generator.quote_number
     valid_until = form.get("valid_until")
@@ -1960,8 +2013,8 @@ def dray_quote():
         "destination_city": dest_city,
         "destination_zip": dest_zip,
         "quote_notes": form.get("quote_notes", ""),
-        "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
-        "valid_until": valid_until,
+        "current_date": _format_quote_date(),
+        "valid_until": _format_quote_date(valid_until),
         **_customer_ctx(form),
         **load_rep(),
     }
@@ -2158,7 +2211,7 @@ def international_quote():
         return render_template("international_quote_form.html"), 400
 
     parsed = parse_international_payload(data)
-    qg = QuoteGenerator("", "", "", "", preview=parsed["preview"])
+    qg = QuoteGenerator("", "", "", "", preview=parsed["preview"], quote_mode="INTL")
     max_total_per_pallet = finalize_international_lanes(parsed["lanes"], parsed["example_pallets"])
     transit_time_display = summarize_international_transit(parsed["lanes"])
 
@@ -2224,9 +2277,9 @@ def international_quote():
         "destination_text": parsed["destination_text"],
         "quote_notes": parsed["quote_notes"],
         "example_pallets": parsed["example_pallets"],
-        "valid_until": valid_until,
+        "valid_until": _format_quote_date(valid_until),
         "transit_time_display": transit_time_display,
-        "current_date": datetime.now().strftime("%B %d, %Y").replace(" 0", " "),
+        "current_date": _format_quote_date(),
         **_customer_ctx(data),
         **load_rep(),
     }

@@ -1,9 +1,4 @@
 """Compatibility wrapper for dray quote history."""
-from quote_history import (  # noqa: F401
-    MULTI_KEYS,
-    data_path,
-    snapshot_form,
-)
 from quote_history import list_quotes as _list_quotes
 from quote_history import record_quote as _record_quote
 

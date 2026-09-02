@@ -17,7 +17,7 @@ EQUIPMENT = {
 }
 REEFER_CODES = {"R"}
 OPEN_DECK_CODES = {"F", "SD", "HS", "RGN", "LB"}
-REEFER_SURCHARGES = {"continuous_run_pct": 0.08, "precool_fee": 75.0}
+PRECOOL_FEE = 75.0
 FLATBED_TARP_FEE = 50.0      # per tarp
 DEFAULT_RPM = 2.50           # fallback $/mile when no flat rate given
 
@@ -63,29 +63,28 @@ def transit_estimate(miles, equipment="V", team=False, conf=0.90):
 
 
 def assemble_cost(equipment, miles, linehaul_flat=None, rpm=DEFAULT_RPM,
-                  fsc_pct=0.0, continuous_run=False, precool=False, tarps=0,
-                  detention_hours=0, detention_rate=75.0, misc_accessorial=0.0):
+                  fsc_pct=0.0, fsc_amount=None, fsc_mode="amount",
+                  include_fsc=False, precool=False, tarps=0):
     linehaul = float(linehaul_flat) if linehaul_flat \
         else float(rpm) * (float(miles) if miles else 0)
-    fsc = linehaul * float(fsc_pct or 0) / 100.0
-    extras, lines = 0.0, [("Linehaul", round(linehaul, 2)),
-                          ("Fuel surcharge", round(fsc, 2))]
+    extras, lines = 0.0, [("Linehaul", round(linehaul, 2))]
+    fsc = 0.0
+    if include_fsc:
+        mode = (fsc_mode or "amount").strip().lower()
+        if mode.startswith("percent"):
+            fsc = round(linehaul * float(fsc_pct or 0) / 100.0, 2)
+        else:
+            fsc = round(float(fsc_amount or 0), 2)
+        if fsc:
+            lines.append(("Fuel surcharge", fsc))
     if equipment in REEFER_CODES:
         if precool:
-            extras += REEFER_SURCHARGES["precool_fee"]
-            lines.append(("Pre-cool", REEFER_SURCHARGES["precool_fee"]))
+            extras += PRECOOL_FEE
+            lines.append(("Pre-cool", PRECOOL_FEE))
     if equipment in OPEN_DECK_CODES and tarps:
         t = float(tarps) * FLATBED_TARP_FEE
         extras += t
         lines.append((f"Tarps x{int(tarps)}", round(t, 2)))
-    if detention_hours:
-        d = float(detention_hours) * float(detention_rate)
-        extras += d
-        lines.append((f"Detention {int(detention_hours)}h @ ${int(detention_rate)}/h",
-                      round(d, 2)))
-    if misc_accessorial:
-        extras += float(misc_accessorial)
-        lines.append(("Other accessorials", round(float(misc_accessorial), 2)))
     total = linehaul + fsc + extras
     lines.append(("All-in total", round(total, 2)))
     return {"lines": lines, "total": round(total, 2)}

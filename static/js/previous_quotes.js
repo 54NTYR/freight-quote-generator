@@ -39,10 +39,30 @@
             });
         });
 
-        ["include_customer", "equipment", "ltl_compare"].forEach(function (id) {
+        ["include_customer", "equipment", "ltl_compare", "include_fsc", "fsc_mode"].forEach(function (id) {
             var el = document.getElementById(id);
             if (el) el.dispatchEvent(new Event("change"));
         });
+
+        if (!Object.prototype.hasOwnProperty.call(fields, "include_fsc")) {
+            var oldPct = parseFloat(Array.isArray(fields.fsc_pct) ? fields.fsc_pct[0] : fields.fsc_pct);
+            if (Number.isFinite(oldPct) && oldPct > 0) {
+                var fscBox = document.getElementById("include_fsc");
+                var modeEl = document.getElementById("fsc_mode");
+                var valEl = document.getElementById("fsc_value");
+                if (fscBox) {
+                    fscBox.checked = true;
+                    fscBox.dispatchEvent(new Event("change"));
+                }
+                if (modeEl) {
+                    modeEl.value = "percent";
+                    modeEl.dispatchEvent(new Event("change"));
+                }
+                if (valEl && !String(valEl.value || "").trim()) valEl.value = oldPct;
+            }
+        }
+
+        if (typeof syncFtlTotal === "function") syncFtlTotal();
 
         var milesEl = document.getElementById("manual_miles");
         var distEl = document.getElementById("distance-info");
@@ -59,6 +79,7 @@
                 if (el) el.dispatchEvent(new Event("input"));
             });
         }
+        if (typeof syncTieredLiveTotal === "function") syncTieredLiveTotal();
     }
 
     var prevBtn = document.getElementById("load_previous_quote_btn");

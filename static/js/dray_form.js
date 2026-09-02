@@ -128,7 +128,8 @@
         var split = splitCount * Number(rates.chassis_split || 150);
         var total = lh + fsc + acc + chassis + split;
         var live = document.getElementById("live_total");
-        if (live) live.textContent = money(total);
+        if (window.JFLiveTotals) JFLiveTotals.set(total);
+        else if (live) live.textContent = money(total);
     }
 
     function zipOf(el) {
@@ -697,7 +698,7 @@
     syncTotals();
     bindAllFacilityPlaces();
     bindTerminalPlaces();
-    bindTotalsDrag(document.getElementById("drayLiveTotals"));
+    bindTotalsDrag(document.getElementById("liveTotals") || document.getElementById("drayLiveTotals"));
     window.addEventListener("pagehide", saveTerminalDraft);
     window.addEventListener("pageshow", function () {
         restoreTerminalDraft();

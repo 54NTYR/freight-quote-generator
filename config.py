@@ -75,6 +75,16 @@ def load_google_maps_api_key() -> str | None:
     return key
 
 
+def save_config_values(**updates) -> dict:
+    data = load_config()
+    data.update(updates)
+    path = config_file_path()
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2)
+    return data
+
+
 def maps_api_configured() -> bool:
     return load_google_maps_api_key() is not None
 

@@ -6,7 +6,7 @@
     <title>FTL Quote - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body>
+<body class="has-live-totals">
     <div class="container">
         {% set header_subtitle = 'FTL Quote Builder' %}
         {% include 'partials/page_header.html' %}
@@ -92,16 +92,6 @@
                     <div id="reefer_fields" class="reveal-panel" hidden>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="temp_setpoint_f">Reefer setpoint (°F)</label>
-                                <input type="number" id="temp_setpoint_f" name="temp_setpoint_f" step="1">
-                            </div>
-                            <div class="form-group">
-                                <label class="checkbox-row">
-                                    <input type="checkbox" name="continuous_run" id="continuous_run">
-                                    Continuous run
-                                </label>
-                            </div>
-                            <div class="form-group">
                                 <label class="checkbox-row">
                                     <input type="checkbox" name="precool" id="precool">
                                     Pre-cool
@@ -130,23 +120,28 @@
                             <label for="rpm">Rate per mile ($)</label>
                             <input type="number" id="rpm" name="rpm" min="0" step="0.01">
                         </div>
-                        <div class="form-group">
-                            <label for="fsc_pct">Fuel surcharge (%)</label>
-                            <input type="number" id="fsc_pct" name="fsc_pct" min="0" step="0.1">
-                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="detention_hours">Detention hours</label>
-                            <input type="number" id="detention_hours" name="detention_hours" min="0" step="0.5">
+                            <label class="checkbox-row">
+                                <input type="checkbox" name="include_fsc" id="include_fsc">
+                                Include fuel surcharge
+                            </label>
                         </div>
-                        <div class="form-group">
-                            <label for="detention_rate">Detention $/hr</label>
-                            <input type="number" id="detention_rate" name="detention_rate" value="75" min="0" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="misc_accessorial">Other accessorials ($)</label>
-                            <input type="number" id="misc_accessorial" name="misc_accessorial" min="0" step="0.01">
+                    </div>
+                    <div id="fsc_fields" class="reveal-panel" hidden>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fsc_mode">Fuel surcharge</label>
+                                <select id="fsc_mode" name="fsc_mode">
+                                    <option value="amount">Fixed amount ($)</option>
+                                    <option value="percent">Percentage (%)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fsc_value" id="fsc_value_label">Amount ($)</label>
+                                <input type="number" id="fsc_value" name="fsc_value" min="0" step="0.01">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -185,11 +180,20 @@
         </div>
     </div>
 
+    {% include 'partials/live_totals.html' %}
+
+    <script src="{{ url_for('static', filename='js/live_totals.js') }}"></script>
     <script>
         const OPEN_DECK = {F: true, SD: true, HS: true, RGN: true, LB: true};
+        const PRECOOL_FEE = 75;
+        const TARP_FEE = 50;
         const linehaulInput = document.getElementById('linehaul_flat');
         const rpmInput = document.getElementById('rpm');
         const measuredInput = document.getElementById('manual_miles');
+        const includeFsc = document.getElementById('include_fsc');
+        const fscFields = document.getElementById('fsc_fields');
+        const fscMode = document.getElementById('fsc_mode');
+        const fscLabel = document.getElementById('fsc_value_label');
         let lastPriceEdit = null;
 
         function measuredMiles() {
@@ -201,6 +205,7 @@
             const equipment = document.getElementById('equipment').value;
             document.getElementById('reefer_fields').hidden = equipment !== 'R';
             document.getElementById('flatbed_fields').hidden = !OPEN_DECK[equipment];
+            syncFtlTotal();
         }
         document.getElementById('equipment').addEventListener('change', syncEquipmentPanels);
         syncEquipmentPanels();
@@ -209,9 +214,45 @@
             document.getElementById('ltl_compare_fields').hidden = !this.checked;
         });
 
+        function syncFscPanel() {
+            fscFields.hidden = !includeFsc.checked;
+            if (fscMode && fscLabel) {
+                fscLabel.textContent = fscMode.value === 'percent' ? 'Percentage (%)' : 'Amount ($)';
+            }
+            syncFtlTotal();
+        }
+        includeFsc.addEventListener('change', syncFscPanel);
+        fscMode.addEventListener('change', syncFscPanel);
+        syncFscPanel();
+
+        function syncFtlTotal() {
+            if (!window.JFLiveTotals) return;
+            var miles = measuredMiles();
+            var linehaul = parseFloat(linehaulInput.value);
+            if (!Number.isFinite(linehaul)) {
+                var rpm = parseFloat(rpmInput.value);
+                linehaul = (Number.isFinite(rpm) && miles) ? rpm * miles : 0;
+            }
+            var fsc = 0;
+            if (includeFsc.checked) {
+                var fscVal = parseFloat(document.getElementById('fsc_value').value) || 0;
+                fsc = fscMode.value === 'percent' ? linehaul * fscVal / 100 : fscVal;
+            }
+            var extras = 0;
+            var equipment = document.getElementById('equipment').value;
+            if (equipment === 'R' && document.getElementById('precool').checked) extras += PRECOOL_FEE;
+            if (OPEN_DECK[equipment]) {
+                extras += (parseFloat(document.getElementById('tarps').value) || 0) * TARP_FEE;
+            }
+            JFLiveTotals.set(linehaul + fsc + extras);
+        }
+
         function syncPricingFrom(source) {
             const miles = measuredMiles();
-            if (!miles) return;
+            if (!miles) {
+                syncFtlTotal();
+                return;
+            }
             if (source === 'linehaul') {
                 const flat = parseFloat(linehaulInput.value);
                 if (!Number.isFinite(flat)) return;
@@ -221,6 +262,7 @@
                 if (!Number.isFinite(rpm)) return;
                 linehaulInput.value = (rpm * miles).toFixed(2);
             }
+            syncFtlTotal();
         }
 
         linehaulInput.addEventListener('input', function () {
@@ -231,6 +273,8 @@
             lastPriceEdit = 'rpm';
             syncPricingFrom('rpm');
         });
+        document.getElementById('quoteForm').addEventListener('input', syncFtlTotal);
+        document.getElementById('quoteForm').addEventListener('change', syncFtlTotal);
 
         const validInput = document.getElementById('valid_until');
         if (validInput && !validInput.value) {
@@ -245,6 +289,7 @@
             const resultEl = document.getElementById('distance-info');
             if (!origin || !destination) {
                 measuredInput.value = '';
+                syncFtlTotal();
                 return false;
             }
             resultEl.textContent = 'Calculating distance...';
@@ -262,6 +307,7 @@
                         ? 'Distance: ' + data.display_distance
                         : 'Distance: ' + data.miles + ' miles';
                     if (lastPriceEdit) syncPricingFrom(lastPriceEdit);
+                    else syncFtlTotal();
                     return true;
                 }
                 measuredInput.value = '';
@@ -274,6 +320,7 @@
                 measuredInput.value = '';
                 resultEl.textContent = 'Could not calculate distance right now. Please try again.';
             }
+            syncFtlTotal();
             return false;
         }
 
@@ -283,6 +330,7 @@
         ['origin_zip', 'dest_zip'].forEach(function (id) {
             document.getElementById(id).addEventListener('blur', refreshDistance);
         });
+        syncFtlTotal();
     </script>
     <script type="application/json" id="previous-quotes-data">{{ previous_quotes|tojson }}</script>
     <script src="{{ url_for('static', filename='js/previous_quotes.js') }}"></script>

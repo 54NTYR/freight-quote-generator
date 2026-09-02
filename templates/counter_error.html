@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Counter - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% set header_subtitle = 'Quote Counter' %}
+        {% include 'partials/page_header.html' %}
+        <div class="page-body">
+            <p class="form-error" role="alert">{{ error }}</p>
+            <p class="page-lede">Quotes are numbered from the shared Google Sheet so every computer stays in sequence. Nothing was saved.</p>
+            <div class="form-actions">
+                <a href="{{ url_for('counter_setup') }}" class="btn btn-primary">Open quote counter settings</a>
+                <a href="{{ url_for('home') }}" class="btn btn-secondary">Back to modes</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

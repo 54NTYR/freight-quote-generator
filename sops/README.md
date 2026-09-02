@@ -13,4 +13,4 @@ Open them in the app from the home-page settings cog: **SOP's**.
 | `SOP-FTL.pdf` | Full truckload quote |
 | `SOP-Drayage.pdf` | Port / rail dray quote |
 | `SOP-International.pdf` | International quote |
-| `SOP-Settings.pdf` | Settings cog, customers, terminals |
+| `SOP-Settings.pdf` | Settings cog, quote counter, customers, terminals |

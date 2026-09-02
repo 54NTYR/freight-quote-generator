@@ -22,6 +22,8 @@ Distance calculations need a Google Maps API key with the **Routes API** and **G
 
 The key is read from `config.json` only — never commit that file. `config.example.json` is the safe template shipped with the project.
 
+Quote numbers come from a shared Google Sheet (Settings > Quote Counter). Put the web app URL and password in Settings, or in the `quote_counter` block of `config.json`.
+
 ### Optional environment override
 
 ```powershell

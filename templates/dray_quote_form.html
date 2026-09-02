@@ -6,7 +6,7 @@
     <title>Drayage Quote - Jericho Freight</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body class="dray-form-page">
+<body class="has-live-totals">
     <div class="container">
         {% set header_subtitle = 'Drayage Quote Builder' %}
         {% include 'partials/page_header.html' %}
@@ -208,9 +208,7 @@
         </div>
     </div>
 
-    <aside class="dray-live-totals" id="drayLiveTotals" aria-label="Quote total">
-        <span id="live_total">$0.00</span>
-    </aside>
+    {% include 'partials/live_totals.html' %}
 
     <div class="modal-overlay" id="terminal_modal" hidden>
         <div class="modal-card" role="dialog" aria-labelledby="terminal_modal_title" aria-modal="true">
@@ -256,6 +254,7 @@
         "prepullMiles": prepull_miles_threshold,
         "mapsKey": maps_api_key
     }|tojson }}</script>
+    <script src="{{ url_for('static', filename='js/live_totals.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dray_form.js') }}"></script>
 </body>
 </html>

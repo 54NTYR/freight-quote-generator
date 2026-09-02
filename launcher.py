@@ -49,12 +49,13 @@ def icon_path() -> str | None:
 def open_desktop_window(url: str) -> None:
     import webview
 
+    # Stock Windows Calculator min size is AppMinWindowWidth/Height (320 x ~504).
     window_kwargs = {
         "title": APP_TITLE,
         "url": url,
         "width": 1280,
         "height": 860,
-        "min_size": (960, 640),
+        "min_size": (320, 500),
     }
     app_icon = icon_path()
     if app_icon:
