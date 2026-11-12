@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Planning - Jericho Freight</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/load_planning.css') }}">
+</head>
+<body class="has-lp-live">
+    <div class="container">
+        {% set header_subtitle = 'Load Planning' %}
+        {% include 'partials/page_header.html' %}
+
+        <div class="page-body">
+            <p class="quote-type-nav">
+                <a href="{{ url_for('home') }}">Back to modes</a>
+            </p>
+            <p class="lp-lead">Products are the cartons, pallets, or items being loaded. Containers are the trailers, ocean boxes, or pallets they go into. Dimensions are interior inches. Weight is pounds. Optimize shows the 3D load first. Issue plan is what assigns the plan number.</p>
+
+            <form id="quoteForm" method="post" action="{{ url_for('load_planning.optimize_plan') }}">
+                {% include 'partials/customer_optin.html' %}
+
+                <div class="form-section">
+                    <h2 class="section-title">Containers</h2>
+                    <p class="lp-help">Choose a saved container and its interior, payload, and direction fill the highlighted row. Available is how many of that type can be used. Nose to door loads a trailer from the front wall toward the doors. Floor to top loads a pallet or carton upward.</p>
+                    <div class="form-row lp-add-row">
+                        <div class="form-group">
+                            <label for="libraryContainer">Container</label>
+                            <select id="libraryContainer"></select>
+                        </div>
+                        <div class="form-group lp-add-actions">
+                            <button type="button" class="btn btn-secondary" id="addAnotherContainer">Add another container</button>
+                            <button type="button" class="btn btn-secondary" id="addCustomContainer">Add custom container</button>
+                        </div>
+                    </div>
+                    <div id="containerRows"></div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Products</h2>
+                    <p class="lp-help">Products load upright first. If a piece does not fit, it can turn on its side or end when that orientation is allowed. A cylinder loads along its length, from the nose toward the door, unless its orientations say otherwise. Placement starts at the nose, the left wall, and the floor.</p>
+                    <div class="form-row lp-add-row">
+                        <div class="form-group">
+                            <label for="libraryProduct">Saved products</label>
+                            <select id="libraryProduct"></select>
+                        </div>
+                        <div class="form-group lp-add-actions">
+                            <button type="button" class="btn btn-secondary" id="addLibraryProduct">Add product</button>
+                            <button type="button" class="btn btn-secondary" id="addBlankProduct">Add blank line</button>
+                        </div>
+                    </div>
+                    <div id="productRows"></div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Notes</h2>
+                    <div class="form-group">
+                        <label for="plan_notes">Notes (will appear on the plan)</label>
+                        <textarea id="plan_notes" rows="3" placeholder="Optional notes for the loader"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="optimizeBtn">Optimize</button>
+                    <p id="lpError" class="lp-error" hidden></p>
+                </div>
+            </form>
+
+            <section id="lpStage" class="lp-stage" hidden>
+                <h2 class="lp-stage-title">Load preview</h2>
+                <p id="lpStageSummary" class="lp-help"></p>
+                <p id="lpStale" class="lp-error" hidden>The load changed. Optimize again before issuing a plan.</p>
+                {% include 'load_planning/viewer.html' %}
+                <div class="lp-issue">
+                    <button type="button" class="btn btn-primary" id="issueBtn" disabled>Issue plan</button>
+                    <p class="lp-help">Issue plan assigns the next plan number and opens the printable plan. Optimize does not.</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <aside class="lp-live" id="lpLive" aria-label="Load fit estimate">
+        <span class="lp-live-label">Ordered cargo</span>
+        <span id="lpCube">Cube 0%</span>
+        <span id="lpWeight">Weight 0%</span>
+        <span id="lpFit" class="lp-live-note">Add products and a container.</span>
+    </aside>
+
+    <template id="containerTemplate">
+        <div class="lp-line">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" data-field="label" placeholder="53 ft dry van">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select data-field="type">
+                        <option value="truck">Truck or trailer</option>
+                        <option value="ocean">Ocean container</option>
+                        <option value="pallet">Pallet</option>
+                        <option value="box">Carton or crate</option>
+                        <option value="railcar">Railcar</option>
+                        <option value="rectangular">Rectangular</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Available</label>
+                    <input type="number" data-field="available" min="1" step="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Used</label>
+                    <input type="text" data-used readonly tabindex="-1" value="">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Interior length (in)</label>
+                    <input type="number" data-field="length_in" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Interior width (in)</label>
+                    <input type="number" data-field="width_in" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Interior height (in)</label>
+                    <input type="number" data-field="height_in" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Max payload (lb)</label>
+                    <input type="number" data-field="max_payload_lb" min="0" step="1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Load direction</label>
+                    <select data-field="load_direction">
+                        <option value="back_to_front">Nose to door</option>
+                        <option value="bottom_to_top">Floor to top</option>
+                    </select>
+                </div>
+                <div class="form-group lp-add-actions">
+                    <button type="button" class="btn btn-secondary btn-compact" data-action="save-container">Save container</button>
+                    <button type="button" class="btn btn-danger btn-compact" data-action="remove">Remove</button>
+                </div>
+            </div>
+            <input type="hidden" data-field="container_id" value="">
+        </div>
+    </template>
+
+    <template id="productTemplate">
+        <div class="lp-line lp-product">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Product ID</label>
+                    <input type="text" data-field="name" placeholder="Carton A">
+                </div>
+                <div class="form-group lp-color-field">
+                    <label>Color</label>
+                    <input type="color" data-field="color" value="#e6194b">
+                </div>
+                <div class="form-group">
+                    <label>Volume</label>
+                    <input type="text" data-volume readonly tabindex="-1" value="">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" data-field="qty" min="1" step="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label>Not loaded</label>
+                    <input type="text" data-left readonly tabindex="-1" value="">
+                </div>
+                <div class="form-group">
+                    <label>Loaded</label>
+                    <input type="text" data-loaded readonly tabindex="-1" value="">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-length-label>Length (in, back to front)</label>
+                    <input type="number" data-field="length_in" min="0" step="0.1">
+                </div>
+                <div class="form-group" data-box-size>
+                    <label>Width (in, left to right)</label>
+                    <input type="number" data-field="width_in" min="0" step="0.1">
+                </div>
+                <div class="form-group" data-box-size>
+                    <label>Height (in, floor to top)</label>
+                    <input type="number" data-field="height_in" min="0" step="0.1">
+                </div>
+                <div class="form-group" data-cylinder-size hidden>
+                    <label>Diameter (in)</label>
+                    <input type="number" data-field="diameter_in" min="0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Weight (lb)</label>
+                    <input type="number" data-field="weight_lb" min="0" step="0.1" value="0">
+                </div>
+            </div>
+            <div class="lp-product-tabs" role="tablist">
+                <button type="button" data-tab="shape" class="is-on">Shape</button>
+                <button type="button" data-tab="orientations">Orientations</button>
+                <button type="button" data-tab="stacking">Stacking</button>
+                <button type="button" data-tab="other">Other data</button>
+            </div>
+            <div class="lp-product-panel" data-panel="shape">
+                <div class="form-group">
+                    <label>Shape</label>
+                    <select aria-label="Shape" data-field="shape">
+                        <option value="box" selected>Box</option>
+                        <option value="cylinder">Cylinder, roll, or tube</option>
+                        <option value="pallet">Pallet</option>
+                        <option value="l_shape">L-shape</option>
+                        <option value="t_shape">T-shape</option>
+                    </select>
+                </div>
+                <div class="form-row" data-shape-extra="l_shape" hidden>
+                    <div class="form-group">
+                        <label>Back depth (in)</label>
+                        <input type="number" data-field="back_depth" min="0" step="0.1" placeholder="Blank uses half the width">
+                    </div>
+                    <div class="form-group">
+                        <label>Seat height (in)</label>
+                        <input type="number" data-field="seat_height" min="0" step="0.1" placeholder="Blank uses half the height">
+                    </div>
+                </div>
+                <div class="form-row" data-shape-extra="t_shape" hidden>
+                    <div class="form-group">
+                        <label>Stem width (in)</label>
+                        <input type="number" data-field="stem_width" min="0" step="0.1" placeholder="Blank uses half the width">
+                    </div>
+                    <div class="form-group">
+                        <label>Bar depth (in)</label>
+                        <input type="number" data-field="bar_depth" min="0" step="0.1" placeholder="Blank uses half the length">
+                    </div>
+                </div>
+                <p class="lp-help">Length runs from the nose toward the door. Width runs from the left wall to the right. Height runs from the floor up. A cylinder, roll, or tube asks for a length and a diameter, and loads along that length. An L-shape is the tall back plus the lower seat, and a T-shape is the crossbar plus the stem. Leave those sizes blank to use half. A pallet is packed as its rectangular load.</p>
+            </div>
+            <div class="lp-product-panel" data-panel="orientations" hidden>
+                <div class="lp-checks lp-orient-options">
+                    <span class="lp-orient-label">Allowed orientations</span>
+                    <label class="checkbox-row"><input type="radio" data-field="orient_mode" value="as_defined"> <span data-orient-copy data-box="As defined" data-cylinder="Along its length">As defined</span></label>
+                    <label class="checkbox-row"><input type="radio" data-field="orient_mode" value="turned"> <span data-orient-copy data-box="As defined, or turned" data-cylinder="Along its length, or across">As defined, or turned</span></label>
+                    <label class="checkbox-row"><input type="radio" data-field="orient_mode" value="all_six" checked> <span data-orient-copy data-box="All six" data-cylinder="Along its length, across, or standing">All six</span></label>
+                    <label class="checkbox-row" data-cylinder-show hidden><input type="radio" data-field="orient_mode" value="standing"> Standing only</label>
+                    <label class="checkbox-row"><input type="radio" data-field="orient_mode" value="custom"> Custom</label>
+                </div>
+                <div data-orient-custom hidden>
+                    <div class="lp-checks">
+                        <label class="checkbox-row"><input type="checkbox" data-field="allow_upright" checked> <span data-orient-copy data-box="Upright" data-cylinder="Along the length">Upright</span></label>
+                        <label class="checkbox-row"><input type="checkbox" data-field="allow_yaw90" checked> <span data-orient-copy data-box="Turned on floor" data-cylinder="Across the trailer">Turned on floor</span></label>
+                        <label class="checkbox-row" data-cylinder-hide><input type="checkbox" data-field="allow_side" checked> On side</label>
+                        <label class="checkbox-row" data-cylinder-hide><input type="checkbox" data-field="allow_side_turn" checked> On side, turned</label>
+                        <label class="checkbox-row"><input type="checkbox" data-field="allow_end" checked> <span data-orient-copy data-box="On end" data-cylinder="Standing">On end</span></label>
+                        <label class="checkbox-row" data-cylinder-hide><input type="checkbox" data-field="allow_end_turn" checked> On end, turned</label>
+                    </div>
+                </div>
+                <div class="lp-checks">
+                    <label class="checkbox-row"><input type="checkbox" data-field="on_floor_only"> On floor only</label>
+                    <label class="checkbox-row"><input type="checkbox" data-field="on_top_only"> On top only</label>
+                </div>
+                <p class="lp-help" data-orient-box>The load places each product upright, or turned on the floor, first. If a piece still does not fit, it can lie on its side or its end when All six is selected. As defined keeps the entered height up and does not turn it. Custom lets you allow each of the six orientations. On floor only keeps this product on the container floor, or on the same product. On top only blocks other products from sitting on it, except the same product within max stack.</p>
+                <p class="lp-help" data-orient-cylinder hidden>A cylinder loads along its length, from the nose toward the door. Across also lets the length run from the left wall to the right. Standing only stands the length up. On floor only keeps this product on the container floor, or on the same product. On top only blocks other products from sitting on it, except the same product within max stack.</p>
+            </div>
+            <div class="lp-product-panel" data-panel="stacking" hidden>
+                <div class="lp-checks">
+                    <label class="checkbox-row"><input type="checkbox" data-field="stackable" checked> Stackable</label>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Max stack</label>
+                        <input type="number" data-field="max_stack" min="1" step="1" placeholder="No limit">
+                    </div>
+                    <div class="form-group">
+                        <label>Max supported weight (lb)</label>
+                        <input type="number" data-field="supported_weight_lb" min="0" step="0.1" placeholder="Not checked">
+                    </div>
+                    <div class="form-group">
+                        <label>Stack index</label>
+                        <input type="number" data-field="stack_index" min="0" step="1" placeholder="Not checked">
+                    </div>
+                </div>
+                <p class="lp-help">Max stack is how many of this product can sit in one column. Leave it blank for no limit. Leave supported weight blank to skip that check. Zero means the product supports no weight. A stack index supports only the same index or a lower one, so a lower index is loaded higher. About 75% of the footprint must be supported.</p>
+            </div>
+            <div class="lp-product-panel" data-panel="other" hidden>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" data-field="notes" placeholder="Shown with the product">
+                    </div>
+                    <div class="form-group">
+                        <label>Load plan text</label>
+                        <input type="text" data-field="plan_text" maxlength="16" placeholder="Short diagram label">
+                    </div>
+                </div>
+                <p class="lp-help">Load plan text is the short label drawn on the product when IDs are on. Matching codes, combination codes, item sets, and drawing boxes are not used.</p>
+            </div>
+            <div class="lp-line-actions">
+                <button type="button" class="btn btn-secondary btn-compact" data-action="save-product">Save product</button>
+                <button type="button" class="btn btn-danger btn-compact" data-action="remove">Remove</button>
+            </div>
+            <input type="hidden" data-field="product_id" value="">
+        </div>
+    </template>
+
+    <script src="{{ url_for('static', filename='js/load_planning_view.js') }}?v=16"></script>
+    <script src="{{ url_for('static', filename='js/load_planning.js') }}?v=16"></script>
+</body>
+</html>

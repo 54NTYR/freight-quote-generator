@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ quote_file_label }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quote.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/load_planning.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% from 'partials/quote_header.html' import quote_shell with context %}
+        {% call quote_shell() %}
+        <div class="route-info">
+            <div class="route-summary">
+                <small>Load Planning | {{ result.metrics.containers_used }} container{{ '' if result.metrics.containers_used == 1 else 's' }} used of {{ result.metrics.containers_available }} available</small>
+            </div>
+        </div>
+        {% endcall %}
+
+        <section id="lpStage" class="lp-stage">
+            <h2 class="lp-stage-title">3D load</h2>
+            {% include 'load_planning/viewer.html' %}
+        </section>
+        <script type="application/json" id="lpResultData">{{ result_json | safe }}</script>
+
+        <div class="section">
+            <h2 class="section-title">Utilization</h2>
+            <div class="kpi-row">
+                <div class="kpi-block">
+                    <div class="kpi-title">Cube</div>
+                    <div class="kpi-value">{{ result.metrics.cube_util_pct }}%</div>
+                    <div class="kpi-note">{{ '{:,.1f}'.format(result.metrics.used_volume_cu_ft) }} of {{ '{:,.1f}'.format(result.metrics.capacity_volume_cu_ft) }} cu ft in use</div>
+                </div>
+                <div class="kpi-block">
+                    <div class="kpi-title">Weight</div>
+                    <div class="kpi-value">{{ result.metrics.weight_util_pct }}%</div>
+                    <div class="kpi-note">{{ '{:,.0f}'.format(result.metrics.used_weight_lb) }} of {{ '{:,.0f}'.format(result.metrics.capacity_weight_lb) }} lb</div>
+                </div>
+                <div class="kpi-block">
+                    <div class="kpi-title">Pieces</div>
+                    <div class="kpi-value">{{ result.metrics.loaded_pieces }} / {{ result.metrics.ordered_pieces }}</div>
+                    <div class="kpi-note">{% if result.all_fit %}All ordered pieces fit{% else %}{{ result.metrics.leftover_pieces }} left over{% endif %}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Containers</h2>
+            {% if result.containers %}
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Container</th>
+                        <th>Interior (in)</th>
+                        <th>Direction</th>
+                        <th>Cube</th>
+                        <th>Weight</th>
+                        <th>Pieces</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for box in result.containers %}
+                    <tr>
+                        <td><strong>{{ box.label }} #{{ box.instance }}</strong></td>
+                        <td>{{ '{:g}'.format(box.length_in) }} x {{ '{:g}'.format(box.width_in) }} x {{ '{:g}'.format(box.height_in) }}</td>
+                        <td>{% if box.load_direction == 'bottom_to_top' %}Floor to top{% else %}Nose to door{% endif %}</td>
+                        <td>{{ box.metrics.cube_util_pct }}%</td>
+                        <td>{{ box.metrics.weight_util_pct }}%</td>
+                        <td>{{ box.metrics.loaded_pieces }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No container was loaded.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Cargo</h2>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Size (in)</th>
+                        <th>Weight (lb)</th>
+                        <th>Ordered</th>
+                        <th>Loaded</th>
+                        <th>Left over</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in result.lines %}
+                    <tr>
+                        <td><strong>{{ line.name }}</strong></td>
+                        <td>{{ '{:g}'.format(line.length_in) }} x {{ '{:g}'.format(line.width_in) }} x {{ '{:g}'.format(line.height_in) }}</td>
+                        <td>{{ '{:g}'.format(line.weight_lb) }}</td>
+                        <td>{{ line.ordered }}</td>
+                        <td>{{ line.loaded }}</td>
+                        <td>{{ line.leftover }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% for box in result.containers %}
+        <div class="section">
+            <h2 class="section-title">{{ box.label }} #{{ box.instance }}</h2>
+            <p class="lp-help">Origin is the nose, the left wall, and the floor. Length runs toward the door. Numbers on the diagram are the load sequence.</p>
+            <div class="lp-diagram">{{ box.diagram_top }}</div>
+            <div class="lp-diagram">{{ box.diagram_side }}</div>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Seq</th>
+                        <th>Product</th>
+                        <th>Rotation</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Z</th>
+                        <th>L x W x H</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in box.placements %}
+                    <tr>
+                        <td>{{ item.sequence }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.rotation_label }}</td>
+                        <td>{{ '{:g}'.format(item.x) }}</td>
+                        <td>{{ '{:g}'.format(item.y) }}</td>
+                        <td>{{ '{:g}'.format(item.z) }}</td>
+                        <td>{{ '{:g}'.format(item.length_in) }} x {{ '{:g}'.format(item.width_in) }} x {{ '{:g}'.format(item.height_in) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+
+        <div class="section">
+            <h2 class="section-title">Left over</h2>
+            {% if result.all_fit %}
+            <p>All ordered pieces fit.</p>
+            {% else %}
+            <p>These pieces did not fit in the selected containers.</p>
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Left over</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in result.lines if line.leftover %}
+                    <tr>
+                        <td>{{ line.name }}</td>
+                        <td>{{ line.leftover }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            {% for warning in result.warnings %}
+            <p>{{ warning }}</p>
+            {% endfor %}
+        </div>
+
+        {% if plan.notes %}
+        <div class="section">
+            <h2 class="section-title">Notes</h2>
+            <p>{{ plan.notes }}</p>
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p><strong>{{ quote.company_name }}</strong> | Load Planning</p>
+            <p>Dimensions are in inches. Weight is in pounds. The diagram origin is the nose, left wall, and floor.</p>
+            <p>&copy; {{ current_year }} {{ quote.company_name }}. All rights reserved. | DOT: {{ quote.dot_number }} | MC: {{ quote.mc_number }}</p>
+        </div>
+    </div>
+
+    <div class="quote-toolbar">
+        <button type="button" class="btn" id="printQuoteBtn">Print plan</button>
+        <a class="btn btn-secondary" href="{{ url_for('load_planning') }}">Back to builder</a>
+        <a class="btn btn-secondary" href="{{ url_for('load_planning.export_plan', number=plan.plan_number) }}">Export JSON</a>
+    </div>
+    {% include 'partials/print_quote.html' %}
+    <script src="{{ url_for('static', filename='js/load_planning_view.js') }}?v=16"></script>
+    <script>
+        var lpResultNode = document.getElementById("lpResultData");
+        if (lpResultNode && window.LpView) {
+            window.LpView.show(JSON.parse(lpResultNode.textContent));
+        }
+    </script>
+</body>
+</html>

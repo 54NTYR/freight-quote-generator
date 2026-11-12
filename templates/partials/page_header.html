@@ -7,9 +7,9 @@
     {% endif %}
     {% if previous_quotes is defined %}
     <div class="header-actions">
-        <span class="header-actions-label" id="load_previous_quote_label">Load Previous Quote</span>
+        <span class="header-actions-label" id="load_previous_quote_label">{{ previous_label|default('Load Previous Quote') }}</span>
         <div class="header-quote-wrap">
-            <button type="button" class="header-quote-toggle" id="load_previous_quote_btn" aria-labelledby="load_previous_quote_label" aria-haspopup="listbox" aria-expanded="false">Select a quote</button>
+            <button type="button" class="header-quote-toggle" id="load_previous_quote_btn" aria-labelledby="load_previous_quote_label" aria-haspopup="listbox" aria-expanded="false">{{ previous_button|default('Select a quote') }}</button>
             <div class="header-quote-list" id="load_previous_quote_list" hidden role="listbox" aria-labelledby="load_previous_quote_label">
                 {% for row in previous_quotes %}
                 <button type="button" class="header-quote-option" role="option" data-quote="{{ row.quote_number }}">{{ row.label }}</button>

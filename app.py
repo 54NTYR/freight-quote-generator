@@ -27,6 +27,7 @@ import dray as dray_mod
 import ftl as ftl_mod
 import intl as intl_mod
 from admin_routes import admin_bp
+from load_planning.routes import load_planning_bp, render_builder
 from config import (
     COMPANY_INFO,
     ensure_config_file,
@@ -90,6 +91,7 @@ app = Flask(
     static_url_path="/static",
 )
 app.register_blueprint(admin_bp)
+app.register_blueprint(load_planning_bp)
 init_db()
 
 DRAY_SSL_LINES = [
@@ -108,7 +110,7 @@ REEFER_FEE = 150.0
 HAZMAT_FEE = 150.0
 OW_FEE = 150.0
 LAYOVER_FEE = 300.0
-STOP_OFF_FEE = 125.0
+STOP_OFF_FEE = 150.0
 PREPULL_FEE = 150.0
 RESIDENTIAL_FEE = 100.0
 OVERWEIGHT_LBS_THRESHOLD = 44000
@@ -501,12 +503,13 @@ def format_city_state_zip(city="", state="", zip_code="") -> str:
     return locality or zip_code
 
 
-_FILE_LABEL_PREFIXES = ("DRAY-Q", "FTL-Q", "LTL-Q", "INTL-Q")
+_FILE_LABEL_PREFIXES = ("DRAY-Q", "FTL-Q", "LTL-Q", "INTL-Q", "PLAN-Q")
 _FILE_LABEL_MODES = {
     "FTL": "FTL",
     "LTL": "LTL",
     "DRAY": "DRAY",
     "INTL": "INTL",
+    "PLAN": "PLAN",
 }
 
 
@@ -1560,6 +1563,11 @@ def home():
     return render_template("mode_select.html")
 
 
+@app.route("/load-planning", methods=["GET"])
+def load_planning():
+    return render_builder()
+
+
 @app.route("/customers")
 def customers_editor():
     return render_template("customers_editor.html", customers=all_customers())
@@ -1641,6 +1649,7 @@ def ltl_tiered_quote():
         "distance": distance,
         "transit_time": transit_prediction["display_window"] if prediction else f"{_stats['mu']} days",
         "pricing_tiers": quote_generator.create_pricing_tiers(tier_prices),
+        "quote_notes": request.form.get("quote_notes", ""),
         "current_date": _format_quote_date(),
         "valid_until": _format_quote_date(valid_until_date),
         **COMPANY_INFO,
@@ -1741,6 +1750,7 @@ def ltl_single_quote():
         "price_per_pallet": payload["price_per_pallet"],
         "total_cost": payload["total_cost"],
         "cost_per_pallet_mile": analytics["cost_per_pallet_mile"],
+        "quote_notes": request.form.get("quote_notes", ""),
         "current_date": _format_quote_date(),
         "valid_until": _format_quote_date(valid_until_date),
         **COMPANY_INFO,
@@ -1990,7 +2000,10 @@ def dray_quote():
     if layover_on:
         acc_lines.append({"label": "Layover", "amount": LAYOVER_FEE})
     if stop_off_on:
-        acc_lines.append({"label": "Stop-off", "amount": STOP_OFF_FEE})
+        stop_off_amt = _pf(form, "stop_off_rate")
+        if stop_off_amt is None or stop_off_amt < 0:
+            stop_off_amt = STOP_OFF_FEE
+        acc_lines.append({"label": "Stop-off", "amount": round(float(stop_off_amt), 2)})
     if prepull_on:
         acc_lines.append({"label": "Pre-Pull", "amount": PREPULL_FEE})
     if residential_on:

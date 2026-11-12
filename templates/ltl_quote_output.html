@@ -212,6 +212,15 @@
       </div>
     </div>
 
+    {% if quote.quote_notes %}
+    <div class="section" id="section-notes">
+      <div class="quote-notes">
+        <strong>Notes:</strong>
+        <div class="quote-notes-text">{{ quote.quote_notes }}</div>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="cta">
       <h2>Ready to Optimize Your Freight Costs?</h2>
       <p>Let Jericho Freight transform your supply chain efficiency. Our team is ready to customize a solution that fits your needs.</p>

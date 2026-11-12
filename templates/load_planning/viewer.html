@@ -1,0 +1,50 @@
+<div class="lp-ribbon" id="lpToolbar">
+    <div class="lp-ribbon-group">
+        <span class="lp-ribbon-label">Container</span>
+        <div class="lp-ribbon-buttons">
+            <button type="button" class="btn btn-secondary btn-compact" data-nav="prev">Prev</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-nav="next">Next</button>
+        </div>
+    </div>
+    <div class="lp-ribbon-group">
+        <span class="lp-ribbon-label">Load steps</span>
+        <div class="lp-ribbon-buttons">
+            <button type="button" class="btn btn-secondary btn-compact" data-step="none">None</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-step="less" aria-label="One less piece">-</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-step="more" aria-label="One more piece">+</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-step="all">All</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-toggle="play">Play</button>
+        </div>
+    </div>
+    <div class="lp-ribbon-group">
+        <span class="lp-ribbon-label">View</span>
+        <div class="lp-ribbon-buttons">
+            <button type="button" class="btn btn-secondary btn-compact" data-view="top">Top</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="left">Left</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="right">Right</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="front">Front</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="back">Back</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="quad">Quad</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="fl">FL</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="fr">FR</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="bl">BL</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-view="br">BR</button>
+        </div>
+    </div>
+    <div class="lp-ribbon-group">
+        <span class="lp-ribbon-label">Diagram</span>
+        <div class="lp-ribbon-buttons">
+            <button type="button" class="btn btn-secondary btn-compact" data-toggle="ids">IDs</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-style="wire">Wire</button>
+            <button type="button" class="btn btn-secondary btn-compact" data-style="ghost">Ghost</button>
+        </div>
+    </div>
+</div>
+<div class="lp-stage-body">
+    <div class="lp-stats" id="lpStats"></div>
+    <div class="lp-canvas-wrap">
+        <canvas id="lpCanvas" aria-label="3D load preview"></canvas>
+    </div>
+    <input id="lpSlider" class="lp-slider" type="range" min="0" max="0" value="0" aria-label="Load step">
+</div>
+<p class="lp-help lp-view-help">Drag to rotate. Shift-drag to move. Scroll to zoom. Front looks at the door. Back looks at the nose. + adds the next piece and - removes the last one.</p>

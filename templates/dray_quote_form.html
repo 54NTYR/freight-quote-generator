@@ -141,18 +141,23 @@
                         <label class="checkbox-row" for="layover">
                             <input type="checkbox" id="layover" name="layover" value="on"> Layover
                         </label>
-                        <label class="checkbox-row" for="stop_off">
-                            <input type="checkbox" id="stop_off" name="stop_off" value="on"> Stop-off
+                        <label class="checkbox-row" for="overweight">
+                            <input type="checkbox" id="overweight" name="overweight" value="on"> Overweight
                         </label>
                         <label class="checkbox-row" for="residential">
                             <input type="checkbox" id="residential" name="residential" value="on"> Residential
                         </label>
-                        <label class="checkbox-row" for="overweight">
-                            <input type="checkbox" id="overweight" name="overweight" value="on"> Overweight
+                        <label class="checkbox-row" for="stop_off">
+                            <input type="checkbox" id="stop_off" name="stop_off" value="on"> Stop-off
                         </label>
                         <label class="checkbox-row" for="triaxle">
                             <input type="checkbox" id="triaxle" name="triaxle" value="on"> Triaxle
                         </label>
+                    </div>
+                    <div class="form-group" id="stop_off_rate_wrap" hidden>
+                        <label for="stop_off_rate">Stop-off rate ($)</label>
+                        <input type="number" id="stop_off_rate" name="stop_off_rate" min="0" step="0.01" value="150">
+                        <span class="field-hint">Standard is $150. Adjust if quoting a different stop-off rate.</span>
                     </div>
                     <div class="form-row">
                         <div class="form-group">

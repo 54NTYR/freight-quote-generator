@@ -103,13 +103,31 @@
         fscLabel.textContent = fscMode.value === "percent" ? "Percentage (%)" : "Amount ($)";
     }
 
+    function syncStopOffRate() {
+        var stopBox = document.getElementById("stop_off");
+        var wrap = document.getElementById("stop_off_rate_wrap");
+        var rateInput = document.getElementById("stop_off_rate");
+        if (!wrap) return;
+        var on = isOn(stopBox);
+        wrap.hidden = !on;
+        if (on && rateInput && (rateInput.value === "" || rateInput.value == null)) {
+            rateInput.value = String(Number(rates.stop_off || 150));
+        }
+    }
+
     function accessorialTotal() {
         var total = num("tolls");
         if (isOn(document.getElementById("reefer"))) total += Number(rates.reefer || 150);
         if (isOn(overweightBox)) total += Number(rates.ow || 150);
         if (isOn(document.getElementById("hazmat"))) total += Number(rates.hazmat || 150);
         if (isOn(document.getElementById("layover"))) total += Number(rates.layover || 300);
-        if (isOn(document.getElementById("stop_off"))) total += Number(rates.stop_off || 125);
+        if (isOn(document.getElementById("stop_off"))) {
+            var stopRateEl = document.getElementById("stop_off_rate");
+            var stopCustom = stopRateEl ? parseFloat(stopRateEl.value) : NaN;
+            total += Number.isFinite(stopCustom) && stopCustom >= 0
+                ? stopCustom
+                : Number(rates.stop_off || 150);
+        }
         if (isOn(prepullBox)) total += Number(rates.prepull || 150);
         if (isOn(document.getElementById("residential"))) total += Number(rates.residential || 100);
         return total;
@@ -605,6 +623,7 @@
         directionLabels();
         syncFscLabel();
         syncOverweightWarning();
+        syncStopOffRate();
         syncTotals();
         scheduleMiles();
         saveTerminalDraft();
@@ -682,6 +701,8 @@
     if (loadWeight) loadWeight.addEventListener("input", function () { syncOverweightWarning(); syncTotals(); });
     if (overweightBox) overweightBox.addEventListener("change", function () { syncOverweightWarning(); syncTotals(); });
     if (prepullBox) prepullBox.addEventListener("change", function () { syncPrepullWarning(); syncTotals(); });
+    var stopOffBox = document.getElementById("stop_off");
+    if (stopOffBox) stopOffBox.addEventListener("change", function () { syncStopOffRate(); syncTotals(); });
     if (fscMode) fscMode.addEventListener("change", function () { syncFscLabel(); syncTotals(); });
     if (form) {
         form.addEventListener("input", syncTotals);
@@ -695,6 +716,7 @@
     syncFscLabel();
     syncOverweightWarning();
     syncPrepullWarning();
+    syncStopOffRate();
     syncTotals();
     bindAllFacilityPlaces();
     bindTerminalPlaces();

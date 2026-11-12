@@ -136,6 +136,15 @@
       </div>
     </div>
 
+    {% if quote.quote_notes %}
+    <div class="section" id="section-notes">
+      <div class="quote-notes">
+        <strong>Notes:</strong>
+        <div class="quote-notes-text">{{ quote.quote_notes }}</div>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="cta">
       <h2>Ready to Book This Shipment?</h2>
       <p>This quote covers one LTL move on the lane above at the pallet count and rate shown.</p>
